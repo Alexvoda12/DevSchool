@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyMaster · Название страницы</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <!-- Font Awesome 6.5.1 (актуальная версия) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Дополнительные стили для конкретной страницы можно добавить здесь -->
+</head>
+<body>
+
+<!-- Flash сообщения -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+        {% for category, message in messages %}
+            <div class="flash-message">
+                <i class="fa-solid fa-circle-check"></i> {{ message }}
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<!-- Навбар -->
+<nav class="navbar">
+    <div class="container nav-wrapper">
+        <div class="logo">
+            <i class="fa-brands fa-python logo-icon"></i>
+            <span class="logo-text">PyMaster</span>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('main') }}" class="{% if request.endpoint == 'main' %}active{% endif %}">Главная</a>
+            <a href="{{ url_for('courses') }}" class="{% if request.endpoint == 'courses' %}active{% endif %}">Курсы</a>
+            <a href="{{ url_for('ai_assistant') }}" class="{% if request.endpoint == 'ai_assistant' %}active{% endif %}">GPT-4</a>
+            <a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">Кабинет</a>
+            
+            <div class="pyth-balance" onclick="window.location.href='{{ url_for('shop') }}'">
+                <i class="fa-solid fa-coins"></i>
+                <span>{{ session.user.balance if session.user else 0 }} PYTH</span>
+            </div>
+            
+            {% if session.user %}
+                <a href="{{ url_for('logout') }}" class="logout-btn">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                </a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="login-btn">Войти</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+<!-- Герой -->
+<section class="hero">
+    <div class="container">
+        <h1>Python с GPT-4</h1>
+        <p>Изучай Python с персональным ИИ-помощником, который всегда рядом</p>
+        
+        {% if session.user %}
+            <a href="{{ url_for('dashboard') }}" class="btn-primary" style="display: inline-block; padding: 15px 40px; background: linear-gradient(145deg, #2563eb, #1d4ed8); color: white; border-radius: 40px; text-decoration: none; font-weight: 600;">
+                В личный кабинет <i class="fa-solid fa-arrow-right"></i>
+            </a>
+        {% else %}
+            <a href="{{ url_for('register') }}" class="btn-primary" style="display: inline-block; padding: 15px 40px; background: linear-gradient(145deg, #2563eb, #1d4ed8); color: white; border-radius: 40px; text-decoration: none; font-weight: 600;">
+                Начать бесплатно <i class="fa-solid fa-arrow-right"></i>
+            </a>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Преимущества -->
+<div class="container">
+    <div class="features">
+        <div class="feature-card">
+            <i class="fa-solid fa-robot"></i>
+            <h3>GPT-4 помощник</h3>
+            <p>Персональный ИИ, который знает твое имя и помогает с кодом 24/7</p>
+        </div>
+        <div class="feature-card">
+            <i class="fa-solid fa-coins"></i>
+            <h3>PYTH Coin</h3>
+            <p>Внутренняя валюта для покупки курсов и бонусов</p>
+        </div>
+        <div class="feature-card">
+            <i class="fa-solid fa-code"></i>
+            <h3>12 курсов</h3>
+            <p>От основ до асинхронного программирования</p>
+        </div>
+    </div>
+</div>
+
+<!-- Футер -->
+<footer class="footer">
+    <div class="container">
+        <p>© 2025 PyMaster · Обучение Python с искусственным интеллектом</p>
+    </div>
+</footer>
+
+<script>
+    setTimeout(() => {
+        document.querySelectorAll('.flash-message').forEach(msg => {
+            msg.style.animation = 'slideOut 0.3s';
+            setTimeout(() => msg.remove(), 300);
+        });
+    }, 5000);
+</script>
+
+<style>
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+</style>
+</body>
+</html>

@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyMaster · Название страницы</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <!-- Font Awesome 6.5.1 (актуальная версия) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Дополнительные стили для фиксированной прокрутки */
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        
+        .navbar {
+            flex-shrink: 0;
+        }
+        
+        .gpt-page {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 80px);
+            overflow: hidden;
+            background: #0f172a;
+        }
+        
+        .gpt-header {
+            flex-shrink: 0;
+            background: rgba(15, 23, 42, 0.95);
+            border-bottom: 1px solid #1e293b;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            z-index: 10;
+        }
+        
+        .gpt-chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 0 20px;
+            overflow: hidden;
+            background: #0f172a;
+        }
+        
+        .gpt-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            scroll-behavior: smooth;
+            min-height: 0; /* Важно для Firefox */
+        }
+        
+        .gpt-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .gpt-messages::-webkit-scrollbar-track {
+            background: #1e293b;
+            border-radius: 10px;
+        }
+        
+        .gpt-messages::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 10px;
+        }
+        
+        .gpt-messages::-webkit-scrollbar-thumb:hover {
+            background: #2563eb;
+        }
+        
+        .gpt-input-container {
+            flex-shrink: 0;
+            padding: 20px 0;
+            border-top: 1px solid #1e293b;
+            background: #0f172a;
+            margin-top: auto;
+        }
+        
+        /* Остальные стили остаются из style.css */
+    </style>
+</head>
+<body>
+
+<!-- Flash сообщения -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <i class="fa-solid fa-robot"></i> {{ message }}
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<!-- Навбар (фиксированный сверху) -->
+<nav class="navbar">
+    <div class="container nav-wrapper">
+        <div class="logo">
+            <i class="fa-brands fa-python logo-icon"></i>
+            <span class="logo-text">PyMaster</span>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('main') }}" class="{% if request.endpoint == 'main' %}active{% endif %}">Главная</a>
+            <a href="{{ url_for('courses') }}" class="{% if request.endpoint == 'courses' %}active{% endif %}">Курсы</a>
+            <a href="{{ url_for('ai_assistant') }}" class="{% if request.endpoint == 'ai_assistant' %}active{% endif %}">GPT-4</a>
+            <a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">Кабинет</a>
+            
+            <div class="pyth-balance" onclick="window.location.href='{{ url_for('shop') }}'">
+                <i class="fa-solid fa-coins"></i>
+                <span>{{ session.user.balance if session.user else 0 }} PYTH</span>
+            </div>
+            
+            {% if session.user %}
+                <a href="{{ url_for('logout') }}" class="logout-btn">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                </a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="login-btn">Войти</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+<!-- Основная страница GPT-4 -->
+<div class="gpt-page">
+    <!-- Верхняя панель с информацией (фиксированная) -->
+    <div class="gpt-header">
+        <div class="gpt-user-info">
+            <div class="gpt-avatar">
+                <i class="fa-solid fa-user"></i>
+            </div>
+            <div class="gpt-user-details">
+                <h3>{{ user.name }}</h3>
+                <p>{{ user.email }}</p>
+            </div>
+        </div>
+        
+        <div class="gpt-status">
+            <div class="gpt-stats-compact">
+                <div class="gpt-stat-item">
+                    <i class="fa-solid fa-message"></i>
+                    Сообщений: <span class="gpt-stat-value" id="messageCount">{{ chat_history|length }}</span>
+                </div>
+                <div class="gpt-stat-item">
+                    <i class="fa-solid fa-clock"></i>
+                    Сессия: <span class="gpt-stat-value" id="sessionTime">00:00</span>
+                </div>
+            </div>
+            <span class="gpt-badge">GPT-4</span>
+            <div class="online-status">
+                <i class="fa-solid fa-circle"></i>
+                <span>В сети</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Контейнер чата (только он прокручивается) -->
+    <div class="gpt-chat-container">
+        <!-- Сообщения (прокручиваемая область) -->
+        <div class="gpt-messages" id="chatMessages">
+            {% if chat_history %}
+                {% for msg in chat_history %}
+                    <div class="gpt-message {% if msg.role == 'user' %}user{% else %}ai{% endif %}">
+                        <div class="gpt-message-avatar {% if msg.role == 'user' %}user{% else %}ai{% endif %}">
+                            <i class="fa-solid {% if msg.role == 'user' %}fa-user{% else %}fa-robot{% endif %}"></i>
+                        </div>
+                        <div class="gpt-message-content">
+                            <div class="gpt-message-sender">
+                                {% if msg.role == 'user' %}{{ user.name }}{% else %}GPT-4{% endif %}
+                            </div>
+                            <div class="gpt-message-text">
+                                {{ msg.content | replace('\n', '<br>') | safe }}
+                            </div>
+                            <div class="gpt-message-time">
+                                {{ msg.timestamp.strftime('%H:%M') }}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="gpt-empty">
+                    <div class="gpt-empty-icon">
+                        <i class="fa-solid fa-message"></i>
+                    </div>
+                    <div class="gpt-empty-title">Начни общение с GPT-4</div>
+                    <div class="gpt-empty-text">
+                        Привет, {{ user.name }}! Я твой персональный GPT-4 помощник. 
+                        Задай любой вопрос по Python, и я с радостью помогу!
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Индикатор печатания -->
+        <div id="typingIndicator" class="gpt-typing" style="display: none;">
+            <div class="gpt-typing-dot"></div>
+            <div class="gpt-typing-dot"></div>
+            <div class="gpt-typing-dot"></div>
+        </div>
+
+        <!-- Поле ввода (фиксированное снизу) -->
+        <div class="gpt-input-container">
+            <div class="gpt-input-wrapper">
+                <input type="text" 
+                       class="gpt-input" 
+                       id="messageInput" 
+                       placeholder="Спроси GPT-4 о Python..." 
+                       onkeypress="if(event.key === 'Enter') sendMessage()"
+                       autofocus>
+                <button class="gpt-send-btn" id="sendButton" onclick="sendMessage()">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let isTyping = false;
+    let sessionStartTime = Date.now();
+    let lastResponse = '';
+
+    // Обновление времени сессии
+    setInterval(() => {
+        const sessionTime = document.getElementById('sessionTime');
+        if (sessionTime) {
+            const seconds = Math.floor((Date.now() - sessionStartTime) / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            sessionTime.textContent = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+    }, 1000);
+
+    // Функция добавления сообщения в чат
+    function addMessageToChat(role, content, timestamp = null) {
+        const messagesDiv = document.getElementById('chatMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `gpt-message ${role}`;
+        
+        const time = timestamp ? new Date(timestamp) : new Date();
+        const timeStr = time.getHours().toString().padStart(2, '0') + ':' + 
+                       time.getMinutes().toString().padStart(2, '0');
+        
+        const escapedContent = content
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;')
+            .replace(/\n/g, '<br>');
+        
+        messageDiv.innerHTML = `
+            <div class="gpt-message-avatar ${role}">
+                <i class="fa-solid ${role === 'user' ? 'fa-user' : 'fa-robot'}"></i>
+            </div>
+            <div class="gpt-message-content">
+                <div class="gpt-message-sender">
+                    ${role === 'user' ? '{{ user.name }}' : 'GPT-4'}
+                </div>
+                <div class="gpt-message-text">${escapedContent}</div>
+                <div class="gpt-message-time">${timeStr}</div>
+            </div>
+        `;
+        
+        const emptyChat = messagesDiv.querySelector('.gpt-empty');
+        if (emptyChat) {
+            emptyChat.remove();
+        }
+        
+        messagesDiv.appendChild(messageDiv);
+        
+        // Плавная прокрутка к новому сообщению
+        setTimeout(() => {
+            messagesDiv.scrollTo({
+                top: messagesDiv.scrollHeight,
+                behavior: 'smooth'
+            });
+        }, 100);
+        
+        const msgCount = document.getElementById('messageCount');
+        if (msgCount) {
+            const currentCount = parseInt(msgCount.textContent);
+            msgCount.textContent = currentCount + 1;
+        }
+        
+        if (role === 'ai') {
+            lastResponse = content;
+        }
+    }
+
+    // Функция отправки сообщения
+    async function sendMessage() {
+        const input = document.getElementById('messageInput');
+        const message = input.value.trim();
+        
+        if (!message || isTyping) return;
+        
+        input.value = '';
+        
+        addMessageToChat('user', message);
+        
+        isTyping = true;
+        document.getElementById('typingIndicator').style.display = 'flex';
+        document.getElementById('sendButton').disabled = true;
+        
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: message })
+            });
+            
+            const data = await response.json();
+            
+            document.getElementById('typingIndicator').style.display = 'none';
+            addMessageToChat('ai', data.response, data.timestamp);
+            
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('typingIndicator').style.display = 'none';
+            addMessageToChat('ai', 'Извините, произошла ошибка. Попробуйте еще раз.');
+        } finally {
+            isTyping = false;
+            document.getElementById('sendButton').disabled = false;
+            input.focus();
+        }
+    }
+
+    // Функция очистки чата
+    async function clearChat() {
+        if (!confirm('Очистить историю чата?')) return;
+        
+        try {
+            const response = await fetch('/api/clear-chat', {
+                method: 'POST'
+            });
+            
+            if (response.ok) {
+                document.getElementById('chatMessages').innerHTML = `
+                    <div class="gpt-empty">
+                        <div class="gpt-empty-icon">
+                            <i class="fa-solid fa-message"></i>
+                        </div>
+                        <div class="gpt-empty-title">Новый чат с GPT-4</div>
+                        <div class="gpt-empty-text">
+                            Привет, {{ user.name }}! Чат очищен. Задай новый вопрос!
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('messageCount').textContent = '0';
+                sessionStartTime = Date.now();
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    // Функция копирования последнего ответа
+    function copyLastResponse() {
+        if (lastResponse) {
+            navigator.clipboard.writeText(lastResponse).then(() => {
+                alert('Ответ скопирован!');
+            });
+        } else {
+            alert('Нет ответа для копирования');
+        }
+    }
+
+    // Скролл вниз при загрузке
+    window.onload = function() {
+        const messagesDiv = document.getElementById('chatMessages');
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    };
+
+    // Обработка клавиш
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.key === 'Enter') {
+            sendMessage();
+        }
+        if (e.key === 'Escape') {
+            document.getElementById('messageInput').blur();
+        }
+    });
+</script>
+
+<style>
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+    
+    /* Дополнительные стили для flash сообщений */
+    .flash-messages {
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        z-index: 1000;
+    }
+</style>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyMaster · Мои курсы</title>
+    <!-- те же стили, что в ai_assistant.html -->
+    <style>
+        /* добавьте те же стили из ai_assistant.html */
+        .courses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+        .course-card {
+            background: rgba(18, 26, 36, 0.7);
+            border: 1px solid #2a3a55;
+            border-radius: 32px;
+            padding: 30px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container nav-wrapper">
+            <div class="logo">
+                <i class="fa-brands fa-python logo-icon"></i>
+                <span class="logo-text">PyMaster</span>
+            </div>
+            <div class="nav-links">
+                <a href="{{ url_for('main') }}">Главная</a>
+                <a href="{{ url_for('dashboard') }}">Кабинет</a>
+                <a href="{{ url_for('logout') }}" class="btn">Выйти</a>
+            </div>
+        </div>
+    </nav>
+
+    <section style="padding: 60px 0; text-align: center;">
+        <div class="container">
+            <h1 style="font-size: 2.5rem; margin-bottom: 20px;">📚 Мои курсы</h1>
+            <p style="color: #9ab3d0; margin-bottom: 40px;">Скоро здесь появятся ваши курсы</p>
+            
+            <div class="courses-grid">
+                <div class="course-card">
+                    <i class="fa-brands fa-python" style="font-size: 3rem; color: #3b82f6; margin-bottom: 20px;"></i>
+                    <h3>Python для начинающих</h3>
+                    <p style="color: #9ab3d0;">24 урока • 8 часов</p>
+                    <div class="progress-bar" style="margin: 20px 0;">
+                        <div style="width: 100%; height: 8px; background: #1e293b; border-radius: 10px;">
+                            <div style="width: 45%; height: 100%; background: #3b82f6; border-radius: 10px;"></div>
+                        </div>
+                    </div>
+                    <a href="#" class="btn">Продолжить</a>
+                </div>
+            </div>
+            
+            <a href="{{ url_for('dashboard') }}" class="back-link" style="display: block; margin-top: 40px;">
+                ← Назад в кабинет
+            </a>
+        </div>
+    </section>
+</body>
+</html>

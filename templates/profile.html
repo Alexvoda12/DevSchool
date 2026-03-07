@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyMaster · Название страницы</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <!-- Font Awesome 6.5.1 (полная версия) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Фиксируем навбар и делаем прокрутку только для контента */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .navbar {
+            flex-shrink: 0;
+            position: relative;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .profile-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+            background: #0a0c0f;
+            height: calc(100vh - 80px);
+        }
+        
+        .profile-section {
+            padding: 40px 0 60px;
+            min-height: 100%;
+        }
+        
+        /* Стилизация скроллбара */
+        .profile-wrapper::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .profile-wrapper::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        
+        .profile-wrapper::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 10px;
+        }
+        
+        .profile-wrapper::-webkit-scrollbar-thumb:hover {
+            background: #2563eb;
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 900px) {
+            .profile-wrapper {
+                height: calc(100vh - 120px);
+            }
+        }
+
+        /* Дополнительные стили для профиля */
+        .profile-header {
+            background: rgba(18, 26, 36, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid #2a3a55;
+            border-radius: 40px;
+            padding: 40px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+
+        .profile-avatar {
+            position: relative;
+        }
+
+        .avatar-circle {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            color: white;
+            border: 4px solid #3b82f6;
+            box-shadow: 0 20px 30px -10px #2563eb;
+        }
+
+        .level-badge {
+            position: absolute;
+            bottom: 0;
+            right: -10px;
+            background: {{ user.tag.color }};
+            color: white;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            border: 3px solid #0a0c0f;
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-name {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .profile-name h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(145deg, #ffffff, #b2d9ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .user-tag {
+            background: {{ user.tag.color }};
+            color: white;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+            box-shadow: 0 10px 20px -5px {{ user.tag.color }}80;
+        }
+
+        .user-tag i {
+            font-size: 1.2rem;
+        }
+
+        .profile-meta {
+            display: flex;
+            gap: 30px;
+            color: #9ab3d0;
+            flex-wrap: wrap;
+        }
+
+        .profile-meta i {
+            color: #3b82f6;
+            margin-right: 8px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(18, 26, 36, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid #2a3a55;
+            border-radius: 32px;
+            padding: 30px;
+            transition: 0.3s;
+        }
+
+        .stat-card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-5px);
+            box-shadow: 0 20px 30px -10px #2563eb40;
+        }
+
+        .stat-title {
+            color: #9ab3d0;
+            font-size: 0.95rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stat-title i {
+            color: #3b82f6;
+            font-size: 1.2rem;
+        }
+
+        .stat-value {
+            font-size: 3rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #6b8bb0;
+            font-size: 0.9rem;
+        }
+
+        .progress-container {
+            margin-top: 15px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #1e293b;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+            border-radius: 10px;
+            transition: width 0.3s;
+        }
+
+        .achievements-section {
+            background: rgba(18, 26, 36, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid #2a3a55;
+            border-radius: 32px;
+            padding: 30px;
+            margin-top: 30px;
+        }
+
+        .achievements-title {
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #e9f0fa;
+        }
+
+        .achievements-title i {
+            color: #fbbf24;
+        }
+
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .achievement-item {
+            background: #1a2635;
+            border: 1px solid #2f405b;
+            border-radius: 24px;
+            padding: 20px;
+            text-align: center;
+            transition: 0.2s;
+        }
+
+        .achievement-item:hover {
+            border-color: #fbbf24;
+            transform: scale(1.02);
+        }
+
+        .achievement-icon {
+            font-size: 2.5rem;
+            color: #fbbf24;
+            margin-bottom: 10px;
+        }
+
+        .achievement-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .achievement-date {
+            font-size: 0.8rem;
+            color: #6b8bb0;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(145deg, #2563eb, #1d4ed8);
+            color: white;
+            border: 1px solid #3b82f6;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(145deg, #3b82f6, #2563eb);
+            transform: scale(1.02);
+            box-shadow: 0 10px 20px -5px #2563eb;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #3b82f6;
+            color: white;
+        }
+
+        .btn-outline:hover {
+            background: rgba(59, 130, 246, 0.1);
+            transform: scale(1.02);
+        }
+
+        @media (max-width: 700px) {
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            .profile-name {
+                justify-content: center;
+            }
+            .profile-meta {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Flash сообщения -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <i class="fa-solid fa-circle-check"></i> {{ message }}
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<!-- Навбар -->
+<nav class="navbar">
+    <div class="container nav-wrapper">
+        <div class="logo">
+            <i class="fa-brands fa-python logo-icon"></i>
+            <span class="logo-text">PyMaster</span>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('main') }}" class="{% if request.endpoint == 'main' %}active{% endif %}">Главная</a>
+            <a href="{{ url_for('courses') }}" class="{% if request.endpoint == 'courses' %}active{% endif %}">Курсы</a>
+            <a href="{{ url_for('ai_assistant') }}" class="{% if request.endpoint == 'ai_assistant' %}active{% endif %}">GPT-4</a>
+            <a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">Кабинет</a>
+            
+            <div class="pyth-balance" onclick="window.location.href='{{ url_for('shop') }}'">
+                <i class="fa-solid fa-coins"></i>
+                <span>{{ session.user.balance if session.user else 0 }} PYTH</span>
+            </div>
+            
+            {% if session.user %}
+                <a href="{{ url_for('logout') }}" class="logout-btn">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                </a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="login-btn">Войти</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+<!-- Обертка для прокручиваемого контента -->
+<div class="profile-wrapper">
+    <!-- Профиль -->
+    <section class="profile-section">
+        <div class="container">
+            <!-- Шапка профиля -->
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <div class="avatar-circle">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    <div class="level-badge">
+                        LVL {{ user.level }}
+                    </div>
+                </div>
+                
+                <div class="profile-info">
+                    <div class="profile-name">
+                        <h1>{{ user.name }}</h1>
+                        <span class="user-tag">
+                            <i class="fa-solid {{ user.tag.icon }}"></i>
+                            {{ user.tag.name }}
+                        </span>
+                    </div>
+                    
+                    <div class="profile-meta">
+                        <span><i class="fa-solid fa-envelope"></i> {{ user.email }}</span>
+                        <span><i class="fa-solid fa-calendar"></i> На платформе {{ user.days_active }} дней</span>
+                        <span><i class="fa-solid fa-clock"></i> Последний визит: сегодня</span>
+                    </div>
+                    
+                    <p style="color: #9ab3d0; margin-top: 15px;">
+                        <i class="fa-solid fa-quote-left" style="color: #3b82f6;"></i>
+                        {{ user.tag.description }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Баланс и транзакции -->
+            <div class="stats-grid">
+                <div class="stat-card" style="grid-column: span 2;">
+                    <div class="stat-title">
+                        <i class="fa-solid fa-coins" style="color: #fbbf24;"></i> 
+                        Баланс PYTH Coin
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+                        <div>
+                            <span style="font-size: 3rem; font-weight: 700;">{{ user.balance }}</span>
+                            <span style="color: #fbbf24; margin-left: 10px;">PYTH</span>
+                        </div>
+                        <a href="{{ url_for('shop') }}" class="btn btn-primary">
+                            <i class="fa-solid fa-plus"></i> Пополнить
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Основная статистика -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-title">
+                        <i class="fa-solid fa-clock"></i> Время обучения
+                    </div>
+                    <div class="stat-value">{{ user.total_hours }} ч</div>
+                    <div class="stat-label">За всё время</div>
+                    <div class="progress-container">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <span>До следующего уровня</span>
+                            <span>{{ user.next_level_hours }} ч</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: {{ (user.total_hours % 10) * 10 }}%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-title">
+                        <i class="fa-solid fa-graduation-cap"></i> Курсы
+                    </div>
+                    <div class="stat-value">{{ user.courses_completed }}</div>
+                    <div class="stat-label">Завершенных курсов</div>
+                    <div class="progress-container">
+                        <div style="margin-top: 15px;">
+                            <span>Текущий: {{ user.current_course }}</span>
+                            <div class="progress-bar" style="margin-top: 8px;">
+                                <div class="progress-fill" style="width: {{ user.course_progress }}%"></div>
+                            </div>
+                            <span style="font-size: 0.9rem; color: #9ab3d0;">{{ user.course_progress }}% завершено</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-title">
+                        <i class="fa-solid fa-chart-line"></i> Активность
+                    </div>
+                    <div class="stat-value">{{ user.avg_hours_per_day }}</div>
+                    <div class="stat-label">Часов в день (в среднем)</div>
+                    <div style="margin-top: 15px; display: flex; gap: 5px;">
+                        {% for i in range(7) %}
+                            <div style="flex: 1; height: 40px; background: #1e293b; border-radius: 8px; display: flex; align-items: flex-end;">
+                                <div style="height: {{ [20, 40, 60, 80, 100][loop.index0 % 5] }}%; width: 100%; background: #3b82f6; border-radius: 8px;"></div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- История транзакций -->
+            <div class="achievements-section">
+                <div class="achievements-title">
+                    <i class="fa-solid fa-clock-rotate-left"></i> История транзакций
+                </div>
+                
+                <div style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
+                    {% for transaction in user.transaction_history %}
+                    <div style="background: #1a2635; border: 1px solid #2f405b; border-radius: 20px; padding: 15px 20px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                {% if transaction.type == 'deposit' %}
+                                    <i class="fa-solid fa-circle-arrow-up" style="color: #10b981;"></i>
+                                {% elif transaction.type == 'purchase' %}
+                                    <i class="fa-solid fa-circle-arrow-down" style="color: #ef4444;"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-gift" style="color: #fbbf24;"></i>
+                                {% endif %}
+                                <div>
+                                    <div style="font-weight: 500;">{{ transaction.description }}</div>
+                                    <div style="font-size: 0.8rem; color: #6b8bb0;">{{ transaction.date.strftime('%d.%m.%Y %H:%M') }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="font-weight: 600; {% if transaction.amount > 0 %}color: #10b981;{% else %}color: #ef4444;{% endif %}">
+                            {{ '+' if transaction.amount > 0 else '' }}{{ transaction.amount }} PYTH
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Достижения -->
+            <div class="achievements-section">
+                <div class="achievements-title">
+                    <i class="fa-solid fa-trophy"></i> Достижения ({{ user.achievements|length }})
+                </div>
+                
+                <div class="achievements-grid">
+                    {% for achievement in user.achievements %}
+                    <div class="achievement-item">
+                        <div class="achievement-icon">
+                            <i class="fa-solid {{ achievement.icon }}"></i>
+                        </div>
+                        <div class="achievement-name">{{ achievement.name }}</div>
+                        <div class="achievement-date">
+                            {{ achievement.date.strftime('%d.%m.%Y') }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <!-- Заблокированные достижения (для примера) -->
+                    <div class="achievement-item" style="opacity: 0.5;">
+                        <div class="achievement-icon">
+                            <i class="fa-solid fa-lock"></i>
+                        </div>
+                        <div class="achievement-name">Мастер кода</div>
+                        <div class="achievement-date">500 часов</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Футер -->
+    <footer class="footer">
+        <div class="container">
+            <p>© 2025 PyMaster · Твой путь в Python с искусственным интеллектом</p>
+        </div>
+    </footer>
+</div>
+
+<!-- Демо-кнопка для добавления прогресса (только для разработки) -->
+<div class="demo-button">
+    <a href="{{ url_for('add_progress') }}" class="demo-btn">
+        <i class="fa-solid fa-plus"></i> +1 час обучения (демо)
+    </a>
+</div>
+
+<script>
+    setTimeout(() => {
+        document.querySelectorAll('.flash-message').forEach(msg => {
+            msg.style.animation = 'slideOut 0.3s';
+            setTimeout(() => msg.remove(), 300);
+        });
+    }, 5000);
+</script>
+
+<style>
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+    
+    .demo-button {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 100;
+    }
+
+    .demo-btn {
+        background: linear-gradient(145deg, #2563eb, #1d4ed8);
+        border: none;
+        color: white;
+        padding: 16px 32px;
+        border-radius: 60px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 20px 30px -10px #2563eb;
+        transition: 0.2s;
+        text-decoration: none;
+    }
+
+    .demo-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 25px 35px -8px #2563eb;
+    }
+</style>
+</body>
+</html>

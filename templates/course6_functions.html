@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyMaster · Название страницы</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <!-- Font Awesome 6.5.1 (актуальная версия) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+    /* Исправленные стили для правильной прокрутки */
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: auto; /* Изменено с hidden на auto */
+    }
+    
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        font-family: 'Inter', sans-serif;
+        background: #0a0c0f;
+        color: #e3e9f1;
+        overflow-y: auto; /* Добавлено для вертикальной прокрутки */
+    }
+    
+    .navbar {
+        flex-shrink: 0;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        width: 100%;
+    }
+    
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 24px;
+        width: 100%;
+    }
+    
+    /* Основной контент с прокруткой */
+    .course-content {
+        flex: 1;
+        padding: 40px 0;
+        overflow-y: visible; /* Убираем ограничение прокрутки */
+    }
+    
+    /* Стилизация скроллбара для всей страницы */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: #1e293b;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: #3b82f6;
+        border-radius: 10px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: #2563eb;
+    }
+
+    /* Остальные стили для курса */
+    .course-header {
+        background: linear-gradient(145deg, #0f172a, #1a2635);
+        border-radius: 40px;
+        padding: 40px;
+        margin-bottom: 30px;
+        border: 1px solid #2a3a55;
+        display: flex;
+        align-items: center;
+        gap: 30px;
+        flex-wrap: wrap;
+    }
+    
+    .course-header-icon {
+        width: 100px;
+        height: 100px;
+        background: rgba(59, 130, 246, 0.1);
+        border-radius: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3.5rem;
+        color: #3b82f6;
+    }
+    
+    .course-header-info {
+        flex: 1;
+    }
+    
+    .course-header-info h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        background: linear-gradient(145deg, #ffffff, #a5c9ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .course-meta {
+        display: flex;
+        gap: 30px;
+        margin: 15px 0;
+        flex-wrap: wrap;
+    }
+    
+    .course-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #9ab3d0;
+    }
+    
+    .course-meta-item i {
+        color: #3b82f6;
+    }
+    
+    .progress-section {
+        background: rgba(18, 26, 36, 0.7);
+        border: 1px solid #2a3a55;
+        border-radius: 32px;
+        padding: 30px;
+        margin-bottom: 30px;
+    }
+    
+    .progress-stats {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 15px;
+    }
+    
+    .progress-percent {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #3b82f6;
+    }
+    
+    .progress-label {
+        color: #9ab3d0;
+    }
+    
+    .lesson-card {
+        background: rgba(18, 26, 36, 0.7);
+        border: 1px solid #2a3a55;
+        border-radius: 24px;
+        padding: 25px;
+        margin-bottom: 15px;
+        transition: all 0.3s;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    
+    .lesson-card:hover {
+        border-color: #3b82f6;
+        transform: translateX(5px);
+        background: #1e2c3f;
+    }
+    
+    .lesson-card.completed {
+        border-color: #10b981;
+        background: rgba(16, 185, 129, 0.05);
+    }
+    
+    .lesson-card.current {
+        border-color: #3b82f6;
+        background: rgba(59, 130, 246, 0.1);
+    }
+    
+    .lesson-number {
+        width: 50px;
+        height: 50px;
+        background: #1e293b;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.3rem;
+        color: #3b82f6;
+    }
+    
+    .lesson-card.completed .lesson-number {
+        background: rgba(16, 185, 129, 0.2);
+        color: #10b981;
+    }
+    
+    .lesson-card.current .lesson-number {
+        background: #3b82f6;
+        color: white;
+    }
+    
+    .lesson-info {
+        flex: 1;
+    }
+    
+    .lesson-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 5px;
+        color: #ffffff;
+    }
+    
+    .lesson-type {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        color: #9ab3d0;
+        font-size: 0.85rem;
+    }
+    
+    .lesson-type i {
+        color: #3b82f6;
+    }
+    
+    .lesson-status {
+        padding: 6px 15px;
+        border-radius: 40px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    .lesson-status.completed {
+        background: rgba(16, 185, 129, 0.2);
+        color: #10b981;
+        border: 1px solid #10b981;
+    }
+    
+    .lesson-status.current {
+        background: rgba(59, 130, 246, 0.2);
+        color: #3b82f6;
+        border: 1px solid #3b82f6;
+    }
+    
+    .lesson-status.locked {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+        border: 1px solid #ef4444;
+    }
+    
+    .theory-content {
+        background: #1a2635;
+        border: 1px solid #2f405b;
+        border-radius: 24px;
+        padding: 30px;
+        margin: 20px 0;
+        scroll-margin-top: 100px;
+    }
+    
+    .theory-section {
+        margin-bottom: 40px;
+    }
+    
+    .theory-section h3 {
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+        color: #e9f0fa;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .theory-section h3 i {
+        color: #3b82f6;
+    }
+    
+    .code-block {
+        background: #0f172a;
+        border: 1px solid #334155;
+        border-radius: 16px;
+        padding: 20px;
+        margin: 20px 0;
+        font-family: 'Courier New', monospace;
+        color: #fbbf24;
+        overflow-x: auto;
+    }
+    
+    .test-block {
+        background: #1a2635;
+        border: 1px solid #2f405b;
+        border-radius: 24px;
+        padding: 30px;
+        margin: 30px 0;
+        scroll-margin-top: 100px;
+    }
+    
+    .test-question {
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+        color: #ffffff;
+    }
+    
+    .test-options {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+    
+    .test-option {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 40px;
+        padding: 15px 20px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .test-option:hover {
+        border-color: #3b82f6;
+        background: #2d3a4f;
+    }
+    
+    .test-option input[type="radio"] {
+        width: 20px;
+        height: 20px;
+        accent-color: #3b82f6;
+    }
+    
+    .test-btn {
+        background: linear-gradient(145deg, #2563eb, #1d4ed8);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 40px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-top: 20px;
+    }
+    
+    .test-btn:hover {
+        background: linear-gradient(145deg, #3b82f6, #2563eb);
+        transform: scale(1.02);
+    }
+    
+    .navigation-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 30px;
+    }
+    
+    .nav-btn {
+        background: #1e293b;
+        border: 1px solid #334155;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 40px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .nav-btn:hover:not(:disabled) {
+        background: #2d3a4f;
+        border-color: #3b82f6;
+    }
+    
+    .nav-btn.next {
+        background: linear-gradient(145deg, #2563eb, #1d4ed8);
+        border: 1px solid #3b82f6;
+    }
+    
+    .nav-btn.next:hover:not(:disabled) {
+        background: linear-gradient(145deg, #3b82f6, #2563eb);
+    }
+    
+    .nav-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    .footer {
+        border-top: 1px solid #1a2635;
+        padding: 40px 0;
+        margin-top: 60px;
+        text-align: center;
+        color: #6b8bb0;
+    }
+    
+    /* Flash сообщения */
+    .flash-messages {
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        z-index: 1000;
+    }
+    
+    .flash-message {
+        padding: 16px 24px;
+        border-radius: 40px;
+        margin-bottom: 10px;
+        animation: slideIn 0.3s;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        border-left: 4px solid #10b981;
+        background: rgba(4, 120, 87, 0.95);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0%); opacity: 1; }
+    }
+    
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+    
+    /* Адаптивность */
+    @media (max-width: 768px) {
+        .course-header {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .course-meta {
+            justify-content: center;
+        }
+        
+        .lesson-card {
+            flex-wrap: wrap;
+        }
+        
+        .lesson-status {
+            width: 100%;
+            text-align: center;
+        }
+    }.test-feedback {
+    margin-top: 15px;
+    padding: 15px 20px;
+    border-radius: 40px;
+    font-size: 0.95rem;
+    animation: fadeIn 0.3s;
+    }
+
+    .test-feedback.correct {
+        background: rgba(16, 185, 129, 0.2);
+        border: 1px solid #10b981;
+        color: #10b981;
+    }
+
+    .test-feedback.incorrect {
+        background: rgba(239, 68, 68, 0.2);
+        border: 1px solid #ef4444;
+        color: #ef4444;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+</head>
+<body>
+
+<!-- Flash сообщения -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <i class="fa-solid fa-circle-check"></i> {{ message }}
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<!-- Навбар -->
+<nav class="navbar">
+    <div class="container nav-wrapper">
+        <div class="logo">
+            <i class="fa-brands fa-python logo-icon"></i>
+            <span class="logo-text">PyMaster</span>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('main') }}">Главная</a>
+            <a href="{{ url_for('courses') }}" class="active">Курсы</a>
+            <a href="{{ url_for('ai_assistant') }}">GPT-4</a>
+            <a href="{{ url_for('dashboard') }}">Кабинет</a>
+            
+            <div class="pyth-balance" onclick="window.location.href='{{ url_for('shop') }}'">
+                <i class="fa-solid fa-coins"></i>
+                <span>{{ user.balance }} PYTH</span>
+            </div>
+            
+            <a href="{{ url_for('logout') }}" class="logout-btn">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Основной контент -->
+<div class="container" style="padding: 40px 24px;">
+    <!-- Шапка курса -->
+    <div class="course-header">
+        <div class="course-header-icon">
+            <i class="fa-solid fa-function"></i>
+        </div>
+        <div class="course-header-info">
+            <h1>{{ course.title }}</h1>
+            <div class="course-meta">
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-clock"></i> {{ course.hours }} часов
+                </span>
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-book-open"></i> {{ course.lessons }} уроков
+                </span>
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-signal"></i> 
+                    <span class="course-level level-intermediate">Средний</span>
+                </span>
+            </div>
+            <p style="color: #9ab3d0;">Создание функций, аргументы, return, области видимости, lambda-функции, декораторы.</p>
+        </div>
+    </div>
+
+    <!-- Прогресс -->
+    <div class="progress-section">
+        <div class="progress-stats">
+            <div>
+                <span class="progress-percent">{{ progress }}%</span>
+                <span class="progress-label">прогресс</span>
+            </div>
+            <div>
+                <span class="progress-percent">{{ current_lesson }}/{{ course.lessons }}</span>
+                <span class="progress-label">уроков пройдено</span>
+            </div>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {{ progress }}%"></div>
+        </div>
+    </div>
+
+    <!-- Список уроков -->
+    <h2 style="font-size: 1.8rem; margin-bottom: 20px;">Уроки курса</h2>
+
+    <!-- Урок 1: Введение в функции -->
+    <div class="lesson-card {% if current_lesson > 0 %}completed{% elif current_lesson == 0 %}current{% endif %}" onclick="window.location.href='#lesson1'">
+        <div class="lesson-number">1</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Введение в функции</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 15 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 0 %}completed{% elif current_lesson == 0 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 0 %}✅ Пройдено{% elif current_lesson == 0 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 1 -->
+    <div id="lesson1" class="theory-content" style="scroll-margin-top: 100px;">
+        <h2 style="margin-bottom: 20px;">Урок 1: Введение в функции</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-code"></i> Что такое функция?</h3>
+            <p>Функция — это именованный блок кода, который можно вызывать многократно. Это как рецепт: вы записываете его один раз, а потом можете готовить по нему много раз.</p>
+            <div class="code-block">
+                <pre>
+# Объявление функции
+def приветствие():
+    print("Привет!")
+    print("Добро пожаловать в мир Python!")
+
+# Вызов функции
+приветствие()  # Выведет два принта</pre>
+            </div>
+        </div>
+
+        <div class="navigation-buttons">
+            <button class="nav-btn" disabled><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" onclick="saveProgress(6, 0)">Далее <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+    </div>
+
+    <!-- Урок 2: Аргументы и параметры -->
+    <div class="lesson-card {% if current_lesson > 1 %}completed{% elif current_lesson == 1 %}current{% endif %}" onclick="window.location.href='#lesson2'">
+        <div class="lesson-number">2</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Аргументы и параметры</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 1 %}completed{% elif current_lesson == 1 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 1 %}✅ Пройдено{% elif current_lesson == 1 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 2 -->
+    {% if current_lesson >= 1 %}
+    <div id="lesson2" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 1 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 2: Аргументы и параметры</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-arrow-right-to-bracket"></i> Параметры функций</h3>
+            <p>Функции могут принимать входные данные — аргументы. Это позволяет делать функции гибкими.</p>
+            <div class="code-block">
+                <pre>
+# Функция с параметрами
+def приветствие_по_имени(имя):
+    print(f"Привет, {имя}!")
+
+def сложение(a, b):
+    результат = a + b
+    print(f"Сумма: {результат}")
+
+# Вызовы
+приветствие_по_имени("Анна")  # Привет, Анна!
+сложение(5, 3)                  # Сумма: 8</pre>
+            </div>
+        </div>
+
+        <div class="navigation-buttons">
+            <button class="nav-btn" onclick="window.location.href='#lesson1'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" onclick="saveProgress(6, 1)">Далее <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Продолжение для остальных уроков по аналогии -->
+    <!-- Урок 3: Возврат значений -->
+    <div class="lesson-card {% if current_lesson > 2 %}completed{% elif current_lesson == 2 %}current{% endif %}" onclick="window.location.href='#lesson3'">
+        <div class="lesson-number">3</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Возврат значений (return)</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 15 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 2 %}completed{% elif current_lesson == 2 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 2 %}✅ Пройдено{% elif current_lesson == 2 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Урок 4: Области видимости -->
+    <div class="lesson-card {% if current_lesson > 3 %}completed{% elif current_lesson == 3 %}current{% endif %}" onclick="window.location.href='#lesson4'">
+        <div class="lesson-number">4</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Области видимости</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 15 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 3 %}completed{% elif current_lesson == 3 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 3 %}✅ Пройдено{% elif current_lesson == 3 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Урок 5: Lambda-функции -->
+    <div class="lesson-card {% if current_lesson > 4 %}completed{% elif current_lesson == 4 %}current{% endif %}" onclick="window.location.href='#lesson5'">
+        <div class="lesson-number">5</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Lambda-функции</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 15 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 4 %}completed{% elif current_lesson == 4 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 4 %}✅ Пройдено{% elif current_lesson == 4 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Урок 6: Тест по функциям -->
+    <div class="lesson-card {% if current_lesson > 5 %}completed{% elif current_lesson == 5 %}current{% endif %}" onclick="window.location.href='#lesson6'">
+        <div class="lesson-number">6</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Тест: Функции</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-pen-to-square"></i> Тест • 15 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 5 %}completed{% elif current_lesson == 5 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 5 %}✅ Пройдено{% elif current_lesson == 5 %}📝 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Урок 7: Декораторы -->
+    <div class="lesson-card {% if current_lesson > 6 %}completed{% elif current_lesson == 6 %}current{% endif %}" onclick="window.location.href='#lesson7'">
+        <div class="lesson-number">7</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Декораторы</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 6 %}completed{% elif current_lesson == 6 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 6 %}✅ Пройдено{% elif current_lesson == 6 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Урок 8: Функции высшего порядка -->
+    <div class="lesson-card {% if current_lesson > 7 %}completed{% elif current_lesson == 7 %}current{% endif %}" onclick="window.location.href='#lesson8'">
+        <div class="lesson-number">8</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Функции высшего порядка</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 15 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 7 %}completed{% elif current_lesson == 7 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 7 %}✅ Пройдено{% elif current_lesson == 7 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Кнопка возврата -->
+    <div style="margin-top: 40px; text-align: center;">
+        <a href="{{ url_for('courses') }}" class="btn btn-outline">
+            <i class="fa-solid fa-arrow-left"></i> К списку курсов
+        </a>
+    </div>
+</div>
+
+<!-- Футер -->
+<footer class="footer">
+    <div class="container">
+        <p>© 2025 PyMaster · Функции</p>
+    </div>
+</footer>
+
+<script>
+    // Сохранение прогресса
+    async function saveProgress(courseId, lessonIndex) {
+        try {
+            const response = await fetch('/api/save-progress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    course_id: courseId,
+                    lesson_index: lessonIndex,
+                    completed: false
+                })
+            });
+            
+            if (response.ok) {
+                window.location.reload();
+            }
+        } catch (error) {
+            console.error('Ошибка сохранения прогресса:', error);
+        }
+    }
+
+    // Завершение курса (когда все уроки пройдены)
+    async function completeCourse(courseId) {
+        try {
+            const response = await fetch('/api/save-progress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    course_id: courseId,
+                    lesson_index: 7,
+                    completed: true
+                })
+            });
+            
+            if (response.ok) {
+                alert('🎉 Поздравляем! Вы завершили курс! +50 PYTH');
+                window.location.href = "{{ url_for('courses') }}";
+            }
+        } catch (error) {
+            console.error('Ошибка сохранения прогресса:', error);
+        }
+    }
+
+    // Автоматическое скрытие flash сообщений
+    setTimeout(() => {
+        document.querySelectorAll('.flash-message').forEach(msg => {
+            msg.style.animation = 'slideOut 0.3s';
+            setTimeout(() => msg.remove(), 300);
+        });
+    }, 5000);
+</script>
+
+<style>
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+</style>
+</body>
+</html>

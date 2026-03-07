@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyMaster · Название страницы</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <!-- Font Awesome 6.5.1 (актуальная версия) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Дополнительные стили для конкретной страницы можно добавить здесь -->
+</head>
+<body>
+
+<!-- Навбар -->
+<nav class="navbar">
+    <div class="container nav-wrapper">
+        <div class="logo">
+            <i class="fa-brands fa-python logo-icon"></i>
+            <span class="logo-text">PyMaster</span>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('main') }}" class="{% if request.endpoint == 'main' %}active{% endif %}">Главная</a>
+            <a href="{{ url_for('courses') }}" class="{% if request.endpoint == 'courses' %}active{% endif %}">Курсы</a>
+            <a href="{{ url_for('pricing') }}" class="{% if request.endpoint == 'pricing' %}active{% endif %}">Цены</a>
+            <a href="{{ url_for('ai_assistant') }}" class="{% if request.endpoint == 'ai_assistant' %}active{% endif %}">GPT-4</a>
+            <a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">Кабинет</a>
+            
+            <div class="pyth-balance" onclick="window.location.href='{{ url_for('shop') }}'">
+                <i class="fa-solid fa-coins"></i>
+                <span>{{ session.user.balance if session.user else 0 }} PYTH</span>
+            </div>
+            
+            {% if session.user %}
+                <a href="{{ url_for('logout') }}" class="logout-btn">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                </a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="login-btn">Войти</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+<!-- Заголовок -->
+<section class="pricing-header">
+    <div class="container">
+        <h1>Выбери свой тариф</h1>
+        <p style="color: #9ab3d0;">Доступ к GPT-4 и всем курсам</p>
+    </div>
+</section>
+
+<!-- Тарифы -->
+<div class="container">
+    <div class="pricing-grid">
+        <div class="pricing-card">
+            <div class="pricing-name">Базовый</div>
+            <div class="pricing-price">0 ₽</div>
+            <div class="pricing-period">навсегда</div>
+            <ul class="pricing-features">
+                <li><i class="fa-solid fa-check"></i> 5 бесплатных курсов</li>
+                <li><i class="fa-solid fa-check"></i> Базовая статистика</li>
+                <li><i class="fa-solid fa-check"></i> Доступ к сообществу</li>
+                <li><i class="fa-solid fa-xmark" style="color: #ef4444;"></i> GPT-4 помощник</li>
+                <li><i class="fa-solid fa-xmark" style="color: #ef4444;"></i> Продвинутые курсы</li>
+            </ul>
+            <button class="pricing-btn" onclick="window.location.href='{{ url_for('register') }}'">
+                Начать бесплатно
+            </button>
+        </div>
+
+        <div class="pricing-card popular">
+            <div class="popular-badge">🔥 Популярный</div>
+            <div class="pricing-name">Про</div>
+            <div class="pricing-price">990 ₽<small>/мес</small></div>
+            <div class="pricing-period">или 9 900 ₽/год</div>
+            <ul class="pricing-features">
+                <li><i class="fa-solid fa-check"></i> Все 12 курсов</li>
+                <li><i class="fa-solid fa-check"></i> GPT-4 помощник</li>
+                <li><i class="fa-solid fa-check"></i> 500 PYTH бонус</li>
+                <li><i class="fa-solid fa-check"></i> Проверка кода</li>
+                <li><i class="fa-solid fa-check"></i> Сертификаты</li>
+            </ul>
+            <button class="pricing-btn" onclick="window.location.href='{{ url_for('shop') }}'">
+                Выбрать Про
+            </button>
+        </div>
+
+        <div class="pricing-card">
+            <div class="pricing-name">Премиум</div>
+            <div class="pricing-price">2 490 ₽<small>/мес</small></div>
+            <div class="pricing-period">или 24 900 ₽/год</div>
+            <ul class="pricing-features">
+                <li><i class="fa-solid fa-check"></i> Все из Про</li>
+                <li><i class="fa-solid fa-check"></i> Личные консультации</li>
+                <li><i class="fa-solid fa-check"></i> 2000 PYTH бонус</li>
+                <li><i class="fa-solid fa-check"></i> Помощь с резюме</li>
+                <li><i class="fa-solid fa-check"></i> Приоритетная поддержка</li>
+            </ul>
+            <button class="pricing-btn" onclick="window.location.href='{{ url_for('shop') }}'">
+                Выбрать Премиум
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Футер -->
+<footer class="footer">
+    <div class="container">
+        <p>© 2025 PyMaster · Все цены указаны в рублях</p>
+    </div>
+</footer>
+
+</body>
+</html>

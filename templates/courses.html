@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyMaster · Курсы Python</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Фиксируем навбар и делаем прокрутку только для контента */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background: #0a0c0f;
+            color: #e3e9f1;
+        }
+        
+        .navbar {
+            flex-shrink: 0;
+            position: relative;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .courses-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+            background: #0a0c0f;
+            height: calc(100vh - 80px);
+        }
+        
+        /* Стилизация скроллбара */
+        .courses-wrapper::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .courses-wrapper::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        
+        .courses-wrapper::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 10px;
+        }
+        
+        .courses-wrapper::-webkit-scrollbar-thumb:hover {
+            background: #2563eb;
+        }
+
+        .page-header {
+            padding: 60px 0 30px;
+            text-align: center;
+        }
+
+        .page-header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(145deg, #ffffff, #a5c9ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+        }
+
+        .page-header p {
+            color: #9ab3d0;
+            font-size: 1.2rem;
+        }
+
+        .filters {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 50px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #94a3b8;
+            padding: 10px 24px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: white;
+        }
+
+        .courses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .course-card {
+            background: rgba(18, 26, 36, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid #2a3a55;
+            border-radius: 32px;
+            padding: 30px;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .course-card:hover {
+            transform: translateY(-5px);
+            border-color: #3b82f6;
+            box-shadow: 0 20px 30px -10px #2563eb40;
+        }
+
+        .course-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+            transform: scaleX(0);
+            transition: transform 0.3s;
+        }
+
+        .course-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .course-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: #3b82f6;
+            margin-bottom: 20px;
+        }
+
+        .course-level-wrapper {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .course-level {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .level-beginner { 
+            background: rgba(16, 185, 129, 0.2); 
+            color: #10b981; 
+            border: 1px solid #10b981; 
+        }
+
+        .level-intermediate { 
+            background: rgba(245, 158, 11, 0.2); 
+            color: #f59e0b; 
+            border: 1px solid #f59e0b; 
+        }
+
+        .level-advanced { 
+            background: rgba(239, 68, 68, 0.2); 
+            color: #ef4444; 
+            border: 1px solid #ef4444; 
+        }
+
+        .course-progress-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+            border: 1px solid #3b82f6;
+        }
+
+        .course-completed-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid #10b981;
+        }
+
+        .course-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #ffffff;
+        }
+
+        .course-description {
+            color: #9ab3d0;
+            font-size: 0.95rem;
+            margin-bottom: 20px;
+            line-height: 1.6;
+            flex-grow: 1;
+        }
+
+        .course-lessons-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            padding: 8px 0;
+            border-top: 1px solid #2a3a55;
+            border-bottom: 1px solid #2a3a55;
+        }
+
+        .course-lessons-info i {
+            color: #3b82f6;
+        }
+
+        .course-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .course-price {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .course-price small {
+            font-size: 0.9rem;
+            color: #6b8bb0;
+            font-weight: 400;
+        }
+
+        .course-btn {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-weight: 500;
+            transition: all 0.2s;
+            cursor: pointer;
+            text-decoration: none;
+            border: none;
+        }
+
+        .course-btn.purchased {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid #10b981;
+            cursor: default;
+        }
+
+        .course-card:hover .course-btn:not(.purchased) {
+            background: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        .footer {
+            border-top: 1px solid #1a2635;
+            padding: 40px 0;
+            text-align: center;
+            color: #6b8bb0;
+            background: #0a0c0f;
+        }
+
+        /* Flash сообщения */
+        .flash-messages {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .flash-message {
+            padding: 16px 24px;
+            border-radius: 40px;
+            margin-bottom: 10px;
+            animation: slideIn 0.3s;
+            backdrop-filter: blur(10px);
+            border-left: 4px solid #10b981;
+            background: rgba(4, 120, 87, 0.95);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+        }
+
+        .flash-message.flash-error {
+            border-left-color: #ef4444;
+            background: rgba(185, 28, 28, 0.95);
+        }
+
+        .flash-message.flash-warning {
+            border-left-color: #f59e0b;
+            background: rgba(180, 83, 9, 0.95);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0%); opacity: 1; }
+        }
+
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+
+        /* Модальное окно подтверждения */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
+
+        .modal-content {
+            background: #0f172a;
+            border: 1px solid #2a3a55;
+            border-radius: 48px;
+            max-width: 450px;
+            width: 90%;
+            padding: 40px;
+            position: relative;
+            animation: slideUp 0.3s;
+            text-align: center;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-icon {
+            font-size: 3rem;
+            color: #fbbf24;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: white;
+        }
+
+        .modal-text {
+            color: #9ab3d0;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .modal-price {
+            background: #1e293b;
+            border-radius: 40px;
+            padding: 15px;
+            margin-bottom: 25px;
+        }
+
+        .modal-price span {
+            color: #fbbf24;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 15px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .modal-btn-confirm {
+            background: linear-gradient(145deg, #2563eb, #1d4ed8);
+            color: white;
+        }
+
+        .modal-btn-confirm:hover {
+            background: linear-gradient(145deg, #3b82f6, #2563eb);
+            transform: scale(1.02);
+        }
+
+        .modal-btn-cancel {
+            background: #1e293b;
+            color: white;
+            border: 1px solid #334155;
+        }
+
+        .modal-btn-cancel:hover {
+            background: #2d3a4f;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: #ef4444;
+            border-color: #ef4444;
+            color: white;
+        }
+
+        @media (max-width: 900px) {
+            .courses-wrapper {
+                height: calc(100vh - 120px);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Flash сообщения -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <i class="fa-solid fa-circle-check"></i> {{ message }}
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<!-- Навбар -->
+<nav class="navbar">
+    <div class="container nav-wrapper">
+        <div class="logo">
+            <i class="fa-brands fa-python logo-icon"></i>
+            <span class="logo-text">PyMaster</span>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('main') }}" class="{% if request.endpoint == 'main' %}active{% endif %}">Главная</a>
+            <a href="{{ url_for('courses') }}" class="{% if request.endpoint == 'courses' %}active{% endif %}">Курсы</a>
+            <a href="{{ url_for('ai_assistant') }}" class="{% if request.endpoint == 'ai_assistant' %}active{% endif %}">GPT-4</a>
+            <a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">Кабинет</a>
+            
+            <div class="pyth-balance" onclick="window.location.href='{{ url_for('shop') }}'">
+                <i class="fa-solid fa-coins"></i>
+                <span id="headerBalance">{{ session.user.balance if session.user else 0 }} PYTH</span>
+            </div>
+            
+            {% if session.user %}
+                <a href="{{ url_for('logout') }}" class="logout-btn">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                </a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="login-btn">Войти</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+<!-- Обертка для прокручиваемого контента -->
+<div class="courses-wrapper">
+    <!-- Заголовок страницы -->
+    <section class="page-header">
+        <div class="container">
+            <h1>Курсы Python</h1>
+            <p>Выбери свой путь в мире программирования</p>
+        </div>
+    </section>
+
+    <!-- Фильтры -->
+    <div class="container">
+        <div class="filters">
+            <button class="filter-btn active" onclick="filterCourses('all')">Все курсы</button>
+            <button class="filter-btn" onclick="filterCourses('beginner')">Для начинающих</button>
+            <button class="filter-btn" onclick="filterCourses('intermediate')">Средний уровень</button>
+            <button class="filter-btn" onclick="filterCourses('advanced')">Продвинутые</button>
+        </div>
+    </div>
+
+    <!-- Сетка курсов -->
+    <section class="container">
+        <div class="courses-grid" id="coursesGrid">
+            {% for course in courses %}
+            <div class="course-card" data-level="{{ course.level }}" data-course-id="{{ course.id }}" onclick="openCourse({{ course.id }})">
+                <div class="course-icon">
+                    <i class="{{ course.icon }}"></i>
+                </div>
+                <div class="course-level-wrapper">
+                    <span class="course-level level-{{ course.level }}">
+                        {% if course.level == 'beginner' %}Начинающий
+                        {% elif course.level == 'intermediate' %}Средний
+                        {% else %}Продвинутый{% endif %}
+                    </span>
+                    {% if course.id in session.user.purchased_courses %}
+                        {% if course.completed %}
+                        <span class="course-completed-badge">✅ Завершен</span>
+                        {% else %}
+                        <span class="course-progress-badge">📖 В процессе</span>
+                        {% endif %}
+                    {% endif %}
+                </div>
+                <h3 class="course-title">{{ course.title }}</h3>
+                <p class="course-description">{{ course.description }}</p>
+                
+                <div class="course-lessons-info">
+                    <i class="fa-solid fa-clock"></i> {{ course.lessons }} уроков • {{ course.hours }} часов
+                </div>
+                
+                <div class="course-footer">
+                    <span class="course-price">
+                        {% if course.price_coins == 0 %}
+                            Бесплатно
+                        {% else %}
+                            {{ course.price_coins }} <small>PYTH</small>
+                        {% endif %}
+                    </span>
+                    
+                    {% if course.id in session.user.purchased_courses %}
+                        <span class="course-btn purchased" onclick="event.stopPropagation()">
+                            {% if course.completed %}Пройдено{% else %}В наличии{% endif %}
+                        </span>
+                    {% else %}
+                        <button class="course-btn" onclick="event.stopPropagation(); showPurchaseModal({{ course.id }}, '{{ course.title }}', {{ course.price_coins }})">
+                            {% if course.price_coins == 0 %}
+                                Начать
+                            {% else %}
+                                Купить
+                            {% endif %}
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    
+    <!-- Футер -->
+    <footer class="footer">
+        <div class="container">
+            <p>© 2025 PyMaster · Курсы Python с искусственным интеллектом</p>
+        </div>
+    </footer>
+</div>
+
+<!-- Модальное окно подтверждения покупки -->
+<div id="purchaseModal" class="modal-overlay">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closeModal()">&times;</span>
+        <div class="modal-icon">
+            <i class="fa-solid fa-coins"></i>
+        </div>
+        <h2 class="modal-title">Подтверждение покупки</h2>
+        <div class="modal-text" id="modalCourseName"></div>
+        <div class="modal-price">
+            Стоимость: <span id="modalCoursePrice">0</span> PYTH
+        </div>
+        <div class="modal-text" style="font-size: 0.9rem;">
+            Ваш баланс: <span id="modalUserBalance">{{ session.user.balance }}</span> PYTH
+        </div>
+        <div class="modal-buttons">
+            <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Отмена</button>
+            <button class="modal-btn modal-btn-confirm" onclick="confirmPurchase()">Купить</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentCourseId = null;
+    let currentCoursePrice = 0;
+    
+    // Открытие курса
+    function openCourse(courseId) {
+        window.location.href = `/course/${courseId}`;
+    }
+
+    // Фильтрация курсов
+    function filterCourses(level) {
+        const cards = document.querySelectorAll('.course-card');
+        const filters = document.querySelectorAll('.filter-btn');
+        
+        filters.forEach(f => f.classList.remove('active'));
+        event.target.classList.add('active');
+        
+        cards.forEach(card => {
+            if (level === 'all') {
+                card.style.display = 'block';
+            } else {
+                if (card.dataset.level === level) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            }
+        });
+    }
+
+    // Показать модальное окно покупки
+    function showPurchaseModal(courseId, courseName, price) {
+        currentCourseId = courseId;
+        currentCoursePrice = price;
+        
+        document.getElementById('modalCourseName').innerHTML = `Курс: <strong>${courseName}</strong>`;
+        document.getElementById('modalCoursePrice').textContent = price;
+        
+        const modal = document.getElementById('purchaseModal');
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    // Закрыть модальное окно
+    function closeModal() {
+        document.getElementById('purchaseModal').style.display = 'none';
+        document.body.style.overflow = 'auto';
+        currentCourseId = null;
+        currentCoursePrice = 0;
+    }
+
+    // Подтверждение покупки
+    async function confirmPurchase() {
+        if (!currentCourseId) return;
+        
+        const userBalance = parseInt(document.getElementById('modalUserBalance').textContent);
+        
+        if (userBalance < currentCoursePrice) {
+            closeModal();
+            showFlashMessage('Недостаточно средств! Пополните баланс в магазине.', 'error');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/buy-course/${currentCourseId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                closeModal();
+                
+                // Обновляем баланс в хедере
+                document.getElementById('headerBalance').innerHTML = data.new_balance + ' PYTH';
+                document.getElementById('modalUserBalance').textContent = data.new_balance;
+                
+                // Находим и обновляем кнопку купленного курса
+                const courseCard = document.querySelector(`.course-card[data-course-id="${currentCourseId}"]`);
+                if (courseCard) {
+                    const btn = courseCard.querySelector('.course-btn');
+                    if (btn) {
+                        btn.textContent = 'В наличии';
+                        btn.classList.add('purchased');
+                        btn.onclick = function(e) { 
+                            e.stopPropagation(); 
+                            window.location.href = `/course/${currentCourseId}`;
+                        };
+                    }
+                    
+                    // Добавляем бейдж "В процессе"
+                    const levelWrapper = courseCard.querySelector('.course-level-wrapper');
+                    if (levelWrapper && !levelWrapper.querySelector('.course-progress-badge')) {
+                        const badge = document.createElement('span');
+                        badge.className = 'course-progress-badge';
+                        badge.textContent = '📖 В процессе';
+                        levelWrapper.appendChild(badge);
+                    }
+                }
+                
+                showFlashMessage(data.message, 'success');
+            } else {
+                showFlashMessage(data.error || 'Ошибка при покупке', 'error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showFlashMessage('Произошла ошибка при покупке', 'error');
+        }
+    }
+
+    // Показать flash сообщение
+    function showFlashMessage(message, type = 'success') {
+        const flashContainer = document.querySelector('.flash-messages');
+        if (!flashContainer) return;
+        
+        const flashDiv = document.createElement('div');
+        flashDiv.className = `flash-message flash-${type}`;
+        flashDiv.innerHTML = `
+            <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i>
+            ${message}
+        `;
+        
+        flashContainer.appendChild(flashDiv);
+        
+        setTimeout(() => {
+            flashDiv.style.animation = 'slideOut 0.3s';
+            setTimeout(() => flashDiv.remove(), 300);
+        }, 5000);
+    }
+
+    // Закрытие по ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeModal();
+        }
+    });
+
+    // Закрытие по клику вне модалки
+    window.onclick = function(event) {
+        const modal = document.getElementById('purchaseModal');
+        if (event.target === modal) {
+            closeModal();
+        }
+    };
+
+    // Автоматическое скрытие flash сообщений
+    setTimeout(() => {
+        document.querySelectorAll('.flash-message').forEach(msg => {
+            msg.style.animation = 'slideOut 0.3s';
+            setTimeout(() => msg.remove(), 300);
+        });
+    }, 5000);
+</script>
+</body>
+</html>

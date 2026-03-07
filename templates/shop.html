@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyMaster · Магазин PYTH Coin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <!-- Font Awesome 6.5.1 (полная версия) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Фиксируем навбар и делаем прокрутку только для контента */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background: #0a0c0f;
+            color: #e3e9f1;
+        }
+        
+        .navbar {
+            flex-shrink: 0;
+            position: relative;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .shop-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+            background: #0a0c0f;
+            height: calc(100vh - 80px);
+        }
+        
+        /* Стилизация скроллбара */
+        .shop-wrapper::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .shop-wrapper::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        
+        .shop-wrapper::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 10px;
+        }
+        
+        .shop-wrapper::-webkit-scrollbar-thumb:hover {
+            background: #2563eb;
+        }
+
+        /* Стили для страницы магазина */
+        .page-header {
+            padding: 60px 0 30px;
+            text-align: center;
+        }
+
+        .page-header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(145deg, #ffffff, #a5c9ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+        }
+
+        .page-header p {
+            color: #9ab3d0;
+            font-size: 1.2rem;
+        }
+
+        .current-balance {
+            background: rgba(18, 26, 36, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid #2a3a55;
+            border-radius: 40px;
+            padding: 30px;
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .balance-info h3 {
+            color: #9ab3d0;
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+
+        .balance-amount {
+            font-size: 3rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .balance-amount i {
+            color: #fbbf24;
+            font-size: 2.5rem;
+        }
+
+        .balance-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #3b82f6;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 40px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-outline:hover {
+            background: rgba(59, 130, 246, 0.1);
+            transform: scale(1.02);
+        }
+
+        .packages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .package-card {
+            background: rgba(18, 26, 36, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid #2a3a55;
+            border-radius: 32px;
+            padding: 30px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .package-card:hover {
+            transform: translateY(-5px);
+            border-color: #fbbf24;
+            box-shadow: 0 20px 30px -10px #fbbf2440;
+        }
+
+        .package-card.popular {
+            border: 2px solid #fbbf24;
+            transform: scale(1.02);
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: 20px;
+            right: -30px;
+            background: #fbbf24;
+            color: #0a0c0f;
+            padding: 8px 40px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            transform: rotate(45deg);
+        }
+
+        .package-icon {
+            font-size: 2.5rem;
+            color: #fbbf24;
+            margin-bottom: 20px;
+        }
+
+        .package-coins {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: baseline;
+            gap: 5px;
+        }
+
+        .package-coins small {
+            font-size: 1rem;
+            color: #9ab3d0;
+        }
+
+        .package-bonus {
+            background: #1e293b;
+            border: 1px solid #fbbf24;
+            color: #fbbf24;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        .package-price {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 20px 0;
+            color: white;
+        }
+
+        .package-price small {
+            font-size: 1rem;
+            color: #9ab3d0;
+        }
+
+        .package-footer {
+            margin-top: 20px;
+        }
+
+        .buy-btn {
+            width: 100%;
+            padding: 15px;
+            border-radius: 40px;
+            background: linear-gradient(145deg, #2563eb, #1d4ed8);
+            color: white;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .buy-btn:hover {
+            background: linear-gradient(145deg, #3b82f6, #2563eb);
+            transform: scale(1.02);
+        }
+
+        .payment-methods {
+            background: rgba(18, 26, 36, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid #2a3a55;
+            border-radius: 32px;
+            padding: 40px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .payment-methods h3 {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+        }
+
+        .payment-icons {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .payment-icon {
+            font-size: 3rem;
+            color: #9ab3d0;
+            transition: all 0.2s;
+        }
+
+        .payment-icon:hover {
+            color: #3b82f6;
+            transform: scale(1.1);
+        }
+
+        .footer {
+            border-top: 1px solid #1a2635;
+            padding: 30px 0;
+            margin-top: 40px;
+            text-align: center;
+            color: #6b8bb0;
+        }
+
+        /* Модальное окно */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: #0f172a;
+            border: 1px solid #2a3a55;
+            border-radius: 48px;
+            max-width: 500px;
+            width: 90%;
+            padding: 40px;
+            position: relative;
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #94a3b8;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: #1e293b;
+            border: 1px solid #334155;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: #ef4444;
+            border-color: #ef4444;
+            color: white;
+        }
+
+        .modal-body {
+            margin-bottom: 30px;
+        }
+
+        .payment-option {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 40px;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .payment-option:hover {
+            border-color: #3b82f6;
+            background: #2d3a4f;
+        }
+
+        .payment-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #3b82f6;
+        }
+
+        @media (max-width: 900px) {
+            .shop-wrapper {
+                height: calc(100vh - 120px);
+            }
+            
+            .current-balance {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .balance-actions {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Flash сообщения -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <i class="fa-solid fa-circle-check"></i> {{ message }}
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<!-- Навбар -->
+<nav class="navbar">
+    <div class="container nav-wrapper">
+        <div class="logo">
+            <i class="fa-brands fa-python logo-icon"></i>
+            <span class="logo-text">PyMaster</span>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('main') }}" class="{% if request.endpoint == 'main' %}active{% endif %}">Главная</a>
+            <a href="{{ url_for('courses') }}" class="{% if request.endpoint == 'courses' %}active{% endif %}">Курсы</a>
+            <a href="{{ url_for('ai_assistant') }}" class="{% if request.endpoint == 'ai_assistant' %}active{% endif %}">GPT-4</a>
+            <a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">Кабинет</a>
+            
+            <div class="pyth-balance" onclick="window.location.href='{{ url_for('shop') }}'">
+                <i class="fa-solid fa-coins"></i>
+                <span>{{ session.user.balance if session.user else 0 }} PYTH</span>
+            </div>
+            
+            {% if session.user %}
+                <a href="{{ url_for('logout') }}" class="logout-btn">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                </a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="login-btn">Войти</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+<!-- Обертка для прокручиваемого контента -->
+<div class="shop-wrapper">
+    <!-- Заголовок страницы -->
+    <section class="page-header">
+        <div class="container">
+            <h1>Магазин PYTH Coin</h1>
+            <p>Пополни баланс и открывай новые возможности</p>
+        </div>
+    </section>
+
+    <!-- Текущий баланс -->
+    <div class="container">
+        <div class="current-balance">
+            <div class="balance-info">
+                <h3>Твой текущий баланс</h3>
+                <div class="balance-amount">
+                    <i class="fa-solid fa-coins"></i>
+                    {{ user.balance }} PYTH
+                </div>
+            </div>
+            <div class="balance-actions">
+                <a href="{{ url_for('profile') }}" class="btn btn-outline">
+                    <i class="fa-solid fa-chart-line"></i> История
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Пакеты монет -->
+    <div class="container">
+        <h2 style="font-size: 2rem; margin-bottom: 30px;">Выбери пакет</h2>
+        
+        <div class="packages-grid">
+            {% for package in packages %}
+            <div class="package-card {% if package.popular %}popular{% endif %}">
+                {% if package.popular %}
+                <div class="popular-badge">Лучший выбор</div>
+                {% endif %}
+                
+                <div class="package-icon">
+                    <i class="fa-solid fa-coins"></i>
+                </div>
+                
+                <div class="package-coins">
+                    {{ package.coins }} <small>PYTH</small>
+                </div>
+                
+                {% if package.bonus > 0 %}
+                <div class="package-bonus">
+                    + {{ package.bonus }} бонусных
+                </div>
+                {% endif %}
+                
+                <div class="package-price">
+                    {{ package.price }} ₽
+                </div>
+                
+                <div class="package-footer">
+                    <button class="buy-btn" onclick="openPaymentModal({{ package.id }}, {{ package.coins }}, {{ package.bonus }}, {{ package.price }})">
+                        Купить
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Способы оплаты -->
+    <div class="container">
+        <div class="payment-methods">
+            <h3>Способы оплаты</h3>
+            <div class="payment-icons">
+                <i class="fa-brands fa-cc-visa payment-icon"></i>
+                <i class="fa-brands fa-cc-mastercard payment-icon"></i>
+                <i class="fa-brands fa-cc-mir payment-icon"></i>
+                <i class="fa-brands fa-cc-paypal payment-icon"></i>
+                <i class="fa-brands fa-cc-apple-pay payment-icon"></i>
+                <i class="fa-brands fa-cc-stripe payment-icon"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Футер -->
+    <footer class="footer">
+        <div class="container">
+            <p>© 2025 PyMaster · Внутриигровая валюта PYTH Coin</p>
+        </div>
+    </footer>
+</div>
+
+<!-- Модальное окно оплаты -->
+<div id="paymentModal" class="modal-overlay">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closePaymentModal()">&times;</span>
+        <h2 class="modal-title">Выберите способ оплаты</h2>
+        
+        <div class="modal-body">
+            <div id="packageInfo" style="background: #1e293b; padding: 15px; border-radius: 40px; margin-bottom: 25px; text-align: center;">
+                <!-- Заполняется через JS -->
+            </div>
+            
+            <form id="paymentForm" action="{{ url_for('buy_coins') }}" method="POST">
+                <input type="hidden" name="package_id" id="packageId">
+                
+                <div class="payment-option">
+                    <input type="radio" name="payment_method" value="card" id="card" checked>
+                    <label for="card" style="flex: 1; display: flex; align-items: center; gap: 10px;">
+                        <i class="fa-solid fa-credit-card" style="color: #3b82f6;"></i>
+                        Банковская карта
+                    </label>
+                </div>
+                
+                <div class="payment-option">
+                    <input type="radio" name="payment_method" value="sbp" id="sbp">
+                    <label for="sbp" style="flex: 1; display: flex; align-items: center; gap: 10px;">
+                        <i class="fa-solid fa-building-columns" style="color: #3b82f6;"></i>
+                        СБП (Система быстрых платежей)
+                    </label>
+                </div>
+                
+                <div class="payment-option">
+                    <input type="radio" name="payment_method" value="yoomoney" id="yoomoney">
+                    <label for="yoomoney" style="flex: 1; display: flex; align-items: center; gap: 10px;">
+                        <i class="fa-brands fa-cc-stripe" style="color: #3b82f6;"></i>
+                        YooMoney
+                    </label>
+                </div>
+                
+                <div class="payment-option">
+                    <input type="radio" name="payment_method" value="crypto" id="crypto">
+                    <label for="crypto" style="flex: 1; display: flex; align-items: center; gap: 10px;">
+                        <i class="fa-brands fa-bitcoin" style="color: #fbbf24;"></i>
+                        Криптовалюта (USDT)
+                    </label>
+                </div>
+                
+                <button type="submit" class="buy-btn" style="margin-top: 20px;">
+                    Оплатить
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openPaymentModal(packageId, coins, bonus, price) {
+        document.getElementById('paymentModal').style.display = 'flex';
+        document.getElementById('packageId').value = packageId;
+        document.body.style.overflow = 'hidden';
+        
+        const totalCoins = coins + bonus;
+        document.getElementById('packageInfo').innerHTML = `
+            <h3 style="margin-bottom: 5px;">${coins} PYTH ${bonus > 0 ? `+ ${bonus} бонус` : ''}</h3>
+            <p style="color: #fbbf24; font-size: 1.2rem; font-weight: 600;">${price} ₽</p>
+            <p style="color: #9ab3d0;">Всего: ${totalCoins} PYTH</p>
+        `;
+    }
+
+    function closePaymentModal() {
+        document.getElementById('paymentModal').style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+
+    // Закрытие по ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closePaymentModal();
+        }
+    });
+
+    // Закрытие по клику вне модалки
+    window.onclick = function(event) {
+        if (event.target.classList.contains('modal-overlay')) {
+            closePaymentModal();
+        }
+    };
+
+    // Автоматическое скрытие flash сообщений
+    setTimeout(() => {
+        document.querySelectorAll('.flash-message').forEach(msg => {
+            msg.style.animation = 'slideOut 0.3s';
+            setTimeout(() => msg.remove(), 300);
+        });
+    }, 5000);
+</script>
+
+<style>
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+</style>
+</body>
+</html>
