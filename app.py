@@ -275,6 +275,252 @@ def get_ai_response(user_message, chat_history, user_name):
         traceback.print_exc()
         return f"{user_name}, произошла ошибка при обращении к GPT-4. Попробуй еще раз!"
 
+
+# Список разрешенных модулей
+ALLOWED_MODULES = ['math', 'time', 'os']
+
+# Безопасное выполнение Python кода
+@app.route('/api/run-code', methods=['POST'])
+def run_code():
+    if 'user' not in session:
+        return jsonify({'error': 'Не авторизован'}), 401
+    
+    data = request.json
+    code = data.get('code', '')
+    task_id = data.get('task_id')
+    
+    if not code:
+        return jsonify({'error': 'Код не может быть пустым'}), 400
+    
+    # Проверяем код на опасные операции
+    if not is_code_safe(code):
+        return jsonify({
+            'output': '',
+            'error': 'Обнаружены запрещенные операции. Разрешены только модули: math, time, os'
+        })
+    
+    # Захватываем вывод
+    output = io.StringIO()
+    error_output = io.StringIO()
+    
+    try:
+        with contextlib.redirect_stdout(output), contextlib.redirect_stderr(error_output):
+            # Создаем безопасное окружение
+            safe_globals = {
+                '__builtins__': __builtins__,
+                'math': math,
+                'time': time,
+                'os': os,
+                'print': print
+            }
+            
+            # Выполняем код
+            exec(code, safe_globals)
+        
+        result = output.getvalue()
+        error = error_output.getvalue()
+        
+        if error:
+            return jsonify({'output': result, 'error': error})
+        else:
+            return jsonify({'output': result, 'error': None})
+            
+    except Exception as e:
+        return jsonify({
+            'output': '',
+            'error': f'Ошибка выполнения: {str(e)}'
+        })
+
+# Проверка кода на безопасность
+def is_code_safe(code):
+    try:
+        tree = ast.parse(code)
+        
+        for node in ast.walk(tree):
+            # Запрещаем импорты
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    if alias.name not in ALLOWED_MODULES:
+                        return False
+            if isinstance(node, ast.ImportFrom):
+                if node.module not in ALLOWED_MODULES:
+                    return False
+            
+            # Запрещаем опасные функции
+            if isinstance(node, ast.Call):
+                if isinstance(node.func, ast.Name):
+                    if node.func.id in ['eval', 'exec', 'compile', 'open', 'input']:
+                        return False
+                    if node.func.id in ['__import__']:
+                        return False
+            
+            # Запрещаем обращение к __builtins__
+            if isinstance(node, ast.Attribute):
+                if node.attr.startswith('__') and node.attr.endswith('__'):
+                    if node.attr not in ['__name__', '__file__']:
+                        return False
+        
+        return True
+    except SyntaxError:
+        return True  # Пусть exec обработает синтаксическую ошибку
+
+# Проверка решения задачи
+@app.route('/api/check-task', methods=['POST'])
+def check_task():
+    if 'user' not in session:
+        return jsonify({'error': 'Не авторизован'}), 401
+    
+    data = request.json
+    code = data.get('code', '')
+    task_id = data.get('task_id')
+    expected_output = data.get('expected_output', '').strip()
+    
+    if not code:
+        return jsonify({'error': 'Код не может быть пустым'}), 400
+    
+    # Проверяем код на безопасность
+    if not is_code_safe(code):
+        return jsonify({
+            'correct': False,
+            'output': '',
+            'error': 'Обнаружены запрещенные операции. Разрешены только модули: math, time, os'
+        })
+    
+    # Захватываем вывод
+    output = io.StringIO()
+    error_output = io.StringIO()
+    
+    try:
+        with contextlib.redirect_stdout(output), contextlib.redirect_stderr(error_output):
+            # Создаем безопасное окружение
+            safe_globals = {
+                '__builtins__': __builtins__,
+                'math': math,
+                'time': time,
+                'os': os,
+                'print': print
+            }
+            
+            # Выполняем код
+            exec(code, safe_globals)
+        
+        result = output.getvalue().strip()
+        error = error_output.getvalue()
+        
+        if error:
+            return jsonify({
+                'correct': False,
+                'output': result,
+                'error': error
+            })
+        
+        # Сравниваем с ожидаемым результатом
+        is_correct = (result == expected_output)
+        
+        # Если задача решена правильно, начисляем монеты
+        if is_correct and task_id:
+            email = session['user']['email']
+            
+            # Проверяем, не решал ли уже эту задачу
+            solved_tasks_key = f'solved_tasks_{task_id}'
+            if solved_tasks_key not in users[email]:
+                users[email][solved_tasks_key] = True
+                
+                # Начисляем монеты (10 PYTH за задачу)
+                users[email]['balance'] = users[email].get('balance', 0) + 10
+                
+                # Записываем транзакцию
+                transaction = {
+                    'id': str(uuid.uuid4())[:8],
+                    'type': 'bonus',
+                    'amount': 10,
+                    'date': datetime.now(),
+                    'description': f'Бонус за решение задачи #{task_id}'
+                }
+                
+                if 'transaction_history' not in users[email]:
+                    users[email]['transaction_history'] = []
+                users[email]['transaction_history'].append(transaction)
+                
+                # Обновляем сессию
+                session['user']['balance'] = users[email]['balance']
+                
+                new_balance = users[email]['balance']
+            else:
+                new_balance = users[email]['balance']
+        else:
+            new_balance = session['user']['balance']
+        
+        return jsonify({
+            'correct': is_correct,
+            'output': result,
+            'error': None,
+            'new_balance': new_balance if is_correct and task_id else None
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'correct': False,
+            'output': '',
+            'error': f'Ошибка выполнения: {str(e)}'
+        })
+
+# Добавляем маршрут для задач
+@app.route('/tasks/<int:task_id>')
+def task_page(task_id):
+    if 'user' not in session:
+        flash('Войдите, чтобы решать задачи', 'info')
+        return redirect(url_for('login'))
+    
+    # Информация о задачах
+    tasks_info = {
+        1: {
+            'title': 'Привет, мир!',
+            'difficulty': 'Легкая',
+            'time': 5,
+            'reward': 10,
+            'description': 'Напишите программу, которая выводит на экран фразу "Привет, мир!".',
+            'example_code': 'print("Привет, мир!")',
+            'expected_output': 'Привет, мир!',
+            'hint': 'Используйте функцию print(). Текст должен быть точно таким же, включая заглавную букву и восклицательный знак.'
+        },
+        2: {
+            'title': 'Сложение чисел',
+            'difficulty': 'Легкая',
+            'time': 5,
+            'reward': 15,
+            'description': 'Напишите программу, которая складывает числа 5 и 3 и выводит результат.',
+            'example_code': 'print(5 + 3)',
+            'expected_output': '8',
+            'hint': 'Используйте оператор + для сложения чисел.'
+        },
+        3: {
+            'title': 'Переменные',
+            'difficulty': 'Легкая',
+            'time': 7,
+            'reward': 15,
+            'description': 'Создайте переменную name со значением "Анна" и переменную age со значением 25. Выведите их в формате "Имя: Анна, Возраст: 25".',
+            'example_code': 'name = "Анна"\nage = 25\nprint(f"Имя: {name}, Возраст: {age}")',
+            'expected_output': 'Имя: Анна, Возраст: 25',
+            'hint': 'Используйте f-строки для форматирования вывода.'
+        }
+    }
+    
+    task_info = tasks_info.get(task_id)
+    if not task_info:
+        flash('Задача не найдена', 'error')
+        return redirect(url_for('courses'))
+    
+    email = session['user']['email']
+    user_data = users[email]
+    
+    # Проверяем, решена ли уже задача
+    solved_tasks_key = f'solved_tasks_{task_id}'
+    task_info['is_solved'] = solved_tasks_key in user_data
+    
+    return render_template(f'task{task_id}.html', task=task_info, user=user_data)
+
+
 # Главная страница
 @app.route('/')
 def main():

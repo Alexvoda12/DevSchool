@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyMaster · Задача #1: {{ task.title }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Стили для страницы задачи */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            font-family: 'Inter', sans-serif;
+            background: #0a0c0f;
+            color: #e3e9f1;
+        }
+        
+        .navbar {
+            flex-shrink: 0;
+        }
+        
+        .task-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px 0;
+            background: #0a0c0f;
+        }
+        
+        .task-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+        
+        /* Заголовок задачи */
+        .task-header {
+            background: linear-gradient(145deg, #0f172a, #1a2635);
+            border-radius: 40px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid #2a3a55;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .task-icon {
+            width: 70px;
+            height: 70px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: #3b82f6;
+        }
+        
+        .task-title h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            background: linear-gradient(145deg, #ffffff, #a5c9ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .task-meta {
+            display: flex;
+            gap: 20px;
+            color: #9ab3d0;
+            font-size: 0.9rem;
+            flex-wrap: wrap;
+        }
+        
+        .task-meta i {
+            color: #3b82f6;
+            margin-right: 6px;
+        }
+        
+        .solved-badge {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid #10b981;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 15px;
+        }
+        
+        /* Основной контент */
+        .task-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        /* Левая колонка - условие */
+        .task-condition {
+            background: rgba(18, 26, 36, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid #2a3a55;
+            border-radius: 32px;
+            padding: 30px;
+        }
+        
+        .condition-title {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #ffffff;
+        }
+        
+        .condition-title i {
+            color: #3b82f6;
+        }
+        
+        .condition-text {
+            color: #9ab3d0;
+            line-height: 1.7;
+            margin-bottom: 25px;
+            font-size: 1rem;
+        }
+        
+        .example-box {
+            background: #1a2635;
+            border: 1px solid #2f405b;
+            border-radius: 24px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .example-title {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .example-title i {
+            color: #fbbf24;
+        }
+        
+        .example-code {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            color: #fbbf24;
+            margin-bottom: 15px;
+            overflow-x: auto;
+        }
+        
+        .expected-output {
+            background: #0f172a;
+            border: 1px solid #10b981;
+            border-radius: 16px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            color: #10b981;
+        }
+        
+        /* Правая колонка - редактор */
+        .task-editor {
+            background: rgba(18, 26, 36, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid #2a3a55;
+            border-radius: 32px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .editor-title {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #ffffff;
+        }
+        
+        .editor-title i {
+            color: #3b82f6;
+        }
+        
+        .allowed-modules {
+            background: #1e293b;
+            border-radius: 20px;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            color: #94a3b8;
+            border: 1px solid #334155;
+        }
+        
+        .allowed-modules i {
+            color: #10b981;
+        }
+        
+        .allowed-modules span {
+            color: #fbbf24;
+            font-family: monospace;
+            margin: 0 3px;
+        }
+        
+        .code-editor {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 20px;
+            flex: 1;
+        }
+        
+        .code-editor textarea {
+            width: 100%;
+            height: 300px;
+            background: transparent;
+            border: none;
+            color: #fbbf24;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            resize: vertical;
+            outline: none;
+        }
+        
+        .code-editor textarea::placeholder {
+            color: #475569;
+        }
+        
+        /* Консоль */
+        .console-output {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .console-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+        
+        .console-header i {
+            color: #3b82f6;
+        }
+        
+        .console-content {
+            background: #1a2635;
+            border-radius: 16px;
+            padding: 15px;
+            min-height: 80px;
+            font-family: 'Courier New', monospace;
+            color: #e2e8f0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            border-left: 3px solid transparent;
+        }
+        
+        .console-content.error {
+            border-left-color: #ef4444;
+        }
+        
+        .console-content.success {
+            border-left-color: #10b981;
+        }
+        
+        /* Кнопки */
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .btn {
+            padding: 14px 30px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(145deg, #2563eb, #1d4ed8);
+            color: white;
+            flex: 2;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            background: linear-gradient(145deg, #3b82f6, #2563eb);
+            transform: scale(1.02);
+        }
+        
+        .btn-secondary {
+            background: #1e293b;
+            color: white;
+            border: 1px solid #334155;
+            flex: 1;
+        }
+        
+        .btn-secondary:hover:not(:disabled) {
+            background: #2d3a4f;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* Результат проверки */
+        .result-message {
+            margin-top: 20px;
+            padding: 15px 20px;
+            border-radius: 40px;
+            font-size: 0.95rem;
+            display: none;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .result-message.success {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid #10b981;
+            color: #10b981;
+            display: flex;
+        }
+        
+        .result-message.error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+            display: flex;
+        }
+        
+        /* Подсказки */
+        .hint-box {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid #f59e0b;
+            border-radius: 20px;
+            padding: 15px 20px;
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+        
+        .hint-box i {
+            color: #f59e0b;
+            font-size: 1.2rem;
+        }
+        
+        .hint-box-content {
+            color: #e9f0fa;
+            font-size: 0.9rem;
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 900px) {
+            .task-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Flash сообщения -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <i class="fa-solid fa-circle-check"></i> {{ message }}
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<!-- Навбар -->
+<nav class="navbar">
+    <div class="container nav-wrapper">
+        <div class="logo">
+            <i class="fa-brands fa-python logo-icon"></i>
+            <span class="logo-text">PyMaster</span>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('main') }}">Главная</a>
+            <a href="{{ url_for('courses') }}">Курсы</a>
+            <a href="{{ url_for('ai_assistant') }}">GPT-4</a>
+            <a href="{{ url_for('dashboard') }}">Кабинет</a>
+            
+            <div class="pyth-balance" onclick="window.location.href='{{ url_for('shop') }}'">
+                <i class="fa-solid fa-coins"></i>
+                <span>{{ user.balance }} PYTH</span>
+            </div>
+            
+            <a href="{{ url_for('logout') }}" class="logout-btn">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Основной контент -->
+<div class="task-wrapper">
+    <div class="task-container">
+        <!-- Заголовок задачи -->
+        <div class="task-header">
+            <div class="task-icon">
+                <i class="fa-solid fa-code"></i>
+            </div>
+            <div class="task-title">
+                <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                    <h1>Задача #1: {{ task.title }}</h1>
+                    {% if task.is_solved %}
+                        <span class="solved-badge">
+                            <i class="fa-solid fa-check"></i> Решено
+                        </span>
+                    {% endif %}
+                </div>
+                <div class="task-meta">
+                    <span><i class="fa-solid fa-signal"></i> {{ task.difficulty }}</span>
+                    <span><i class="fa-solid fa-clock"></i> {{ task.time }} минут</span>
+                    <span><i class="fa-solid fa-star" style="color: #fbbf24;"></i> +{{ task.reward }} PYTH за решение</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Основной контент задачи -->
+        <div class="task-content">
+            <!-- Левая колонка: условие -->
+            <div class="task-condition">
+                <div class="condition-title">
+                    <i class="fa-solid fa-circle-info"></i>
+                    Условие задачи
+                </div>
+                
+                <div class="condition-text">
+                    <p>{{ task.description }}</p>
+                </div>
+
+                <div class="example-box">
+                    <div class="example-title">
+                        <i class="fa-solid fa-lightbulb"></i>
+                        Пример
+                    </div>
+                    <div class="example-code">
+                        <pre>{{ task.example_code }}</pre>
+                    </div>
+                    <div class="expected-output" id="expectedOutput">
+                        {{ task.expected_output }}
+                    </div>
+                </div>
+
+                <div class="hint-box">
+                    <i class="fa-solid fa-circle-question"></i>
+                    <div class="hint-box-content">
+                        <strong>Подсказка:</strong> {{ task.hint }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Правая колонка: редактор кода -->
+            <div class="task-editor">
+                <div class="editor-title">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                    Ваш код
+                </div>
+
+                <!-- Информация о разрешенных модулях -->
+                <div class="allowed-modules">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>Разрешены только модули:</span>
+                    <span>math, time, os</span>
+                </div>
+
+                <!-- Редактор кода -->
+                <div class="code-editor">
+                    <textarea id="codeInput" placeholder="# Напишите ваш код здесь...">{{ task.example_code }}</textarea>
+                </div>
+
+                <!-- Консоль -->
+                <div class="console-output">
+                    <div class="console-header">
+                        <i class="fa-solid fa-terminal"></i>
+                        <span>Вывод программы</span>
+                    </div>
+                    <div class="console-content" id="consoleOutput">
+                        Здесь появится результат выполнения вашего кода
+                    </div>
+                </div>
+
+                <!-- Кнопки -->
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="runCode()" id="runBtn">
+                        <i class="fa-solid fa-play"></i>
+                        Запустить
+                    </button>
+                    <button class="btn btn-primary" onclick="checkCode()" id="checkBtn" {% if task.is_solved %}disabled{% endif %}>
+                        <i class="fa-solid fa-check"></i>
+                        {% if task.is_solved %}Решено{% else %}Проверить{% endif %}
+                    </button>
+                </div>
+
+                <!-- Результат проверки -->
+                <div class="result-message" id="resultMessage">
+                    <i class="fa-solid" id="resultIcon"></i>
+                    <span id="resultText"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Кнопка возврата -->
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="{{ url_for('courses') }}" class="btn btn-secondary" style="display: inline-flex;">
+                <i class="fa-solid fa-arrow-left"></i>
+                Назад к курсам
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Функция для запуска кода
+    async function runCode() {
+        const code = document.getElementById('codeInput').value;
+        const consoleOutput = document.getElementById('consoleOutput');
+        const runBtn = document.getElementById('runBtn');
+        const originalText = runBtn.innerHTML;
+        
+        // Блокируем кнопку
+        runBtn.disabled = true;
+        runBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Выполнение...';
+        
+        try {
+            const response = await fetch('/api/run-code', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    code: code,
+                    task_id: 1
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.error) {
+                consoleOutput.textContent = data.error;
+                consoleOutput.classList.add('error');
+                consoleOutput.classList.remove('success');
+            } else {
+                consoleOutput.textContent = data.output || '(пусто)';
+                consoleOutput.classList.remove('error');
+                consoleOutput.classList.add('success');
+            }
+            
+        } catch (error) {
+            consoleOutput.textContent = 'Ошибка соединения с сервером';
+            consoleOutput.classList.add('error');
+            consoleOutput.classList.remove('success');
+        } finally {
+            runBtn.disabled = false;
+            runBtn.innerHTML = originalText;
+        }
+    }
+
+    // Функция для проверки кода
+    async function checkCode() {
+        const code = document.getElementById('codeInput').value;
+        const expectedOutput = document.getElementById('expectedOutput').textContent.trim();
+        const consoleOutput = document.getElementById('consoleOutput');
+        const resultMessage = document.getElementById('resultMessage');
+        const resultIcon = document.getElementById('resultIcon');
+        const resultText = document.getElementById('resultText');
+        const checkBtn = document.getElementById('checkBtn');
+        const originalText = checkBtn.innerHTML;
+        const balanceSpan = document.querySelector('.pyth-balance span');
+        
+        // Блокируем кнопку
+        checkBtn.disabled = true;
+        checkBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Проверка...';
+        
+        try {
+            const response = await fetch('/api/check-task', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    code: code,
+                    task_id: 1,
+                    expected_output: expectedOutput
+                })
+            });
+            
+            const data = await response.json();
+            
+            // Обновляем консоль
+            if (data.error) {
+                consoleOutput.textContent = data.error;
+                consoleOutput.classList.add('error');
+                consoleOutput.classList.remove('success');
+            } else {
+                consoleOutput.textContent = data.output || '(пусто)';
+                if (data.correct) {
+                    consoleOutput.classList.add('success');
+                } else {
+                    consoleOutput.classList.add('error');
+                }
+            }
+            
+            // Показываем результат проверки
+            if (data.correct) {
+                resultMessage.className = 'result-message success';
+                resultIcon.className = 'fa-solid fa-circle-check';
+                resultText.textContent = '✅ Правильно! Задача решена!';
+                
+                // Обновляем баланс если начислены монеты
+                if (data.new_balance && balanceSpan) {
+                    balanceSpan.textContent = data.new_balance + ' PYTH';
+                    
+                    // Добавляем анимацию к балансу
+                    balanceSpan.style.animation = 'pulse 0.5s';
+                    setTimeout(() => {
+                        balanceSpan.style.animation = '';
+                    }, 500);
+                }
+                
+                // Блокируем кнопку проверки навсегда
+                checkBtn.disabled = true;
+                checkBtn.innerHTML = '<i class="fa-solid fa-check"></i> Решено';
+                
+            } else {
+                resultMessage.className = 'result-message error';
+                resultIcon.className = 'fa-solid fa-circle-exclamation';
+                resultText.textContent = '❌ Неправильно. Попробуй еще раз.';
+                checkBtn.disabled = false;
+                checkBtn.innerHTML = originalText;
+            }
+            
+        } catch (error) {
+            consoleOutput.textContent = 'Ошибка соединения с сервером';
+            consoleOutput.classList.add('error');
+            resultMessage.className = 'result-message error';
+            resultIcon.className = 'fa-solid fa-circle-exclamation';
+            resultText.textContent = '❌ Ошибка при проверке решения';
+            checkBtn.disabled = false;
+            checkBtn.innerHTML = originalText;
+        }
+    }
+
+    // Добавляем возможность запуска по Ctrl+Enter
+    document.getElementById('codeInput').addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.key === 'Enter') {
+            e.preventDefault();
+            runCode();
+        }
+    });
+
+    // Автоматическое скрытие flash сообщений
+    setTimeout(() => {
+        document.querySelectorAll('.flash-message').forEach(msg => {
+            msg.style.animation = 'slideOut 0.3s';
+            setTimeout(() => msg.remove(), 300);
+        });
+    }, 5000);
+</script>
+
+<style>
+    /* Дополнительные стили */
+    code {
+        background: #1e293b;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9rem;
+    }
+    
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); color: #fbbf24; }
+    }
+    
+    pre {
+        margin: 0;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+</style>
+
+</body>
+</html>
