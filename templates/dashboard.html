@@ -146,6 +146,50 @@
                         </div>
                     </div>
                 </div>
+                <!-- В секции welcome-section, после welcome-text -->
+                <div class="welcome-section">
+                    <div class="welcome-content">
+                        <div class="welcome-text">
+                            <h1>С возвращением, {{ user.name }}! 👋</h1>
+                            <p>
+                                <i class="fa-solid fa-calendar"></i> 
+                                {{ user.days_active }} дней на платформе
+                            </p>
+                        </div>
+                        
+                        <!-- НОВЫЙ БЛОК: Счетчик времени -->
+                        <div class="time-counter" style="background: rgba(0, 0, 0, 0.3); padding: 15px 25px; border-radius: 60px; backdrop-filter: blur(10px); border: 1px solid #334155; display: flex; align-items: center; gap: 20px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <i class="fa-solid fa-hourglass-half" style="color: #3b82f6; font-size: 1.5rem;"></i>
+                                <div>
+                                    <div style="font-size: 0.8rem; color: #94a3b8;">Время на платформе</div>
+                                    <div id="liveTimer" style="font-size: 1.8rem; font-weight: 700; font-family: monospace; color: #3b82f6;">00:00:00</div>
+                                </div>
+                            </div>
+                            <div style="width: 1px; height: 30px; background: #334155;"></div>
+                            <div>
+                                <div style="font-size: 0.8rem; color: #94a3b8;">Всего часов</div>
+                                <div style="font-size: 1.5rem; font-weight: 600;" id="totalHours">{{ "%.1f"|format(user.total_hours) }}</div>
+                            </div>
+                        </div>
+                        <!-- КОНЕЦ НОВОГО БЛОКА -->
+                        
+                        <div class="quick-stats">
+                            <div class="quick-stat">
+                                <div class="quick-stat-value">{{ user.total_hours }}</div>
+                                <div class="quick-stat-label">часов</div>
+                            </div>
+                            <div class="quick-stat">
+                                <div class="quick-stat-value">{{ user.courses_completed }}</div>
+                                <div class="quick-stat-label">курсов</div>
+                            </div>
+                            <div class="quick-stat">
+                                <div class="quick-stat-value">{{ user.achievements|length }}</div>
+                                <div class="quick-stat-label">ачивки</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Грид основных карточек -->
@@ -239,78 +283,52 @@
                     </a>
                 </div>
 
+                <!-- Список курсов -->
+
                 <div class="courses-list">
-                    <div class="course-item">
-                        <div class="course-icon">
-                            <i class="fa-brands fa-python"></i>
+                    {% if purchased_courses %}
+                        {% for course in purchased_courses %}
+                        <div class="course-item">
+                            <div class="course-icon">
+                                <i class="{{ course.icon }}"></i>
+                            </div>
+                            <div class="course-info">
+                                <h4>{{ course.title }}</h4>
+                                <div class="course-meta">
+                                    <span><i class="fa-solid fa-clock"></i> {{ course.lessons }} уроков</span>
+                                    <span><i class="fa-solid fa-layer-group"></i> 
+                                        {% if course.level == 'beginner' %}Начинающий
+                                        {% elif course.level == 'intermediate' %}Средний
+                                        {% else %}Продвинутый{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="course-progress">
+                                <div class="progress-info">
+                                    <span>{{ course.progress|default(0) }}%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: {{ course.progress|default(0) }}%"></div>
+                                </div>
+                            </div>
+                            <a href="{{ url_for('course_page', course_id=course.id) }}" class="course-action">
+                                {% if course.completed %}
+                                    <i class="fa-solid fa-rotate-right"></i> Повторить
+                                {% else %}
+                                    Продолжить <i class="fa-solid fa-arrow-right"></i>
+                                {% endif %}
+                            </a>
                         </div>
-                        <div class="course-info">
-                            <h4>Python для начинающих</h4>
-                            <div class="course-meta">
-                                <span><i class="fa-solid fa-clock"></i> 24 урока</span>
-                                <span><i class="fa-solid fa-layer-group"></i> Основы</span>
+                        {% endfor %}
+                    {% else %}
+                        <div class="course-item" style="justify-content: center; text-align: center; padding: 40px;">
+                            <div style="color: #9ab3d0;">
+                                <i class="fa-solid fa-book-open" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
+                                <p>У вас пока нет купленных курсов.</p>
+                                <a href="{{ url_for('courses') }}" class="btn btn-primary" style="margin-top: 15px; display: inline-block;">Перейти к курсам</a>
                             </div>
                         </div>
-                        <div class="course-progress">
-                            <div class="progress-info">
-                                <span>100%</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: 100%"></div>
-                            </div>
-                        </div>
-                        <a href="#" class="course-action">
-                            <i class="fa-solid fa-rotate-right"></i> Повторить
-                        </a>
-                    </div>
-
-                    <div class="course-item">
-                        <div class="course-icon">
-                            <i class="fa-brands fa-django"></i>
-                        </div>
-                        <div class="course-info">
-                            <h4>{{ user.current_course }}</h4>
-                            <div class="course-meta">
-                                <span><i class="fa-solid fa-clock"></i> 36 уроков</span>
-                                <span><i class="fa-solid fa-layer-group"></i> Продвинутый</span>
-                            </div>
-                        </div>
-                        <div class="course-progress">
-                            <div class="progress-info">
-                                <span>{{ user.course_progress }}%</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: {{ user.course_progress }}%"></div>
-                            </div>
-                        </div>
-                        <a href="#" class="course-action">
-                            Продолжить <i class="fa-solid fa-arrow-right"></i>
-                        </a>
-                    </div>
-
-                    <div class="course-item" style="opacity: 0.8;">
-                        <div class="course-icon">
-                            <i class="fa-solid fa-database"></i>
-                        </div>
-                        <div class="course-info">
-                            <h4>Базы данных и SQL</h4>
-                            <div class="course-meta">
-                                <span><i class="fa-solid fa-clock"></i> 18 уроков</span>
-                                <span><i class="fa-solid fa-lock"></i> Требуется Django</span>
-                            </div>
-                        </div>
-                        <div class="course-progress">
-                            <div class="progress-info">
-                                <span>Заблокирован</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: 0%"></div>
-                            </div>
-                        </div>
-                        <a href="#" class="course-action" style="opacity: 0.5; pointer-events: none;">
-                            <i class="fa-solid fa-lock"></i>
-                        </a>
-                    </div>
+                    {% endif %}
                 </div>
             </div>
 
@@ -439,13 +457,201 @@
             setTimeout(() => msg.remove(), 300);
         });
     }, 5000);
+
+// Глобальные переменные для счетчика времени
+let timeCounter = null;
+let totalSeconds = 0;
+let isTimerRunning = true;
+
+// Функция для форматирования времени
+function formatTime(seconds) {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+// Функция для обновления времени на сервере
+async function updateServerTime(secondsToAdd = 3) {
+    try {
+        const response = await fetch('/api/update-time', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ seconds: secondsToAdd })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Обновляем отображение общего количества часов
+            const totalHoursElem = document.getElementById('totalHours');
+            if (totalHoursElem) {
+                totalHoursElem.textContent = data.new_total_hours.toFixed(1);
+            }
+            
+            // Обновляем quick stats если нужно
+            const quickStatValue = document.querySelector('.quick-stat .quick-stat-value');
+            if (quickStatValue) {
+                quickStatValue.textContent = Math.floor(data.new_total_hours);
+            }
+            
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error('Ошибка обновления времени:', error);
+        return false;
+    }
+}
+
+// Функция для запуска счетчика времени
+function startTimeCounter() {
+    // Получаем начальное время из total_hours пользователя
+    const initialHours = parseFloat('{{ user.total_hours }}') || 0;
+    totalSeconds = Math.floor(initialHours * 3600);
+    
+    // Обновляем отображение начального времени
+    const timerElem = document.getElementById('liveTimer');
+    if (timerElem) {
+        timerElem.textContent = formatTime(totalSeconds);
+    }
+    
+    // Запускаем интервал для обновления счетчика каждую секунду
+    timeCounter = setInterval(async () => {
+        if (!isTimerRunning) return;
+        
+        // Увеличиваем локальный счетчик
+        totalSeconds++;
+        
+        // Обновляем отображение
+        const timerElem = document.getElementById('liveTimer');
+        if (timerElem) {
+            timerElem.textContent = formatTime(totalSeconds);
+        }
+        
+        // Каждые 3 секунды отправляем данные на сервер
+        if (totalSeconds % 3 === 0) {
+            await updateServerTime(3);
+        }
+        
+        // Каждые 60 секунд отправляем дополнительный сигнал для синхронизации
+        if (totalSeconds % 60 === 0) {
+            console.log('Прошла еще одна минута обучения!');
+        }
+    }, 1000);
+}
+
+// Функция для остановки счетчика (например, при уходе со страницы)
+function stopTimeCounter() {
+    isTimerRunning = false;
+    if (timeCounter) {
+        clearInterval(timeCounter);
+        timeCounter = null;
+    }
+}
+
+// Функция для синхронизации времени с сервером
+async function syncTimeWithServer() {
+    try {
+        const response = await fetch('/api/update-time', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ seconds: 0 }) // 0 секунд - просто синхронизация без добавления
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Обновляем локальный счетчик
+            totalSeconds = Math.floor(data.new_total_hours * 3600);
+            
+            const timerElem = document.getElementById('liveTimer');
+            if (timerElem) {
+                timerElem.textContent = formatTime(totalSeconds);
+            }
+            
+            const totalHoursElem = document.getElementById('totalHours');
+            if (totalHoursElem) {
+                totalHoursElem.textContent = data.new_total_hours.toFixed(1);
+            }
+        }
+    } catch (error) {
+        console.error('Ошибка синхронизации времени:', error);
+    }
+}
+
+// Запускаем счетчик при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    startTimeCounter();
+    
+    // Синхронизируем время каждые 5 минут
+    setInterval(syncTimeWithServer, 5 * 60 * 1000);
+});
+
+// Останавливаем счетчик при уходе со страницы
+window.addEventListener('beforeunload', function() {
+    stopTimeCounter();
+    // Отправляем финальное обновление времени
+    if (totalSeconds > 0) {
+        const secondsToAdd = totalSeconds % 3;
+        if (secondsToAdd > 0) {
+            navigator.sendBeacon('/api/update-time', JSON.stringify({ seconds: secondsToAdd }));
+        }
+    }
+});
+
+// Функция для показа уведомлений (опционально)
+function showTimeNotification(message) {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        background: rgba(16, 185, 129, 0.95);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 40px;
+        font-weight: 500;
+        z-index: 2000;
+        animation: slideIn 0.3s;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    `;
+    notification.innerHTML = `<i class="fa-solid fa-clock"></i> ${message}`;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s';
+        setTimeout(() => notification.remove(), 300);
+    }, 2000);
+}
 </script>
 
+<!-- Добавляем стили для анимаций -->
 <style>
-    @keyframes slideOut {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
-    }
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0%); opacity: 1; }
+}
+
+@keyframes slideOut {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+}
+
+/* Пульсация для счетчика времени */
+#liveTimer {
+    animation: gentlePulse 2s infinite;
+}
+
+@keyframes gentlePulse {
+    0%, 100% { text-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
+    50% { text-shadow: 0 0 15px rgba(59, 130, 246, 0.8); }
+}
 </style>
 </body>
 </html>

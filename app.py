@@ -141,49 +141,50 @@ users = {
     }
 }
 
-# Функция для получения тега
+
+# Функция для получения тега (обновленная версия с дробными часами)
 def get_user_tag(total_hours):
     if total_hours < 10:
         return {
             'name': '🐣 Новичок',
             'color': '#10b981',
             'icon': 'fa-seedling',
-            'description': 'Только начинаешь путь в Python'
+            'description': f'Только начинаешь путь в Python ({total_hours:.1f} часов)'
         }
     elif total_hours < 50:
         return {
             'name': '🌱 Исследователь',
             'color': '#3b82f6',
             'icon': 'fa-magnifying-glass',
-            'description': 'Активно изучаешь основы'
+            'description': f'Активно изучаешь основы ({total_hours:.1f} часов)'
         }
     elif total_hours < 150:
         return {
             'name': '⚡ Энтузиаст',
             'color': '#f59e0b',
             'icon': 'fa-bolt',
-            'description': 'Уже пишешь свои проекты'
+            'description': f'Уже пишешь свои проекты ({total_hours:.1f} часов)'
         }
     elif total_hours < 300:
         return {
             'name': '🔥 Профи',
             'color': '#ef4444',
             'icon': 'fa-fire',
-            'description': 'Глубоко разбираешься в теме'
+            'description': f'Глубоко разбираешься в теме ({total_hours:.1f} часов)'
         }
     elif total_hours < 600:
         return {
             'name': '🚀 Мастер кода',
             'color': '#8b5cf6',
             'icon': 'fa-rocket',
-            'description': 'Пишешь сложные проекты'
+            'description': f'Пишешь сложные проекты ({total_hours:.1f} часов)'
         }
     else:
         return {
             'name': '👑 Легенда Python',
             'color': '#fbbf24',
             'icon': 'fa-crown',
-            'description': 'Настоящий гуру программирования'
+            'description': f'Настоящий гуру программирования ({total_hours:.1f} часов)'
         }
 
 # Функция для получения достижений
@@ -794,6 +795,48 @@ def add_progress():
     
     flash('⏱️ Прогресс обновлен! +1 час обучения', 'success')
     return redirect(url_for('profile'))
+
+# API для обновления времени на платформе
+@app.route('/api/update-time', methods=['POST'])
+def update_time():
+    if 'user' not in session:
+        return jsonify({'error': 'Не авторизован'}), 401
+    
+    data = request.json
+    seconds_to_add = data.get('seconds', 3)  # По умолчанию добавляем 3 секунды
+    
+    if seconds_to_add <= 0:
+        return jsonify({'error': 'Количество секунд должно быть положительным'}), 400
+    
+    email = session['user']['email']
+    
+    # Конвертируем секунды в часы (с сохранением дробной части)
+    hours_to_add = seconds_to_add / 3600  # 3600 секунд = 1 час
+    
+    # Добавляем время
+    users[email]['total_hours'] = users[email].get('total_hours', 0) + hours_to_add
+    
+    # Обновляем last_active
+    users[email]['last_active'] = datetime.now()
+    
+    # Обновляем сессию
+    session['user']['total_hours'] = users[email]['total_hours']
+    
+    # Форматируем время для отображения
+    total_seconds = int(users[email]['total_hours'] * 3600)
+    hours = total_seconds // 3600
+    minutes = (total_seconds % 3600) // 60
+    seconds = total_seconds % 60
+    
+    time_formatted = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+    
+    return jsonify({
+        'success': True,
+        'new_total_hours': users[email]['total_hours'],
+        'time_formatted': time_formatted,
+        'message': f'Время обновлено'
+    })
+
 
 # Выход
 @app.route('/logout')
