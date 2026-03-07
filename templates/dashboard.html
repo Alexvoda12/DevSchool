@@ -131,6 +131,24 @@
                             {{ user.days_active }} дней на платформе
                         </p>
                     </div>
+                    
+                    <!-- НОВЫЙ БЛОК: Счетчик времени -->
+                    <div class="time-counter" style="background: rgba(0, 0, 0, 0.3); padding: 15px 25px; border-radius: 60px; backdrop-filter: blur(10px); border: 1px solid #334155; display: flex; align-items: center; gap: 20px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <i class="fa-solid fa-hourglass-half" style="color: #3b82f6; font-size: 1.5rem;"></i>
+                            <div>
+                                <div style="font-size: 0.8rem; color: #94a3b8;">Время на платформе</div>
+                                <div id="liveTimer" style="font-size: 1.8rem; font-weight: 700; font-family: monospace; color: #3b82f6;">00:00:00</div>
+                            </div>
+                        </div>
+                        <div style="width: 1px; height: 30px; background: #334155;"></div>
+                        <div>
+                            <div style="font-size: 0.8rem; color: #94a3b8;">Всего часов</div>
+                            <div style="font-size: 1.5rem; font-weight: 600;" id="totalHours">{{ "%.1f"|format(user.total_hours) }}</div>
+                        </div>
+                    </div>
+                    <!-- КОНЕЦ НОВОГО БЛОКА -->
+                    
                     <div class="quick-stats">
                         <div class="quick-stat">
                             <div class="quick-stat-value">{{ user.total_hours }}</div>
@@ -143,50 +161,6 @@
                         <div class="quick-stat">
                             <div class="quick-stat-value">{{ user.achievements|length }}</div>
                             <div class="quick-stat-label">ачивки</div>
-                        </div>
-                    </div>
-                </div>
-                <!-- В секции welcome-section, после welcome-text -->
-                <div class="welcome-section">
-                    <div class="welcome-content">
-                        <div class="welcome-text">
-                            <h1>С возвращением, {{ user.name }}! 👋</h1>
-                            <p>
-                                <i class="fa-solid fa-calendar"></i> 
-                                {{ user.days_active }} дней на платформе
-                            </p>
-                        </div>
-                        
-                        <!-- НОВЫЙ БЛОК: Счетчик времени -->
-                        <div class="time-counter" style="background: rgba(0, 0, 0, 0.3); padding: 15px 25px; border-radius: 60px; backdrop-filter: blur(10px); border: 1px solid #334155; display: flex; align-items: center; gap: 20px;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <i class="fa-solid fa-hourglass-half" style="color: #3b82f6; font-size: 1.5rem;"></i>
-                                <div>
-                                    <div style="font-size: 0.8rem; color: #94a3b8;">Время на платформе</div>
-                                    <div id="liveTimer" style="font-size: 1.8rem; font-weight: 700; font-family: monospace; color: #3b82f6;">00:00:00</div>
-                                </div>
-                            </div>
-                            <div style="width: 1px; height: 30px; background: #334155;"></div>
-                            <div>
-                                <div style="font-size: 0.8rem; color: #94a3b8;">Всего часов</div>
-                                <div style="font-size: 1.5rem; font-weight: 600;" id="totalHours">{{ "%.1f"|format(user.total_hours) }}</div>
-                            </div>
-                        </div>
-                        <!-- КОНЕЦ НОВОГО БЛОКА -->
-                        
-                        <div class="quick-stats">
-                            <div class="quick-stat">
-                                <div class="quick-stat-value">{{ user.total_hours }}</div>
-                                <div class="quick-stat-label">часов</div>
-                            </div>
-                            <div class="quick-stat">
-                                <div class="quick-stat-value">{{ user.courses_completed }}</div>
-                                <div class="quick-stat-label">курсов</div>
-                            </div>
-                            <div class="quick-stat">
-                                <div class="quick-stat-value">{{ user.achievements|length }}</div>
-                                <div class="quick-stat-label">ачивки</div>
-                            </div>
                         </div>
                     </div>
                 </div>
