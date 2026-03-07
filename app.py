@@ -369,7 +369,14 @@ def dashboard():
     purchased = []
     for course in courses_list:
         if course['id'] in user_data['purchased_courses']:
-            purchased.append(course)
+            course_copy = course.copy() # Копируем, чтобы не менять оригинальный словарь курса
+            # Добавляем прогресс для каждого курса
+            progress_data = user_data.get('course_progress_data', {}).get(course['id'], {})
+            course_copy['current_lesson'] = progress_data.get('current_lesson', 0)
+            course_copy['completed'] = progress_data.get('completed', False)
+            total_lessons = course['lessons']
+            course_copy['progress'] = int((course_copy['current_lesson'] / total_lessons) * 100) if total_lessons > 0 else 0
+            purchased.append(course_copy)
     
     user_data['purchased_courses_count'] = len(purchased)
     user_data['balance'] = user_data.get('balance', 0)
