@@ -1,0 +1,1575 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyMaster · ООП в Python</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: auto;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            background: #0a0c0f;
+            color: #e3e9f1;
+            overflow-y: auto;
+        }
+        
+        .navbar {
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            width: 100%;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            width: 100%;
+        }
+        
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2563eb;
+        }
+
+        .course-header {
+            background: linear-gradient(145deg, #0f172a, #1a2635);
+            border-radius: 40px;
+            padding: 40px;
+            margin-bottom: 30px;
+            border: 1px solid #2a3a55;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .course-header-icon {
+            width: 100px;
+            height: 100px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            color: #3b82f6;
+        }
+        
+        .course-header-info {
+            flex: 1;
+        }
+        
+        .course-header-info h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(145deg, #ffffff, #a5c9ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .course-meta {
+            display: flex;
+            gap: 30px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        
+        .course-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #9ab3d0;
+        }
+        
+        .course-meta-item i {
+            color: #3b82f6;
+        }
+        
+        .progress-section {
+            background: rgba(18, 26, 36, 0.7);
+            border: 1px solid #2a3a55;
+            border-radius: 32px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .progress-percent {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #3b82f6;
+        }
+        
+        .progress-label {
+            color: #9ab3d0;
+        }
+        
+        .lesson-card {
+            background: rgba(18, 26, 36, 0.7);
+            border: 1px solid #2a3a55;
+            border-radius: 24px;
+            padding: 25px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .lesson-card:hover {
+            border-color: #3b82f6;
+            transform: translateX(5px);
+            background: #1e2c3f;
+        }
+        
+        .lesson-card.completed {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+        }
+        
+        .lesson-card.current {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        .lesson-number {
+            width: 50px;
+            height: 50px;
+            background: #1e293b;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: #3b82f6;
+        }
+        
+        .lesson-card.completed .lesson-number {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+        
+        .lesson-card.current .lesson-number {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .lesson-info {
+            flex: 1;
+        }
+        
+        .lesson-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #ffffff;
+        }
+        
+        .lesson-type {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #9ab3d0;
+            font-size: 0.85rem;
+        }
+        
+        .lesson-type i {
+            color: #3b82f6;
+        }
+        
+        .lesson-status {
+            padding: 6px 15px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .lesson-status.completed {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid #10b981;
+        }
+        
+        .lesson-status.current {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+            border: 1px solid #3b82f6;
+        }
+        
+        .lesson-status.locked {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+        
+        .theory-content {
+            background: #1a2635;
+            border: 1px solid #2f405b;
+            border-radius: 24px;
+            padding: 30px;
+            margin: 20px 0;
+            scroll-margin-top: 100px;
+        }
+        
+        .theory-section {
+            margin-bottom: 40px;
+        }
+        
+        .theory-section h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #e9f0fa;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .theory-section h3 i {
+            color: #3b82f6;
+        }
+        
+        .code-block {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            color: #fbbf24;
+            overflow-x: auto;
+        }
+        
+        .code-block pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .test-block {
+            background: #1a2635;
+            border: 1px solid #2f405b;
+            border-radius: 24px;
+            padding: 30px;
+            margin: 30px 0;
+            scroll-margin-top: 100px;
+        }
+        
+        .test-question {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+        
+        .test-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .test-option {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 40px;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .test-option:hover {
+            border-color: #3b82f6;
+            background: #2d3a4f;
+        }
+        
+        .test-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #3b82f6;
+        }
+        
+        .test-btn {
+            background: linear-gradient(145deg, #2563eb, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 20px;
+        }
+        
+        .test-btn:hover {
+            background: linear-gradient(145deg, #3b82f6, #2563eb);
+            transform: scale(1.02);
+        }
+        
+        .test-feedback {
+            margin-top: 15px;
+            padding: 15px 20px;
+            border-radius: 40px;
+            font-size: 0.95rem;
+            animation: fadeIn 0.3s;
+        }
+        
+        .test-feedback.correct {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid #10b981;
+            color: #10b981;
+        }
+        
+        .test-feedback.incorrect {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        .nav-btn {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-btn:hover:not(:disabled) {
+            background: #2d3a4f;
+            border-color: #3b82f6;
+        }
+        
+        .nav-btn.next {
+            background: linear-gradient(145deg, #2563eb, #1d4ed8);
+            border: 1px solid #3b82f6;
+        }
+        
+        .nav-btn.next:hover:not(:disabled) {
+            background: linear-gradient(145deg, #3b82f6, #2563eb);
+        }
+        
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .footer {
+            border-top: 1px solid #1a2635;
+            padding: 40px 0;
+            margin-top: 60px;
+            text-align: center;
+            color: #6b8bb0;
+        }
+        
+        .flash-messages {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .flash-message {
+            padding: 16px 24px;
+            border-radius: 40px;
+            margin-bottom: 10px;
+            animation: slideIn 0.3s;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-left: 4px solid #10b981;
+            background: rgba(4, 120, 87, 0.95);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0%); opacity: 1; }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
+        @media (max-width: 768px) {
+            .course-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .course-meta {
+                justify-content: center;
+            }
+            
+            .lesson-card {
+                flex-wrap: wrap;
+            }
+            
+            .lesson-status {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        .note-box {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid #f59e0b;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .note-box i {
+            color: #f59e0b;
+            font-size: 1.5rem;
+        }
+
+        .note-box-content {
+            color: #e9f0fa;
+        }
+
+        .note-box-content p {
+            margin: 5px 0;
+        }
+
+        .magic-method {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid #8b5cf6;
+            border-radius: 16px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Flash сообщения -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <i class="fa-solid fa-circle-check"></i> {{ message }}
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<!-- Навбар -->
+<nav class="navbar">
+    <div class="container nav-wrapper">
+        <div class="logo">
+            <i class="fa-brands fa-python logo-icon"></i>
+            <span class="logo-text">PyMaster</span>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('main') }}">Главная</a>
+            <a href="{{ url_for('courses') }}" class="active">Курсы</a>
+            <a href="{{ url_for('ai_assistant') }}">GPT-4</a>
+            <a href="{{ url_for('dashboard') }}">Кабинет</a>
+            
+            <div class="pyth-balance" onclick="window.location.href='{{ url_for('shop') }}'">
+                <i class="fa-solid fa-coins"></i>
+                <span>{{ user.balance }} PYTH</span>
+            </div>
+            
+            <a href="{{ url_for('logout') }}" class="logout-btn">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Основной контент -->
+<div class="container" style="padding: 40px 24px;">
+    <!-- Шапка курса -->
+    <div class="course-header">
+        <div class="course-header-icon">
+            <i class="fa-solid fa-cubes"></i>
+        </div>
+        <div class="course-header-info">
+            <h1>{{ course.title }}</h1>
+            <div class="course-meta">
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-clock"></i> {{ course.hours }} часов
+                </span>
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-book-open"></i> {{ course.lessons }} уроков
+                </span>
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-signal"></i> 
+                    <span class="course-level level-intermediate">Средний уровень</span>
+                </span>
+            </div>
+            <p style="color: #9ab3d0;">Погрузитесь в мир объектов и классов. Научитесь создавать свои типы данных и организовывать код как профессионал.</p>
+        </div>
+    </div>
+
+    <!-- Прогресс -->
+    <div class="progress-section">
+        <div class="progress-stats">
+            <div>
+                <span class="progress-percent">{{ progress }}%</span>
+                <span class="progress-label">прогресс</span>
+            </div>
+            <div>
+                <span class="progress-percent">{{ current_lesson }}/{{ course.lessons }}</span>
+                <span class="progress-label">уроков пройдено</span>
+            </div>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {{ progress }}%"></div>
+        </div>
+    </div>
+
+    <!-- Список уроков -->
+    <h2 style="font-size: 1.8rem; margin-bottom: 20px;">Уроки курса</h2>
+
+    <!-- Урок 1: Классы и объекты -->
+    <div class="lesson-card {% if current_lesson > 0 %}completed{% elif current_lesson == 0 %}current{% endif %}" onclick="window.location.href='#lesson1'">
+        <div class="lesson-number">1</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Классы и объекты</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 0 %}completed{% elif current_lesson == 0 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 0 %}✅ Пройдено{% elif current_lesson == 0 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 1 -->
+    <div id="lesson1" class="theory-content" style="scroll-margin-top: 100px;">
+        <h2 style="margin-bottom: 20px;">Урок 1: Классы и объекты</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-cube"></i> Что такое класс и объект?</h3>
+            <p><strong>Класс</strong> — это чертеж, шаблон, по которому создаются объекты. Представьте, что класс — это форма для выпечки печенья, а объект — само печенье.</p>
+            <p><strong>Объект</strong> — это конкретный экземпляр класса, обладающий своими значениями атрибутов.</p>
+            
+            <div class="code-block">
+                <pre>
+# Определение класса
+class Dog:
+    # Атрибут класса (общий для всех объектов)
+    species = "Canis familiaris"
+    
+    # Конструктор (инициализатор)
+    def __init__(self, name, age):
+        self.name = name  # Атрибут объекта
+        self.age = age    # Атрибут объекта
+    
+    # Метод класса
+    def bark(self):
+        return f"{self.name} says Woof!"
+
+# Создание объектов
+my_dog = Dog("Buddy", 3)
+your_dog = Dog("Lucy", 5)
+
+print(my_dog.name)      # Buddy
+print(my_dog.bark())    # Buddy says Woof!
+print(my_dog.species)   # Canis familiaris
+print(your_dog.age)     # 5</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-wrench"></i> Метод __init__</h3>
+            <p><strong>__init__</strong> — это специальный метод (конструктор), который автоматически вызывается при создании объекта. Здесь мы задаем начальные значения атрибутов.</p>
+            
+            <div class="code-block">
+                <pre>
+class Car:
+    def __init__(self, brand, model, year):
+        self.brand = brand
+        self.model = model
+        self.year = year
+        self.mileage = 0  # значение по умолчанию
+    
+    def drive(self, km):
+        self.mileage += km
+        return f"Пробег увеличен на {km} км"
+
+my_car = Car("Toyota", "Camry", 2020)
+print(my_car.mileage)  # 0
+my_car.drive(100)
+print(my_car.mileage)  # 100</pre>
+            </div>
+        </div>
+
+        <div class="note-box">
+            <i class="fa-solid fa-key"></i>
+            <div class="note-box-content">
+                <p><strong>Ключевое слово self:</strong></p>
+                <p>self ссылается на текущий объект. Это первый параметр любого метода класса. Через self мы обращаемся к атрибутам и методам объекта.</p>
+            </div>
+        </div>
+
+        <div class="navigation-buttons">
+            <button class="nav-btn" disabled><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" onclick="saveProgress(7, 0)">Далее <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+    </div>
+
+    <!-- Урок 2: Атрибуты и методы -->
+    <div class="lesson-card {% if current_lesson > 1 %}completed{% elif current_lesson == 1 %}current{% endif %}" onclick="window.location.href='#lesson2'">
+        <div class="lesson-number">2</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Атрибуты и методы</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 1 %}completed{% elif current_lesson == 1 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 1 %}✅ Пройдено{% elif current_lesson == 1 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 2 -->
+    {% if current_lesson >= 1 %}
+    <div id="lesson2" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 1 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 2: Атрибуты и методы</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-tag"></i> Типы атрибутов</h3>
+            <p><strong>Атрибуты класса</strong> — общие для всех объектов.</p>
+            <p><strong>Атрибуты объекта</strong> — уникальные для каждого экземпляра.</p>
+            
+            <div class="code-block">
+                <pre>
+class Employee:
+    # Атрибут класса
+    company = "Tech Corp"
+    employee_count = 0
+    
+    def __init__(self, name, salary):
+        # Атрибуты объекта
+        self.name = name
+        self.salary = salary
+        Employee.employee_count += 1
+    
+    def get_info(self):
+        return f"{self.name} работает в {self.company}, зарплата: {self.salary}"
+
+emp1 = Employee("Анна", 50000)
+emp2 = Employee("Иван", 60000)
+
+print(emp1.get_info())  # Анна работает в Tech Corp, зарплата: 50000
+print(emp2.company)     # Tech Corp
+print(Employee.employee_count)  # 2</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-gears"></i> Типы методов</h3>
+            
+            <p><strong>1. Обычные методы</strong> — работают с атрибутами объекта (self)</p>
+            <div class="code-block">
+                <pre>
+class Calculator:
+    def __init__(self, value):
+        self.value = value
+    
+    def add(self, x):
+        self.value += x
+        return self.value</pre>
+            </div>
+
+            <p><strong>2. Методы класса (@classmethod)</strong> — работают с атрибутами класса (cls)</p>
+            <div class="code-block">
+                <pre>
+class Employee:
+    bonus_rate = 1.1
+    
+    @classmethod
+    def set_bonus_rate(cls, rate):
+        cls.bonus_rate = rate
+    
+    @classmethod
+    def from_string(cls, emp_string):
+        name, salary = emp_string.split('-')
+        return cls(name, int(salary))</pre>
+            </div>
+
+            <p><strong>3. Статические методы (@staticmethod)</strong> — не зависят от класса или объекта</p>
+            <div class="code-block">
+                <pre>
+class Math:
+    @staticmethod
+    def add(x, y):
+        return x + y
+    
+    @staticmethod
+    def is_even(num):
+        return num % 2 == 0
+
+print(Math.add(5, 3))        # 8
+print(Math.is_even(4))       # True</pre>
+            </div>
+        </div>
+
+        <div class="navigation-buttons">
+            <button class="nav-btn" onclick="window.location.href='#lesson1'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" onclick="saveProgress(7, 1)">Далее <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Урок 3: Инкапсуляция -->
+    <div class="lesson-card {% if current_lesson > 2 %}completed{% elif current_lesson == 2 %}current{% endif %}" onclick="window.location.href='#lesson3'">
+        <div class="lesson-number">3</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Инкапсуляция</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 2 %}completed{% elif current_lesson == 2 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 2 %}✅ Пройдено{% elif current_lesson == 2 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 3 -->
+    {% if current_lesson >= 2 %}
+    <div id="lesson3" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 2 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 3: Инкапсуляция</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-shield-halved"></i> Сокрытие данных</h3>
+            <p>Инкапсуляция — это механизм, который скрывает внутренние данные объекта и предоставляет контролируемый доступ к ним.</p>
+            
+            <p><strong>Уровни доступа в Python:</strong></p>
+            <ul style="margin-left: 20px; color: #9ab3d0;">
+                <li><strong>public</strong> — доступны везде (обычные атрибуты)</li>
+                <li><strong>protected</strong> — одно подчеркивание _attr (соглашение, что это внутреннее использование)</li>
+                <li><strong>private</strong> — два подчеркивания __attr (name mangling)</li>
+            </ul>
+            
+            <div class="code-block">
+                <pre>
+class BankAccount:
+    def __init__(self, owner, balance):
+        self.owner = owner           # public
+        self._interest_rate = 0.05   # protected
+        self.__balance = balance     # private
+    
+    # Геттер для приватного атрибута
+    def get_balance(self):
+        return self.__balance
+    
+    # Сеттер с проверкой
+    def deposit(self, amount):
+        if amount > 0:
+            self.__balance += amount
+            return True
+        return False
+    
+    def withdraw(self, amount):
+        if 0 < amount <= self.__balance:
+            self.__balance -= amount
+            return True
+        return False
+
+account = BankAccount("Иван", 1000)
+print(account.owner)           # Иван (public - доступно)
+print(account._interest_rate)  # 0.05 (protected - доступно, но не рекомендуется)
+# print(account.__balance)     # Ошибка! AttributeError
+
+# Доступ через методы
+print(account.get_balance())   # 1000
+account.deposit(500)
+print(account.get_balance())   # 1500
+
+# Обход name mangling (не делайте так!)
+print(account._BankAccount__balance)  # 1500 (технически доступно, но нарушает инкапсуляцию)</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-arrow-right-arrow-left"></i> Свойства (@property)</h3>
+            <p>Декоратор property позволяет создавать геттеры, сеттеры и делитеры для удобного доступа к приватным атрибутам.</p>
+            
+            <div class="code-block">
+                <pre>
+class Person:
+    def __init__(self, name, age):
+        self._name = name
+        self._age = age
+    
+    @property
+    def age(self):
+        """Геттер для возраста"""
+        return self._age
+    
+    @age.setter
+    def age(self, value):
+        """Сеттер с валидацией"""
+        if value < 0:
+            raise ValueError("Возраст не может быть отрицательным")
+        if value > 150:
+            raise ValueError("Слишком большой возраст")
+        self._age = value
+    
+    @property
+    def name(self):
+        return self._name
+    
+    @name.deleter
+    def name(self):
+        print("Удаляем имя...")
+        del self._name
+
+p = Person("Анна", 25)
+print(p.age)      # 25 (используем как атрибут)
+p.age = 26        # Работает сеттер
+# p.age = -5      # ValueError!
+# del p.name      # Удаляет атрибут</pre>
+            </div>
+        </div>
+
+        <div class="navigation-buttons">
+            <button class="nav-btn" onclick="window.location.href='#lesson2'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" onclick="saveProgress(7, 2)">Далее <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Урок 4: Наследование -->
+    <div class="lesson-card {% if current_lesson > 3 %}completed{% elif current_lesson == 3 %}current{% endif %}" onclick="window.location.href='#lesson4'">
+        <div class="lesson-number">4</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Наследование</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 30 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 3 %}completed{% elif current_lesson == 3 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 3 %}✅ Пройдено{% elif current_lesson == 3 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 4 -->
+    {% if current_lesson >= 3 %}
+    <div id="lesson4" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 3 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 4: Наследование</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-code-branch"></i> Базовое наследование</h3>
+            <p>Наследование позволяет создавать новый класс на основе существующего. Дочерний класс получает все атрибуты и методы родителя и может их расширять или изменять.</p>
+            
+            <div class="code-block">
+                <pre>
+class Animal:
+    def __init__(self, name):
+        self.name = name
+    
+    def speak(self):
+        return f"{self.name} издает звук"
+    
+    def move(self):
+        return f"{self.name} двигается"
+
+# Наследование
+class Dog(Animal):
+    def speak(self):  # Переопределение метода
+        return f"{self.name} лает: Гав-гав!"
+    
+    def fetch(self):  # Новый метод
+        return f"{self.name} приносит палку"
+
+class Cat(Animal):
+    def speak(self):
+        return f"{self.name} мяукает: Мяу-мяу!"
+
+# Создание объектов
+dog = Dog("Бобик")
+cat = Cat("Мурка")
+
+print(dog.speak())  # Бобик лает: Гав-гав!
+print(cat.speak())  # Мурка мяукает: Мяу-мяу!
+print(dog.move())   # Бобик двигается (унаследовано)
+print(dog.fetch())  # Бобик приносит палку</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-sitemap"></i> Функции super()</h3>
+            <p><strong>super()</strong> позволяет вызвать метод родительского класса. Это полезно, когда мы хотим расширить родительский метод, а не полностью заменить его.</p>
+            
+            <div class="code-block">
+                <pre>
+class Vehicle:
+    def __init__(self, brand, model):
+        self.brand = brand
+        self.model = model
+        self.speed = 0
+    
+    def info(self):
+        return f"Транспорт: {self.brand} {self.model}"
+
+class Car(Vehicle):
+    def __init__(self, brand, model, doors):
+        # Вызываем конструктор родителя
+        super().__init__(brand, model)
+        self.doors = doors
+    
+    def info(self):
+        # Расширяем родительский метод
+        base_info = super().info()
+        return f"{base_info}, дверей: {self.doors}"
+    
+    def accelerate(self):
+        self.speed += 10
+        return f"Скорость: {self.speed} км/ч"
+
+my_car = Car("Toyota", "Camry", 4)
+print(my_car.info())  # Транспорт: Toyota Camry, дверей: 4</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-copy"></i> Множественное наследование</h3>
+            <p>Python поддерживает множественное наследование — класс может наследоваться от нескольких родителей.</p>
+            
+            <div class="code-block">
+                <pre>
+class Flyer:
+    def fly(self):
+        return "Я могу летать"
+
+class Swimmer:
+    def swim(self):
+        return "Я могу плавать"
+
+class Duck(Flyer, Swimmer):
+    def __init__(self, name):
+        self.name = name
+    
+    def speak(self):
+        return f"{self.name} крякает"
+
+duck = Duck("Дональд")
+print(duck.fly())   # Я могу летать
+print(duck.swim())  # Я могу плавать
+print(duck.speak()) # Дональд крякает</pre>
+            </div>
+        </div>
+
+        <div class="note-box">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <div class="note-box-content">
+                <p><strong>Важно!</strong> При множественном наследовании порядок классов важен. Python ищет методы слева направо (MRO - Method Resolution Order).</p>
+            </div>
+        </div>
+
+        <div class="navigation-buttons">
+            <button class="nav-btn" onclick="window.location.href='#lesson3'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" onclick="saveProgress(7, 3)">Далее <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Урок 5: Полиморфизм -->
+    <div class="lesson-card {% if current_lesson > 4 %}completed{% elif current_lesson == 4 %}current{% endif %}" onclick="window.location.href='#lesson5'">
+        <div class="lesson-number">5</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Полиморфизм</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 4 %}completed{% elif current_lesson == 4 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 4 %}✅ Пройдено{% elif current_lesson == 4 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 5 -->
+    {% if current_lesson >= 4 %}
+    <div id="lesson5" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 4 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 5: Полиморфизм</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-shapes"></i> Что такое полиморфизм?</h3>
+            <p>Полиморфизм — это способность объектов разных классов отвечать на одни и те же методы по-разному. Один интерфейс — разная реализация.</p>
+            
+            <div class="code-block">
+                <pre>
+class Shape:
+    def area(self):
+        pass
+    
+    def perimeter(self):
+        pass
+
+class Rectangle(Shape):
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+    
+    def area(self):
+        return self.width * self.height
+    
+    def perimeter(self):
+        return 2 * (self.width + self.height)
+
+class Circle(Shape):
+    def __init__(self, radius):
+        self.radius = radius
+    
+    def area(self):
+        return 3.14159 * self.radius ** 2
+    
+    def perimeter(self):
+        return 2 * 3.14159 * self.radius
+
+class Triangle(Shape):
+    def __init__(self, a, b, c):
+        self.a = a
+        self.b = b
+        self.c = c
+    
+    def area(self):
+        # Формула Герона
+        s = (self.a + self.b + self.c) / 2
+        return (s * (s - self.a) * (s - self.b) * (s - self.c)) ** 0.5
+    
+    def perimeter(self):
+        return self.a + self.b + self.c
+
+# Полиморфизм в действии
+shapes = [
+    Rectangle(5, 3),
+    Circle(4),
+    Triangle(3, 4, 5)
+]
+
+for shape in shapes:
+    print(f"Площадь: {shape.area():.2f}")
+    print(f"Периметр: {shape.perimeter():.2f}")
+    print("---")</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-plug"></i> Duck Typing</h3>
+            <p>В Python полиморфизм основан на принципе "утиной типизации": "Если это ходит как утка и крякает как утка, значит это утка". Важно не то, к какому классу принадлежит объект, а какие методы он поддерживает.</p>
+            
+            <div class="code-block">
+                <pre>
+class Duck:
+    def speak(self):
+        return "Кря-кря"
+    
+    def walk(self):
+        return "Утка идет вразвалочку"
+
+class Dog:
+    def speak(self):
+        return "Гав-гав"
+    
+    def walk(self):
+        return "Собака бежит"
+
+class Cat:
+    def speak(self):
+        return "Мяу-мяу"
+    
+    def walk(self):
+        return "Кошка крадется"
+
+def animal_actions(animal):
+    # Не важно, какого класса animal
+    # Главное, чтобы у него были методы speak и walk
+    print(animal.speak())
+    print(animal.walk())
+
+# Один и тот же код работает с разными объектами
+animal_actions(Duck())
+animal_actions(Dog())
+animal_actions(Cat())</pre>
+            </div>
+        </div>
+
+        <div class="navigation-buttons">
+            <button class="nav-btn" onclick="window.location.href='#lesson4'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" onclick="saveProgress(7, 4)">Далее <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Урок 6: Магические методы -->
+    <div class="lesson-card {% if current_lesson > 5 %}completed{% elif current_lesson == 5 %}current{% endif %}" onclick="window.location.href='#lesson6'">
+        <div class="lesson-number">6</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Магические методы</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 5 %}completed{% elif current_lesson == 5 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 5 %}✅ Пройдено{% elif current_lesson == 5 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 6 -->
+    {% if current_lesson >= 5 %}
+    <div id="lesson6" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 5 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 6: Магические методы</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-wand-magic"></i> Что такое магические методы?</h3>
+            <p>Магические методы (dunder methods) — это специальные методы с двойными подчеркиваниями, которые определяют поведение объектов в разных ситуациях.</p>
+            
+            <h4 style="margin: 20px 0 10px;">Основные магические методы:</h4>
+            
+            <div class="magic-method">
+                <strong>__init__(self, ...)</strong> — конструктор, вызывается при создании объекта
+            </div>
+            <div class="magic-method">
+                <strong>__str__(self)</strong> — для пользователей (print, str)
+            </div>
+            <div class="magic-method">
+                <strong>__repr__(self)</strong> — для разработчиков (repr, отладка)
+            </div>
+            <div class="magic-method">
+                <strong>__len__(self)</strong> — для функции len()
+            </div>
+            <div class="magic-method">
+                <strong>__add__(self, other)</strong> — оператор +
+            </div>
+            <div class="magic-method">
+                <strong>__eq__(self, other)</strong> — оператор ==
+            </div>
+            <div class="magic-method">
+                <strong>__lt__(self, other)</strong> — оператор <
+            </div>
+            <div class="magic-method">
+                <strong>__getitem__(self, key)</strong> — для доступа по индексу obj[key]
+            </div>
+            <div class="magic-method">
+                <strong>__call__(self, ...)</strong> — делает объект вызываемым (как функцию)
+            </div>
+            
+            <div class="code-block">
+                <pre>
+class Book:
+    def __init__(self, title, author, pages):
+        self.title = title
+        self.author = author
+        self.pages = pages
+        self.current_page = 0
+    
+    def __str__(self):
+        return f"'{self.title}' by {self.author}"
+    
+    def __repr__(self):
+        return f"Book('{self.title}', '{self.author}', {self.pages})"
+    
+    def __len__(self):
+        return self.pages
+    
+    def __add__(self, other):
+        """Объединение двух книг"""
+        new_title = f"{self.title} & {other.title}"
+        new_author = f"{self.author}, {other.author}"
+        new_pages = self.pages + other.pages
+        return Book(new_title, new_author, new_pages)
+    
+    def __eq__(self, other):
+        return self.title == other.title and self.author == other.author
+    
+    def __getitem__(self, page_num):
+        if 0 <= page_num < self.pages:
+            return f"Страница {page_num + 1} книги '{self.title}'"
+        raise IndexError("Страница не существует")
+    
+    def __call__(self, page_num):
+        """Перелистывание на страницу"""
+        self.current_page = page_num
+        return f"Открыта страница {page_num}"
+
+# Использование
+book1 = Book("1984", "Джордж Оруэлл", 328)
+book2 = Book("Скотный двор", "Джордж Оруэлл", 112)
+
+print(str(book1))           # '1984' by Джордж Оруэлл
+print(repr(book1))          # Book('1984', 'Джордж Оруэлл', 328)
+print(len(book1))           # 328
+
+book3 = book1 + book2
+print(book3)                # '1984 & Скотный двор' by Джордж Оруэлл, Джордж Оруэлл
+
+print(book1 == book2)       # False
+
+print(book1[100])           # Страница 101 книги '1984'
+print(book1(50))            # Открыта страница 50</pre>
+            </div>
+        </div>
+
+        <div class="navigation-buttons">
+            <button class="nav-btn" onclick="window.location.href='#lesson5'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" onclick="saveProgress(7, 5)">Далее <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Урок 7: Тест по ООП -->
+    <div class="lesson-card {% if current_lesson > 6 %}completed{% elif current_lesson == 6 %}current{% endif %}" onclick="window.location.href='#lesson7'">
+        <div class="lesson-number">7</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Тест: ООП</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-pen-to-square"></i> Тест • 15 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 6 %}completed{% elif current_lesson == 6 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 6 %}✅ Пройдено{% elif current_lesson == 6 %}📝 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 7 -->
+    {% if current_lesson >= 6 %}
+    <div id="lesson7" class="test-block" style="scroll-margin-top: 100px; {% if current_lesson != 6 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 7: Тест по ООП</h2>
+        
+        <div class="test-question">Вопрос 1: Что такое класс в ООП?</div>
+        <div class="test-options">
+            <label class="test-option">
+                <input type="radio" name="q1" value="0"> Конкретный объект в памяти
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q1" value="1"> Чертеж или шаблон для создания объектов
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q1" value="2"> Функция для создания переменных
+            </label>
+        </div>
+        <div id="feedback1" class="test-feedback" style="display: none;"></div>
+
+        <div class="test-question" style="margin-top: 30px;">Вопрос 2: Для чего используется метод __init__?</div>
+        <div class="test-options">
+            <label class="test-option">
+                <input type="radio" name="q2" value="0"> Для удаления объекта
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q2" value="1"> Для инициализации объекта (конструктор)
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q2" value="2"> Для вывода информации об объекте
+            </label>
+        </div>
+        <div id="feedback2" class="test-feedback" style="display: none;"></div>
+
+        <div class="test-question" style="margin-top: 30px;">Вопрос 3: Что такое инкапсуляция?</div>
+        <div class="test-options">
+            <label class="test-option">
+                <input type="radio" name="q3" value="0"> Создание новых классов на основе существующих
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q3" value="1"> Сокрытие внутренних данных и предоставление контролируемого доступа
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q3" value="2"> Способность объектов отвечать на одни и те же методы по-разному
+            </label>
+        </div>
+        <div id="feedback3" class="test-feedback" style="display: none;"></div>
+
+        <div class="test-question" style="margin-top: 30px;">Вопрос 4: Как в Python обозначается приватный атрибут (по соглашению)?</div>
+        <div class="test-options">
+            <label class="test-option">
+                <input type="radio" name="q4" value="0"> private_attr
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q4" value="1"> __attr (два подчеркивания)
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q4" value="2"> #attr
+            </label>
+        </div>
+        <div id="feedback4" class="test-feedback" style="display: none;"></div>
+
+        <div class="test-question" style="margin-top: 30px;">Вопрос 5: Что вернет вызов super() в дочернем классе?</div>
+        <div class="test-options">
+            <label class="test-option">
+                <input type="radio" name="q5" value="0"> Родительский класс
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q5" value="1"> Дочерний класс
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q5" value="2"> Текущий объект
+            </label>
+        </div>
+        <div id="feedback5" class="test-feedback" style="display: none;"></div>
+
+        <button class="test-btn" onclick="checkTest()">Проверить ответы</button>
+
+        <div class="navigation-buttons" style="margin-top: 30px;">
+            <button class="nav-btn" onclick="window.location.href='#lesson6'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" id="completeBtn" style="display: none;" onclick="completeCourse(7)">Завершить курс <i class="fa-solid fa-check"></i></button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Уроки 8-10 (дополнительные темы) -->
+    <!-- Для краткости оставлю заглушки, но в полной версии они будут с контентом -->
+
+    <!-- Урок 8: Композиция и агрегация -->
+    <div class="lesson-card {% if current_lesson > 7 %}completed{% elif current_lesson == 7 %}current{% endif %}" onclick="window.location.href='#lesson8'">
+        <div class="lesson-number">8</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Композиция и агрегация</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 7 %}completed{% elif current_lesson == 7 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 7 %}✅ Пройдено{% elif current_lesson == 7 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Урок 9: Абстрактные классы -->
+    <div class="lesson-card {% if current_lesson > 8 %}completed{% elif current_lesson == 8 %}current{% endif %}" onclick="window.location.href='#lesson9'">
+        <div class="lesson-number">9</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Абстрактные классы</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 8 %}completed{% elif current_lesson == 8 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 8 %}✅ Пройдено{% elif current_lesson == 8 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Урок 10: SOLID принципы -->
+    <div class="lesson-card {% if current_lesson > 9 %}completed{% elif current_lesson == 9 %}current{% endif %}" onclick="window.location.href='#lesson10'">
+        <div class="lesson-number">10</div>
+        <div class="lesson-info">
+            <div class="lesson-title">SOLID принципы</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 9 %}completed{% elif current_lesson == 9 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 9 %}✅ Пройдено{% elif current_lesson == 9 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Кнопка возврата -->
+    <div style="margin-top: 40px; text-align: center;">
+        <a href="{{ url_for('courses') }}" class="btn btn-outline">
+            <i class="fa-solid fa-arrow-left"></i> К списку курсов
+        </a>
+    </div>
+</div>
+
+<!-- Футер -->
+<footer class="footer">
+    <div class="container">
+        <p>© 2025 PyMaster · Объектно-ориентированное программирование</p>
+    </div>
+</footer>
+
+<script>
+    // Сохранение прогресса
+    async function saveProgress(courseId, lessonIndex) {
+        try {
+            const response = await fetch('/api/save-progress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    course_id: courseId,
+                    lesson_index: lessonIndex,
+                    completed: false
+                })
+            });
+            
+            if (response.ok) {
+                window.location.reload();
+            }
+        } catch (error) {
+            console.error('Ошибка сохранения прогресса:', error);
+        }
+    }
+
+    // Завершение курса
+    async function completeCourse(courseId) {
+        try {
+            const response = await fetch('/api/save-progress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    course_id: courseId,
+                    lesson_index: 9,
+                    completed: true
+                })
+            });
+            
+            if (response.ok) {
+                alert('🎉 Поздравляем! Вы завершили курс! +50 PYTH');
+                window.location.href = "{{ url_for('courses') }}";
+            }
+        } catch (error) {
+            console.error('Ошибка завершения курса:', error);
+        }
+    }
+
+    // Проверка теста
+    function checkTest() {
+        let allCorrect = true;
+        
+        // Вопрос 1
+        const q1 = document.querySelector('input[name="q1"]:checked');
+        if (q1 && q1.value === '1') {
+            document.getElementById('feedback1').className = 'test-feedback correct';
+            document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! Класс - это шаблон для создания объектов.';
+            document.getElementById('feedback1').style.display = 'block';
+        } else {
+            document.getElementById('feedback1').className = 'test-feedback incorrect';
+            document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. Класс - это чертеж для создания объектов.';
+            document.getElementById('feedback1').style.display = 'block';
+            allCorrect = false;
+        }
+        
+        // Вопрос 2
+        const q2 = document.querySelector('input[name="q2"]:checked');
+        if (q2 && q2.value === '1') {
+            document.getElementById('feedback2').className = 'test-feedback correct';
+            document.getElementById('feedback2').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! __init__ - это конструктор, инициализирующий объект.';
+            document.getElementById('feedback2').style.display = 'block';
+        } else {
+            document.getElementById('feedback2').className = 'test-feedback incorrect';
+            document.getElementById('feedback2').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. __init__ используется для инициализации объекта.';
+            document.getElementById('feedback2').style.display = 'block';
+            allCorrect = false;
+        }
+        
+        // Вопрос 3
+        const q3 = document.querySelector('input[name="q3"]:checked');
+        if (q3 && q3.value === '1') {
+            document.getElementById('feedback3').className = 'test-feedback correct';
+            document.getElementById('feedback3').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! Инкапсуляция скрывает внутренние данные.';
+            document.getElementById('feedback3').style.display = 'block';
+        } else {
+            document.getElementById('feedback3').className = 'test-feedback incorrect';
+            document.getElementById('feedback3').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. Инкапсуляция - это сокрытие данных.';
+            document.getElementById('feedback3').style.display = 'block';
+            allCorrect = false;
+        }
+        
+        // Вопрос 4
+        const q4 = document.querySelector('input[name="q4"]:checked');
+        if (q4 && q4.value === '1') {
+            document.getElementById('feedback4').className = 'test-feedback correct';
+            document.getElementById('feedback4').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! Два подчеркивания делают атрибут приватным.';
+            document.getElementById('feedback4').style.display = 'block';
+        } else {
+            document.getElementById('feedback4').className = 'test-feedback incorrect';
+            document.getElementById('feedback4').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. Приватные атрибуты обозначаются __ (два подчеркивания).';
+            document.getElementById('feedback4').style.display = 'block';
+            allCorrect = false;
+        }
+        
+        // Вопрос 5
+        const q5 = document.querySelector('input[name="q5"]:checked');
+        if (q5 && q5.value === '0') {
+            document.getElementById('feedback5').className = 'test-feedback correct';
+            document.getElementById('feedback5').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! super() возвращает родительский класс.';
+            document.getElementById('feedback5').style.display = 'block';
+        } else {
+            document.getElementById('feedback5').className = 'test-feedback incorrect';
+            document.getElementById('feedback5').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. super() используется для вызова методов родителя.';
+            document.getElementById('feedback5').style.display = 'block';
+            allCorrect = false;
+        }
+        
+        if (allCorrect) {
+            document.getElementById('completeBtn').style.display = 'flex';
+        } else {
+            document.getElementById('completeBtn').style.display = 'none';
+        }
+    }
+
+    // Автоматическое скрытие flash сообщений
+    setTimeout(() => {
+        document.querySelectorAll('.flash-message').forEach(msg => {
+            msg.style.animation = 'slideOut 0.3s';
+            setTimeout(() => msg.remove(), 300);
+        });
+    }, 5000);
+</script>
+
+<style>
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+</style>
+</body>
+</html>
