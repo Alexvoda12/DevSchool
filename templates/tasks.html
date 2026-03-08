@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyMaster · Задачи по Python</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Фиксируем навбар и делаем прокрутку только для контента */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            font-family: 'Inter', sans-serif;
+            background: #0a0c0f;
+            color: #e3e9f1;
+        }
+        
+        .navbar {
+            flex-shrink: 0;
+        }
+        
+        .tasks-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px 0 60px;
+            background: #0a0c0f;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+        
+        /* Стилизация скроллбара */
+        .tasks-wrapper::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .tasks-wrapper::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        
+        .tasks-wrapper::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 10px;
+        }
+        
+        .tasks-wrapper::-webkit-scrollbar-thumb:hover {
+            background: #2563eb;
+        }
+        
+        /* Заголовок страницы */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .page-title h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(145deg, #ffffff, #a5c9ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+        
+        .page-title p {
+            color: #9ab3d0;
+            font-size: 1rem;
+        }
+        
+        .stats-card {
+            background: rgba(18, 26, 36, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid #2a3a55;
+            border-radius: 40px;
+            padding: 20px 30px;
+            display: flex;
+            gap: 30px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #3b82f6;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+        
+        /* Фильтры */
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #94a3b8;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: white;
+        }
+        
+        /* Сетка задач */
+        .tasks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        
+        /* Карточка задачи */
+        .task-card {
+            background: rgba(18, 26, 36, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid #2a3a55;
+            border-radius: 32px;
+            padding: 25px;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .task-card:hover {
+            transform: translateY(-5px);
+            border-color: #3b82f6;
+            box-shadow: 0 20px 30px -10px #2563eb40;
+        }
+        
+        .task-card.solved {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+        }
+        
+        .task-card.solved::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 60px;
+            height: 60px;
+            background: #10b981;
+            clip-path: polygon(100% 0, 0 0, 100% 100%);
+            opacity: 0.2;
+        }
+        
+        .task-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;  /* Фиксированный цвет */
+        }
+        
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .task-id {
+            font-size: 0.8rem;
+            color: #6b8bb0;
+            background: #1e293b;
+            padding: 4px 12px;
+            border-radius: 40px;
+            border: 1px solid #334155;
+        }
+        
+        .task-difficulty {
+            font-size: 0.7rem;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-weight: 600;
+        }
+        
+        .difficulty-easy {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid #10b981;
+        }
+        
+        .difficulty-medium {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+            border: 1px solid #f59e0b;
+        }
+        
+        .difficulty-hard {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+        
+        .task-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #ffffff;
+        }
+        
+        .task-description {
+            color: #9ab3d0;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        .task-category {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .task-category i {
+            color: #3b82f6;
+            font-size: 0.7rem;
+        }
+        
+        .task-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #2a3a55;
+        }
+        
+        .task-meta {
+            display: flex;
+            gap: 15px;
+            color: #94a3b8;
+            font-size: 0.8rem;
+        }
+        
+        .task-meta i {
+            color: #3b82f6;
+            margin-right: 4px;
+        }
+        
+        .task-reward {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #fbbf24;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .task-reward i {
+            font-size: 0.8rem;
+        }
+        
+        .solved-icon {
+            color: #10b981;
+            font-size: 1.2rem;
+        }
+        
+        .task-btn {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        
+        .task-card:hover .task-btn:not(.solved) {
+            background: #3b82f6;
+            border-color: #3b82f6;
+        }
+        
+        .task-btn.solved {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: #10b981;
+            color: #10b981;
+            cursor: default;
+        }
+        
+        /* Пустое состояние */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b8bb0;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            color: #3b82f6;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #94a3b8;
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 900px) {
+            .tasks-wrapper {
+                height: calc(100vh - 120px);
+            }
+            
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .stats-card {
+                width: 100%;
+                justify-content: space-around;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .tasks-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-card {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+        
+        /* Анимации */
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Flash сообщения -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <i class="fa-solid fa-circle-check"></i> {{ message }}
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<!-- Навбар -->
+<nav class="navbar">
+    <div class="container nav-wrapper">
+        <div class="logo">
+            <i class="fa-brands fa-python logo-icon"></i>
+            <span class="logo-text">PyMaster</span>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('main') }}">Главная</a>
+            <a href="{{ url_for('courses') }}">Курсы</a>
+            <a href="{{ url_for('tasks') }}" class="active">Задачи</a>
+            <a href="{{ url_for('ai_assistant') }}">GPT-4</a>
+            <a href="{{ url_for('dashboard') }}">Кабинет</a>
+            
+            <div class="pyth-balance" onclick="window.location.href='{{ url_for('shop') }}'">
+                <i class="fa-solid fa-coins"></i>
+                <span>{{ user.balance }} PYTH</span>
+            </div>
+            
+            <a href="{{ url_for('logout') }}" class="logout-btn">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Основной контент -->
+<div class="tasks-wrapper">
+    <div class="container">
+        <!-- Заголовок и статистика -->
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Задачи по Python</h1>
+                <p>Практикуйся и зарабатывай PYTH</p>
+            </div>
+            
+            <div class="stats-card">
+                <div class="stat-item">
+                    <div class="stat-value">{{ solved_count }}/{{ total_tasks }}</div>
+                    <div class="stat-label">Решено задач</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ total_reward }}</div>
+                    <div class="stat-label">Заработано PYTH</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ total_tasks - solved_count }}</div>
+                    <div class="stat-label">Осталось</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Фильтры -->
+        <div class="filters">
+            <button class="filter-btn active" onclick="filterTasks('all')">Все задачи</button>
+            <button class="filter-btn" onclick="filterTasks('Легкая')">Легкие</button>
+            <button class="filter-btn" onclick="filterTasks('Средняя')">Средние</button>
+            <button class="filter-btn" onclick="filterTasks('Сложная')">Сложные</button>
+            <button class="filter-btn" onclick="filterTasks('solved')">Решенные</button>
+            <button class="filter-btn" onclick="filterTasks('unsolved')">Нерешенные</button>
+        </div>
+        
+        <!-- Сетка задач -->
+        {% if tasks %}
+        <div class="tasks-grid" id="tasksGrid">
+            {% for task in tasks %}
+            <div class="task-card {% if task.solved %}solved{% endif %}" 
+                 data-difficulty="{{ task.difficulty }}"
+                 data-solved="{{ task.solved }}"
+                 onclick="window.location.href='{{ url_for('task_page', task_id=task.id) }}'">
+                
+                <div class="task-header">
+                    <span class="task-id">#{{ task.id }}</span>
+                    <span class="task-difficulty 
+                        {% if task.difficulty == 'Легкая' %}difficulty-easy
+                        {% elif task.difficulty == 'Средняя' %}difficulty-medium
+                        {% else %}difficulty-hard{% endif %}">
+                        {{ task.difficulty }}
+                    </span>
+                </div>
+                
+                <div class="task-icon" style="background: rgba(59, 130, 246, 0.1); color: {{ task.color }};">
+                    <i class="{{ task.icon }}"></i>
+                </div>
+                
+                <h3 class="task-title">{{ task.title }}</h3>
+                <p class="task-description">{{ task.description }}</p>
+                
+                <div class="task-category">
+                    <i class="fa-solid fa-tag"></i>
+                    {{ task.category }}
+                </div>
+                
+                <div class="task-footer">
+                    <div class="task-meta">
+                        <span><i class="fa-solid fa-clock"></i> {{ task.time }} мин</span>
+                        <span class="task-reward">
+                            <i class="fa-solid fa-star" style="color: #fbbf24;"></i>
+                            +{{ task.reward }}
+                        </span>
+                    </div>
+                    
+                    {% if task.solved %}
+                        <span class="solved-icon"><i class="fa-solid fa-circle-check"></i></span>
+                    {% else %}
+                        <span class="task-btn">Решать →</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fa-solid fa-tasks"></i>
+            <h3>Скоро здесь появятся задачи</h3>
+            <p>Мы готовим для вас новые интересные задания</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    // Фильтрация задач
+    function filterTasks(filter) {
+        const cards = document.querySelectorAll('.task-card');
+        const filters = document.querySelectorAll('.filter-btn');
+        
+        // Обновляем активный фильтр
+        filters.forEach(f => f.classList.remove('active'));
+        event.target.classList.add('active');
+        
+        cards.forEach(card => {
+            let show = true;
+            
+            if (filter === 'all') {
+                show = true;
+            } else if (filter === 'solved') {
+                show = card.dataset.solved === 'True';
+            } else if (filter === 'unsolved') {
+                show = card.dataset.solved === 'False';
+            } else {
+                // Фильтр по сложности
+                show = card.dataset.difficulty === filter;
+            }
+            
+            card.style.display = show ? 'block' : 'none';
+        });
+    }
+
+    // Автоматическое скрытие flash сообщений
+    setTimeout(() => {
+        document.querySelectorAll('.flash-message').forEach(msg => {
+            msg.style.animation = 'slideOut 0.3s';
+            setTimeout(() => msg.remove(), 300);
+        });
+    }, 5000);
+</script>
+
+<style>
+    /* Flash сообщения */
+    .flash-messages {
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        z-index: 1000;
+    }
+    
+    .flash-message {
+        padding: 16px 24px;
+        border-radius: 40px;
+        margin-bottom: 10px;
+        animation: slideIn 0.3s;
+        backdrop-filter: blur(10px);
+        border-left: 4px solid #10b981;
+        background: rgba(4, 120, 87, 0.95);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: white;
+    }
+    
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0%); opacity: 1; }
+    }
+</style>
+
+</body>
+</html>

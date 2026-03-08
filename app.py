@@ -367,6 +367,24 @@ def run_code():
         })
 
 # Проверка кода на безопасность
+# Список разрешенных модулей
+ALLOWED_MODULES = ['math', 'time', 'os']
+
+# Класс для эмуляции ввода данных
+class InputSimulator:
+    def __init__(self, inputs):
+        self.inputs = inputs
+        self.index = 0
+    
+    def __call__(self, prompt=''):
+        if self.index < len(self.inputs):
+            value = str(self.inputs[self.index])
+            self.index += 1
+            return value
+        else:
+            raise EOFError("Недостаточно входных данных")
+
+# Проверка кода на безопасность
 def is_code_safe(code):
     try:
         tree = ast.parse(code)
@@ -384,7 +402,7 @@ def is_code_safe(code):
             # Запрещаем опасные функции
             if isinstance(node, ast.Call):
                 if isinstance(node.func, ast.Name):
-                    if node.func.id in ['eval', 'exec', 'compile', 'open', 'input']:
+                    if node.func.id in ['eval', 'exec', 'compile', 'open']:  # Убрали 'input' из запрещенных
                         return False
                     if node.func.id in ['__import__']:
                         return False
@@ -398,6 +416,194 @@ def is_code_safe(code):
         return True
     except SyntaxError:
         return True  # Пусть exec обработает синтаксическую ошибку
+    
+# Проверка решения задачи с множественными тестами
+@app.route('/api/check-task-with-tests', methods=['POST'])
+def check_task_with_tests():
+    if 'user' not in session:
+        return jsonify({'error': 'Не авторизован'}), 401
+    
+    data = request.json
+    code = data.get('code', '')
+    task_id = data.get('task_id')
+    tests = data.get('tests', [])  # Список тестов: [{'input': [...], 'expected': '...'}, ...]
+    
+    if not code:
+        return jsonify({'error': 'Код не может быть пустым'}), 400
+    
+    # Проверяем код на безопасность
+    if not is_code_safe(code):
+        return jsonify({
+            'passed': False,
+            'results': [],
+            'error': 'Обнаружены запрещенные операции. Разрешены только модули: math, time, os'
+        })
+    
+    results = []
+    all_passed = True
+    
+    for i, test in enumerate(tests):
+        inputs = test.get('input', [])
+        expected = test.get('expected', '').strip()
+        
+        # Захватываем вывод
+        output = io.StringIO()
+        error_output = io.StringIO()
+        
+        try:
+            with contextlib.redirect_stdout(output), contextlib.redirect_stderr(error_output):
+                # Создаем безопасное окружение с эмуляцией input
+                input_simulator = InputSimulator(inputs)
+                
+                safe_globals = {
+                    '__builtins__': __builtins__,
+                    'math': math,
+                    'time': time,
+                    'os': os,
+                    'print': print,
+                    'input': input_simulator
+                }
+                
+                # Выполняем код
+                exec(code, safe_globals)
+            
+            result = output.getvalue().strip()
+            error = error_output.getvalue()
+            
+            # Сравниваем с ожидаемым результатом
+            passed = (result == expected) and not error
+            
+            results.append({
+                'test_num': i + 1,
+                'input': inputs,
+                'expected': expected,
+                'got': result,
+                'error': error if error else None,
+                'passed': passed
+            })
+            
+            if not passed:
+                all_passed = False
+                
+        except Exception as e:
+            results.append({
+                'test_num': i + 1,
+                'input': inputs,
+                'expected': expected,
+                'got': '',
+                'error': str(e),
+                'passed': False
+            })
+            all_passed = False
+    
+    # Если все тесты пройдены, начисляем монеты
+    if all_passed and task_id:
+        email = session['user']['email']
+        
+        # Проверяем, не решал ли уже эту задачу
+        solved_tasks_key = f'solved_tasks_{task_id}'
+        if solved_tasks_key not in users[email]:
+            users[email][solved_tasks_key] = True
+            
+            # Определяем награду в зависимости от задачи
+            reward = 10  # Базовая награда
+            if task_id == 1:
+                reward = 10
+            elif task_id == 2:
+                reward = 15
+            elif task_id == 3:
+                reward = 15
+            
+            users[email]['balance'] = users[email].get('balance', 0) + reward
+            
+            # Записываем транзакцию
+            transaction = {
+                'id': str(uuid.uuid4())[:8],
+                'type': 'bonus',
+                'amount': reward,
+                'date': datetime.now(),
+                'description': f'Бонус за решение задачи #{task_id}'
+            }
+            
+            if 'transaction_history' not in users[email]:
+                users[email]['transaction_history'] = []
+            users[email]['transaction_history'].append(transaction)
+            
+            # Обновляем сессию
+            session['user']['balance'] = users[email]['balance']
+            
+            new_balance = users[email]['balance']
+        else:
+            new_balance = users[email]['balance']
+    else:
+        new_balance = session['user']['balance']
+    
+    return jsonify({
+        'passed': all_passed,
+        'results': results,
+        'new_balance': new_balance if all_passed and task_id else None
+    })
+    
+    
+# Безопасное выполнение Python кода с поддержкой input
+@app.route('/api/run-code-with-input', methods=['POST'])
+def run_code_with_input():
+    if 'user' not in session:
+        return jsonify({'error': 'Не авторизован'}), 401
+    
+    data = request.json
+    code = data.get('code', '')
+    inputs = data.get('inputs', [])  # Список входных данных
+    
+    if not code:
+        return jsonify({'error': 'Код не может быть пустым'}), 400
+    
+    # Проверяем код на безопасность
+    if not is_code_safe(code):
+        return jsonify({
+            'output': '',
+            'error': 'Обнаружены запрещенные операции. Разрешены только модули: math, time, os'
+        })
+    
+    # Захватываем вывод
+    output = io.StringIO()
+    error_output = io.StringIO()
+    
+    try:
+        with contextlib.redirect_stdout(output), contextlib.redirect_stderr(error_output):
+            # Создаем безопасное окружение с эмуляцией input
+            input_simulator = InputSimulator(inputs)
+            
+            safe_globals = {
+                '__builtins__': __builtins__,
+                'math': math,
+                'time': time,
+                'os': os,
+                'print': print,
+                'input': input_simulator  # Подменяем input на нашу эмуляцию
+            }
+            
+            # Выполняем код
+            exec(code, safe_globals)
+        
+        result = output.getvalue()
+        error = error_output.getvalue()
+        
+        # Проверяем, все ли входные данные были использованы
+        if hasattr(input_simulator, 'index') and input_simulator.index < len(inputs):
+            result += f"\n[Предупреждение] Использовано только {input_simulator.index} из {len(inputs)} входных данных"
+        
+        if error:
+            return jsonify({'output': result, 'error': error})
+        else:
+            return jsonify({'output': result, 'error': None})
+            
+    except Exception as e:
+        return jsonify({
+            'output': '',
+            'error': f'Ошибка выполнения: {str(e)}'
+        })
+        
 
 # Проверка решения задачи
 @app.route('/api/check-task', methods=['POST'])
@@ -507,7 +713,7 @@ def task_page(task_id):
         flash('Войдите, чтобы решать задачи', 'info')
         return redirect(url_for('login'))
     
-    # Информация о задачах
+    # Информация о задачах с тестами
     tasks_info = {
         1: {
             'title': 'Привет, мир!',
@@ -515,36 +721,79 @@ def task_page(task_id):
             'time': 5,
             'reward': 10,
             'description': 'Напишите программу, которая выводит на экран фразу "Привет, мир!".',
-            'example_code': 'print("Привет, мир!")',
-            'expected_output': 'Привет, мир!',
-            'hint': 'Используйте функцию print(). Текст должен быть точно таким же, включая заглавную букву и восклицательный знак.'
+            'example_code': '',
+            'hint': 'Используйте функцию print(). Текст должен быть точно таким же, включая заглавную букву и восклицательный знак.',
+            'tests': [
+                {
+                    'input': [],
+                    'expected': 'Привет, мир!',
+                    'description': 'Простой вывод'
+                }
+            ]
         },
         2: {
-            'title': 'Сложение чисел',
-            'difficulty': 'Легкая',
-            'time': 5,
-            'reward': 15,
-            'description': 'Напишите программу, которая складывает числа 5 и 3 и выводит результат.',
-            'example_code': 'print(5 + 3)',
-            'expected_output': '8',
-            'hint': 'Используйте оператор + для сложения чисел.'
-        },
-        3: {
-            'title': 'Переменные',
+            'title': 'Сумма двух чисел',
             'difficulty': 'Легкая',
             'time': 7,
             'reward': 15,
-            'description': 'Создайте переменную name со значением "Анна" и переменную age со значением 25. Выведите их в формате "Имя: Анна, Возраст: 25".',
-            'example_code': 'name = "Анна"\nage = 25\nprint(f"Имя: {name}, Возраст: {age}")',
-            'expected_output': 'Имя: Анна, Возраст: 25',
-            'hint': 'Используйте f-строки для форматирования вывода.'
+            'description': 'Напишите программу, которая считывает два числа и выводит их сумму.',
+            'example_code': '',
+            'hint': 'Используйте input() для ввода и int() для преобразования в число.',
+            'tests': [
+                {
+                    'input': ['5', '3'],
+                    'expected': '8',
+                    'description': '5 + 3 = 8'
+                },
+                {
+                    'input': ['10', '20'],
+                    'expected': '30',
+                    'description': '10 + 20 = 30'
+                },
+                {
+                    'input': ['-5', '12'],
+                    'expected': '7',
+                    'description': '-5 + 12 = 7'
+                },
+                {
+                    'input': ['0', '0'],
+                    'expected': '0',
+                    'description': '0 + 0 = 0'
+                }
+            ]
+        },
+        3: {
+            'title': 'Приветствие',
+            'difficulty': 'Легкая',
+            'time': 7,
+            'reward': 15,
+            'description': 'Напишите программу, которая считывает имя и выводит приветствие в формате "Привет, {имя}!".',
+            'example_code': '',
+            'hint': 'Используйте f-строки для форматирования.',
+            'tests': [
+                {
+                    'input': ['Анна'],
+                    'expected': 'Привет, Анна!',
+                    'description': 'Приветствие Анны'
+                },
+                {
+                    'input': ['Иван'],
+                    'expected': 'Привет, Иван!',
+                    'description': 'Приветствие Ивана'
+                },
+                {
+                    'input': ['Мария'],
+                    'expected': 'Привет, Мария!',
+                    'description': 'Приветствие Марии'
+                }
+            ]
         }
     }
     
     task_info = tasks_info.get(task_id)
     if not task_info:
         flash('Задача не найдена', 'error')
-        return redirect(url_for('courses'))
+        return redirect(url_for('tasks'))
     
     email = session['user']['email']
     user_data = users[email]
@@ -552,9 +801,149 @@ def task_page(task_id):
     # Проверяем, решена ли уже задача
     solved_tasks_key = f'solved_tasks_{task_id}'
     task_info['is_solved'] = solved_tasks_key in user_data
+    task_info['number'] = task_id
     
-    return render_template(f'task{task_id}.html', task=task_info, user=user_data)
+    return render_template('task.html', task=task_info, user=user_data)
 
+# Страница со списком задач
+@app.route('/tasks')
+def tasks():
+    if 'user' not in session:
+        flash('Войдите, чтобы решать задачи', 'info')
+        return redirect(url_for('login'))
+    
+    email = session['user']['email']
+    user_data = users[email]
+    
+    # Информация о всех задачах
+    tasks_info = [
+        {
+            'id': 1,
+            'title': 'Привет, мир!',
+            'difficulty': 'Легкая',
+            'time': 5,
+            'reward': 1,
+            'description': 'Вывод текста на экран',
+            'icon': 'fa-solid fa-code',
+            'color': '#10b981',
+            'category': 'Основы'
+        },
+        {
+            'id': 2,
+            'title': 'Сумма двух чисел',
+            'difficulty': 'Легкая',
+            'time': 7,
+            'reward': 1,
+            'description': 'Ввод чисел и вывод суммы',
+            'icon': 'fa-solid fa-calculator',
+            'color': '#3b82f6',
+            'category': 'Ввод/Вывод'
+        },
+        {
+            'id': 3,
+            'title': 'Приветствие',
+            'difficulty': 'Легкая',
+            'time': 7,
+            'reward': 1,
+            'description': 'Ввод имени и вывод приветствия',
+            'icon': 'fa-solid fa-user',
+            'color': '#8b5cf6',
+            'category': 'Строки'
+        },
+        {
+            'id': 4,
+            'title': 'Максимум из двух',
+            'difficulty': 'Легкая',
+            'time': 10,
+            'reward': 1,
+            'description': 'Поиск максимального числа',
+            'icon': 'fa-solid fa-chart-line',
+            'color': '#f59e0b',
+            'category': 'Условия'
+        },
+        {
+            'id': 5,
+            'title': 'Четное или нечетное',
+            'difficulty': 'Легкая',
+            'time': 1,
+            'reward': 20,
+            'description': 'Проверка числа на четность',
+            'icon': 'fa-solid fa-divide',
+            'color': '#ef4444',
+            'category': 'Условия'
+        },
+        {
+            'id': 6,
+            'title': 'Таблица умножения',
+            'difficulty': 'Легкая',
+            'time': 11,
+            'reward': 25,
+            'description': 'Вывод таблицы умножения для числа',
+            'icon': 'fa-solid fa-times',
+            'color': '#ec4899',
+            'category': 'Циклы'
+        },
+        {
+            'id': 7,
+            'title': 'Факториал',
+            'difficulty': 'Средняя',
+            'time': 2,
+            'reward': 25,
+            'description': 'Вычисление факториала числа',
+            'icon': 'fa-solid fa-exclamation',
+            'color': '#14b8a6',
+            'category': 'Циклы'
+        },
+        {
+            'id': 8,
+            'title': 'Палиндром',
+            'difficulty': 'Средняя',
+            'time': 2,
+            'reward': 30,
+            'description': 'Проверка, является ли строка палиндромом',
+            'icon': 'fa-solid fa-rotate-left',
+            'color': '#f97316',
+            'category': 'Строки'
+        },
+        {
+            'id': 9,
+            'title': 'Список чисел',
+            'difficulty': 'Средняя',
+            'time': 2,
+            'reward': 30,
+            'description': 'Сумма и произведение списка чисел',
+            'icon': 'fa-solid fa-list',
+            'color': '#6b7280',
+            'category': 'Списки'
+        },
+        {
+            'id': 10,
+            'title': 'Простые числа',
+            'difficulty': 'Средняя',
+            'time': 2,
+            'reward': 35,
+            'description': 'Поиск всех простых чисел до N',
+            'icon': 'fa-solid fa-star',
+            'color': '#a855f7',
+            'category': 'Алгоритмы'
+        }
+    ]
+    
+    # Добавляем информацию о решенных задачах
+    for task in tasks_info:
+        solved_key = f'solved_tasks_{task["id"]}'
+        task['solved'] = solved_key in user_data
+    
+    solved_count = sum(1 for task in tasks_info if task['solved'])
+    total_reward = sum(task['reward'] for task in tasks_info if task['solved'])
+    
+    return render_template('tasks.html', 
+                         tasks=tasks_info, 
+                         user=user_data,
+                         solved_count=solved_count,
+                         total_reward=total_reward,
+                         total_tasks=len(tasks_info))
+    
 
 # Главная страница
 @app.route('/')

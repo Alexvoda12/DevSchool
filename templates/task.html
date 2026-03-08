@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PyMaster · Задача #1: {{ task.title }}</title>
+    <title>PyMaster · Задача #{{ task.number }}: {{ task.title }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
@@ -39,7 +39,7 @@
         }
         
         .task-container {
-            max-width: 1200px;
+            max-width: 1300px;
             margin: 0 auto;
             padding: 0 24px;
         }
@@ -169,11 +169,58 @@
             overflow-x: auto;
         }
         
-        .expected-output {
-            background: #0f172a;
-            border: 1px solid #10b981;
+        .example-code pre {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+        
+        /* Тесты */
+        .tests-section {
+            margin-top: 25px;
+        }
+        
+        .tests-title {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #e9f0fa;
+        }
+        
+        .tests-title i {
+            color: #3b82f6;
+        }
+        
+        .test-cases {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .test-case {
+            background: #1e293b;
+            border: 1px solid #334155;
             border-radius: 16px;
             padding: 15px;
+        }
+        
+        .test-case-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+        
+        .test-case-input {
+            font-family: 'Courier New', monospace;
+            color: #fbbf24;
+            margin-bottom: 5px;
+        }
+        
+        .test-case-expected {
             font-family: 'Courier New', monospace;
             color: #10b981;
         }
@@ -278,6 +325,8 @@
             border-radius: 16px;
             padding: 15px;
             min-height: 80px;
+            max-height: 200px;
+            overflow-y: auto;
             font-family: 'Courier New', monospace;
             color: #e2e8f0;
             white-space: pre-wrap;
@@ -291,6 +340,77 @@
         
         .console-content.success {
             border-left-color: #10b981;
+        }
+        
+        /* Результаты тестов */
+        .test-results {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        
+        .test-result-item {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .test-result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .test-result-status {
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .test-result-status.passed {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid #10b981;
+        }
+        
+        .test-result-status.failed {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+        
+        .test-result-detail {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .test-result-detail-item {
+            background: #0f172a;
+            border-radius: 12px;
+            padding: 12px;
+        }
+        
+        .test-result-detail-label {
+            color: #94a3b8;
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .test-result-detail-value {
+            font-family: 'Courier New', monospace;
+            color: #fbbf24;
+            word-break: break-all;
+        }
+        
+        .test-result-detail-value.expected {
+            color: #10b981;
         }
         
         /* Кнопки */
@@ -421,6 +541,7 @@
         <div class="nav-links">
             <a href="{{ url_for('main') }}">Главная</a>
             <a href="{{ url_for('courses') }}">Курсы</a>
+            <a href="{{ url_for('tasks') }}" class="{% if request.endpoint == 'task_page' %}active{% endif %}">Задачи</a>
             <a href="{{ url_for('ai_assistant') }}">GPT-4</a>
             <a href="{{ url_for('dashboard') }}">Кабинет</a>
             
@@ -446,7 +567,7 @@
             </div>
             <div class="task-title">
                 <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-                    <h1>Задача #1: {{ task.title }}</h1>
+                    <h1>Задача #{{ task.number }}: {{ task.title }}</h1>
                     {% if task.is_solved %}
                         <span class="solved-badge">
                             <i class="fa-solid fa-check"></i> Решено
@@ -477,13 +598,54 @@
                 <div class="example-box">
                     <div class="example-title">
                         <i class="fa-solid fa-lightbulb"></i>
-                        Пример
+                        Пример кода
                     </div>
                     <div class="example-code">
                         <pre>{{ task.example_code }}</pre>
                     </div>
-                    <div class="expected-output" id="expectedOutput">
-                        {{ task.expected_output }}
+                </div>
+
+                <!-- Тесты -->
+                <div class="tests-section">
+                    <div class="tests-title">
+                        <i class="fa-solid fa-vial"></i>
+                        Тесты ({{ task.tests|length }} шт.)
+                    </div>
+                    <div class="test-cases" id="testCases">
+                        <!-- Показываем только первый тест -->
+                        {% if task.tests %}
+                        {% set first_test = task.tests[0] %}
+                        <div class="test-case">
+                            <div class="test-case-header">
+                                <span>Тест #1</span>
+                                <span>{{ first_test.description }}</span>
+                            </div>
+                            {% if first_test.input %}
+                            <div class="test-case-input">
+                                <i class="fa-solid fa-arrow-right" style="color: #3b82f6; margin-right: 5px;"></i>
+                                Ввод: 
+                                {% for input_value in first_test.input %}
+                                    <div style="margin-left: 20px; margin-top: 5px;">
+                                        <i class="fa-solid fa-arrow-right" style="color: #3b82f6; margin-right: 8px; font-size: 0.8rem;"></i>
+                                        {{ input_value }}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <div class="test-case-expected">
+                                <i class="fa-solid fa-check" style="color: #10b981; margin-right: 5px;"></i>
+                                Ожидается: {{ first_test.expected }}
+                            </div>
+                        </div>
+                        
+                        <!-- Информация о дополнительных тестах -->
+                        {% if task.tests|length > 1 %}
+                        <div class="extra-tests-info">
+                            <i class="fa-solid fa-layer-group"></i>
+                            + {{ task.tests|length - 1 }} дополнительных тестов (проверяются при решении)
+                        </div>
+                        {% endif %}
+                        {% endif %}
                     </div>
                 </div>
 
@@ -518,11 +680,16 @@
                 <div class="console-output">
                     <div class="console-header">
                         <i class="fa-solid fa-terminal"></i>
-                        <span>Вывод программы</span>
+                        <span>Вывод программы (последний запуск)</span>
                     </div>
                     <div class="console-content" id="consoleOutput">
                         Здесь появится результат выполнения вашего кода
                     </div>
+                </div>
+
+                <!-- Результаты тестов -->
+                <div id="testResults" class="test-results" style="display: none;">
+                    <!-- Сюда будут добавляться результаты тестов -->
                 </div>
 
                 <!-- Кнопки -->
@@ -533,7 +700,7 @@
                     </button>
                     <button class="btn btn-primary" onclick="checkCode()" id="checkBtn" {% if task.is_solved %}disabled{% endif %}>
                         <i class="fa-solid fa-check"></i>
-                        {% if task.is_solved %}Решено{% else %}Проверить{% endif %}
+                        {% if task.is_solved %}Решено{% else %}Проверить все тесты{% endif %}
                     </button>
                 </div>
 
@@ -547,35 +714,38 @@
 
         <!-- Кнопка возврата -->
         <div style="text-align: center; margin-top: 20px;">
-            <a href="{{ url_for('courses') }}" class="btn btn-secondary" style="display: inline-flex;">
+            <a href="{{ url_for('tasks') }}" class="btn btn-secondary" style="display: inline-flex;">
                 <i class="fa-solid fa-arrow-left"></i>
-                Назад к курсам
+                Назад к задачам
             </a>
         </div>
     </div>
 </div>
 
 <script>
-    // Функция для запуска кода
+    // Функция для запуска кода (с первым тестом)
     async function runCode() {
         const code = document.getElementById('codeInput').value;
         const consoleOutput = document.getElementById('consoleOutput');
         const runBtn = document.getElementById('runBtn');
         const originalText = runBtn.innerHTML;
         
+        // Получаем первый тест для демонстрации
+        const firstTest = {{ task.tests[0]|tojson }};
+        
         // Блокируем кнопку
         runBtn.disabled = true;
         runBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Выполнение...';
         
         try {
-            const response = await fetch('/api/run-code', {
+            const response = await fetch('/api/run-code-with-input', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ 
                     code: code,
-                    task_id: 1
+                    inputs: firstTest.input
                 })
             });
             
@@ -601,11 +771,11 @@
         }
     }
 
-    // Функция для проверки кода
+    // Функция для проверки кода по всем тестам
     async function checkCode() {
         const code = document.getElementById('codeInput').value;
-        const expectedOutput = document.getElementById('expectedOutput').textContent.trim();
         const consoleOutput = document.getElementById('consoleOutput');
+        const testResultsDiv = document.getElementById('testResults');
         const resultMessage = document.getElementById('resultMessage');
         const resultIcon = document.getElementById('resultIcon');
         const resultText = document.getElementById('resultText');
@@ -613,66 +783,116 @@
         const originalText = checkBtn.innerHTML;
         const balanceSpan = document.querySelector('.pyth-balance span');
         
+        // Получаем все тесты из задачи
+        const tests = {{ task.tests|tojson }};
+        
         // Блокируем кнопку
         checkBtn.disabled = true;
-        checkBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Проверка...';
+        checkBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Проверка тестов...';
+        
+        // Очищаем предыдущие результаты
+        testResultsDiv.innerHTML = '';
+        testResultsDiv.style.display = 'none';
         
         try {
-            const response = await fetch('/api/check-task', {
+            const response = await fetch('/api/check-task-with-tests', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ 
                     code: code,
-                    task_id: 1,
-                    expected_output: expectedOutput
+                    task_id: {{ task.number }},
+                    tests: tests
                 })
             });
             
             const data = await response.json();
             
-            // Обновляем консоль
-            if (data.error) {
-                consoleOutput.textContent = data.error;
-                consoleOutput.classList.add('error');
-                consoleOutput.classList.remove('success');
-            } else {
-                consoleOutput.textContent = data.output || '(пусто)';
-                if (data.correct) {
-                    consoleOutput.classList.add('success');
-                } else {
-                    consoleOutput.classList.add('error');
-                }
-            }
-            
-            // Показываем результат проверки
-            if (data.correct) {
-                resultMessage.className = 'result-message success';
-                resultIcon.className = 'fa-solid fa-circle-check';
-                resultText.textContent = '✅ Правильно! Задача решена!';
+            // Отображаем результаты тестов
+            if (data.results) {
+                testResultsDiv.style.display = 'block';
                 
-                // Обновляем баланс если начислены монеты
-                if (data.new_balance && balanceSpan) {
-                    balanceSpan.textContent = data.new_balance + ' PYTH';
+                let passedCount = 0;
+                
+                data.results.forEach(result => {
+                    if (result.passed) passedCount++;
                     
-                    // Добавляем анимацию к балансу
-                    balanceSpan.style.animation = 'pulse 0.5s';
-                    setTimeout(() => {
-                        balanceSpan.style.animation = '';
-                    }, 500);
+                    const resultElement = document.createElement('div');
+                    resultElement.className = 'test-result-item';
+                    
+                    resultElement.innerHTML = `
+                        <div class="test-result-header">
+                            <span style="color: #94a3b8;">Тест #${result.test_num}</span>
+                            <span class="test-result-status ${result.passed ? 'passed' : 'failed'}">
+                                ${result.passed ? '✅ Пройден' : '❌ Провален'}
+                            </span>
+                        </div>
+                        <div class="test-result-detail">
+                            <div class="test-result-detail-item">
+                                <div class="test-result-detail-label">Ввод:</div>
+                                <div class="test-result-detail-value">${result.input.join(' ')}</div>
+                            </div>
+                            <div class="test-result-detail-item">
+                                <div class="test-result-detail-label">Ожидалось:</div>
+                                <div class="test-result-detail-value expected">${result.expected}</div>
+                            </div>
+                            <div class="test-result-detail-item">
+                                <div class="test-result-detail-label">Получено:</div>
+                                <div class="test-result-detail-value">${result.got || '(пусто)'}</div>
+                            </div>
+                            ${result.error ? `
+                            <div class="test-result-detail-item" style="grid-column: span 2;">
+                                <div class="test-result-detail-label">Ошибка:</div>
+                                <div class="test-result-detail-value" style="color: #ef4444;">${result.error}</div>
+                            </div>
+                            ` : ''}
+                        </div>
+                    `;
+                    
+                    testResultsDiv.appendChild(resultElement);
+                });
+                
+                // Обновляем консоль с результатом последнего теста
+                if (data.results.length > 0) {
+                    const lastResult = data.results[data.results.length - 1];
+                    consoleOutput.textContent = lastResult.got || '(пусто)';
+                    if (lastResult.error) {
+                        consoleOutput.textContent = lastResult.error;
+                        consoleOutput.classList.add('error');
+                    } else {
+                        consoleOutput.classList.remove('error');
+                    }
                 }
                 
-                // Блокируем кнопку проверки навсегда
-                checkBtn.disabled = true;
-                checkBtn.innerHTML = '<i class="fa-solid fa-check"></i> Решено';
-                
-            } else {
-                resultMessage.className = 'result-message error';
-                resultIcon.className = 'fa-solid fa-circle-exclamation';
-                resultText.textContent = '❌ Неправильно. Попробуй еще раз.';
-                checkBtn.disabled = false;
-                checkBtn.innerHTML = originalText;
+                // Показываем общий результат
+                if (data.passed) {
+                    resultMessage.className = 'result-message success';
+                    resultIcon.className = 'fa-solid fa-circle-check';
+                    resultText.textContent = `✅ Все тесты пройдены! (${passedCount}/${tests.length})`;
+                    
+                    // Обновляем баланс если начислены монеты
+                    if (data.new_balance && balanceSpan) {
+                        balanceSpan.textContent = data.new_balance + ' PYTH';
+                        
+                        // Добавляем анимацию к балансу
+                        balanceSpan.style.animation = 'pulse 0.5s';
+                        setTimeout(() => {
+                            balanceSpan.style.animation = '';
+                        }, 500);
+                    }
+                    
+                    // Блокируем кнопку проверки навсегда
+                    checkBtn.disabled = true;
+                    checkBtn.innerHTML = '<i class="fa-solid fa-check"></i> Решено';
+                    
+                } else {
+                    resultMessage.className = 'result-message error';
+                    resultIcon.className = 'fa-solid fa-circle-exclamation';
+                    resultText.textContent = `❌ Пройдено ${passedCount}/${tests.length} тестов`;
+                    checkBtn.disabled = false;
+                    checkBtn.innerHTML = originalText;
+                }
             }
             
         } catch (error) {
@@ -701,6 +921,25 @@
             setTimeout(() => msg.remove(), 300);
         });
     }, 5000);
+
+    // Функция для показа/скрытия всех тестов
+    function toggleAllTests() {
+        const extraTests = document.getElementById('extraTests');
+        const btn = document.getElementById('showAllTestsBtn');
+        const counter = document.getElementById('hiddenTestsCounter');
+        
+        if (extraTests.style.display === 'none') {
+            // Показываем все тесты
+            extraTests.style.display = 'block';
+            btn.innerHTML = '<i class="fa-solid fa-chevron-up"></i> Скрыть';
+            if (counter) counter.style.display = 'none';
+        } else {
+            // Скрываем лишние тесты
+            extraTests.style.display = 'none';
+            btn.innerHTML = '<i class="fa-solid fa-chevron-down"></i> Показать все';
+            if (counter) counter.style.display = 'flex';
+        }
+    }
 </script>
 
 <style>
@@ -727,6 +966,33 @@
         margin: 0;
         white-space: pre-wrap;
         word-wrap: break-word;
+    }
+    
+    /* Стили для скроллбара */
+    .test-results::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .test-results::-webkit-scrollbar-track {
+        background: #1e293b;
+    }
+    
+    .test-results::-webkit-scrollbar-thumb {
+        background: #3b82f6;
+        border-radius: 10px;
+    }
+    
+    .console-content::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .console-content::-webkit-scrollbar-track {
+        background: #1e293b;
+    }
+    
+    .console-content::-webkit-scrollbar-thumb {
+        background: #3b82f6;
+        border-radius: 10px;
     }
 </style>
 
