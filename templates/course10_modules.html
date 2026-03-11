@@ -1,0 +1,1457 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyMaster · Модули и библиотеки в Python</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Те же базовые стили */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: auto;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            background: #0a0c0f;
+            color: #e3e9f1;
+            overflow-y: auto;
+        }
+        
+        .navbar {
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            width: 100%;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            width: 100%;
+        }
+        
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #8b5cf6;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #7c3aed;
+        }
+
+        .course-header {
+            background: linear-gradient(145deg, #0f172a, #1a2635);
+            border-radius: 40px;
+            padding: 40px;
+            margin-bottom: 30px;
+            border: 1px solid #2a3a55;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .course-header-icon {
+            width: 100px;
+            height: 100px;
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            color: #8b5cf6;
+        }
+        
+        .course-header-info {
+            flex: 1;
+        }
+        
+        .course-header-info h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(145deg, #ffffff, #d8b4fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .course-meta {
+            display: flex;
+            gap: 30px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        
+        .course-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #9ab3d0;
+        }
+        
+        .course-meta-item i {
+            color: #8b5cf6;
+        }
+        
+        .progress-section {
+            background: rgba(18, 26, 36, 0.7);
+            border: 1px solid #2a3a55;
+            border-radius: 32px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .progress-percent {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #8b5cf6;
+        }
+        
+        .progress-label {
+            color: #9ab3d0;
+        }
+        
+        .lesson-card {
+            background: rgba(18, 26, 36, 0.7);
+            border: 1px solid #2a3a55;
+            border-radius: 24px;
+            padding: 25px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .lesson-card:hover {
+            border-color: #8b5cf6;
+            transform: translateX(5px);
+            background: #1e2c3f;
+        }
+        
+        .lesson-card.completed {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+        }
+        
+        .lesson-card.current {
+            border-color: #8b5cf6;
+            background: rgba(139, 92, 246, 0.1);
+        }
+        
+        .lesson-number {
+            width: 50px;
+            height: 50px;
+            background: #1e293b;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: #8b5cf6;
+        }
+        
+        .lesson-card.completed .lesson-number {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+        
+        .lesson-card.current .lesson-number {
+            background: #8b5cf6;
+            color: white;
+        }
+        
+        .lesson-info {
+            flex: 1;
+        }
+        
+        .lesson-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #ffffff;
+        }
+        
+        .lesson-type {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #9ab3d0;
+            font-size: 0.85rem;
+        }
+        
+        .lesson-type i {
+            color: #8b5cf6;
+        }
+        
+        .lesson-status {
+            padding: 6px 15px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .lesson-status.completed {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid #10b981;
+        }
+        
+        .lesson-status.current {
+            background: rgba(139, 92, 246, 0.2);
+            color: #8b5cf6;
+            border: 1px solid #8b5cf6;
+        }
+        
+        .lesson-status.locked {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+        
+        .theory-content {
+            background: #1a2635;
+            border: 1px solid #2f405b;
+            border-radius: 24px;
+            padding: 30px;
+            margin: 20px 0;
+            scroll-margin-top: 100px;
+        }
+        
+        .theory-section {
+            margin-bottom: 40px;
+        }
+        
+        .theory-section h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #e9f0fa;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .theory-section h3 i {
+            color: #8b5cf6;
+        }
+        
+        .code-block {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            color: #fbbf24;
+            overflow-x: auto;
+        }
+        
+        .code-block pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .test-block {
+            background: #1a2635;
+            border: 1px solid #2f405b;
+            border-radius: 24px;
+            padding: 30px;
+            margin: 30px 0;
+            scroll-margin-top: 100px;
+        }
+        
+        .test-question {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+        
+        .test-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .test-option {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 40px;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .test-option:hover {
+            border-color: #8b5cf6;
+            background: #2d3a4f;
+        }
+        
+        .test-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #8b5cf6;
+        }
+        
+        .test-btn {
+            background: linear-gradient(145deg, #7c3aed, #6d28d9);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 20px;
+        }
+        
+        .test-btn:hover {
+            background: linear-gradient(145deg, #8b5cf6, #7c3aed);
+            transform: scale(1.02);
+        }
+        
+        .test-feedback {
+            margin-top: 15px;
+            padding: 15px 20px;
+            border-radius: 40px;
+            font-size: 0.95rem;
+            animation: fadeIn 0.3s;
+        }
+        
+        .test-feedback.correct {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid #10b981;
+            color: #10b981;
+        }
+        
+        .test-feedback.incorrect {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        .nav-btn {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-btn:hover:not(:disabled) {
+            background: #2d3a4f;
+            border-color: #8b5cf6;
+        }
+        
+        .nav-btn.next {
+            background: linear-gradient(145deg, #7c3aed, #6d28d9);
+            border: 1px solid #8b5cf6;
+        }
+        
+        .nav-btn.next:hover:not(:disabled) {
+            background: linear-gradient(145deg, #8b5cf6, #7c3aed);
+        }
+        
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .footer {
+            border-top: 1px solid #1a2635;
+            padding: 40px 0;
+            margin-top: 60px;
+            text-align: center;
+            color: #6b8bb0;
+        }
+        
+        .flash-messages {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .flash-message {
+            padding: 16px 24px;
+            border-radius: 40px;
+            margin-bottom: 10px;
+            animation: slideIn 0.3s;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-left: 4px solid #10b981;
+            background: rgba(4, 120, 87, 0.95);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0%); opacity: 1; }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
+        @media (max-width: 768px) {
+            .course-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .course-meta {
+                justify-content: center;
+            }
+            
+            .lesson-card {
+                flex-wrap: wrap;
+            }
+            
+            .lesson-status {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        .note-box {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid #8b5cf6;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .note-box i {
+            color: #8b5cf6;
+            font-size: 1.5rem;
+        }
+
+        .note-box-content {
+            color: #e9f0fa;
+        }
+
+        .note-box-content p {
+            margin: 5px 0;
+        }
+
+        .module-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .module-table th {
+            text-align: left;
+            padding: 12px;
+            background: #1e293b;
+            color: #8b5cf6;
+            border: 1px solid #334155;
+        }
+
+        .module-table td {
+            padding: 12px;
+            border: 1px solid #334155;
+            color: #9ab3d0;
+        }
+
+        .module-table tr:hover {
+            background: #1e293b;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Flash сообщения -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <i class="fa-solid fa-circle-check"></i> {{ message }}
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<!-- Навбар -->
+<nav class="navbar">
+    <div class="container nav-wrapper">
+        <div class="logo">
+            <i class="fa-brands fa-python logo-icon"></i>
+            <span class="logo-text">PyMaster</span>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('main') }}">Главная</a>
+            <a href="{{ url_for('courses') }}" class="active">Курсы</a>
+            <a href="{{ url_for('tasks') }}">Задачи</a>
+            <a href="{{ url_for('ai_assistant') }}">GPT-4</a>
+            <a href="{{ url_for('dashboard') }}">Кабинет</a>
+            
+            <div class="pyth-balance" onclick="window.location.href='{{ url_for('shop') }}'">
+                <i class="fa-solid fa-coins"></i>
+                <span>{{ user.balance }} PYTH</span>
+            </div>
+            
+            <a href="{{ url_for('logout') }}" class="logout-btn">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Основной контент -->
+<div class="container" style="padding: 40px 24px;">
+    <!-- Шапка курса -->
+    <div class="course-header">
+        <div class="course-header-icon">
+            <i class="fa-solid fa-boxes"></i>
+        </div>
+        <div class="course-header-info">
+            <h1>{{ course.title }}</h1>
+            <div class="course-meta">
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-clock"></i> {{ course.hours }} часов
+                </span>
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-book-open"></i> {{ course.lessons }} уроков
+                </span>
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-signal"></i> 
+                    <span class="course-level level-advanced">Продвинутый уровень</span>
+                </span>
+            </div>
+            <p style="color: #9ab3d0;">Научитесь организовывать код в модули и пакеты, использовать встроенные и сторонние библиотеки.</p>
+        </div>
+    </div>
+
+    <!-- Прогресс -->
+    <div class="progress-section">
+        <div class="progress-stats">
+            <div>
+                <span class="progress-percent">{{ progress }}%</span>
+                <span class="progress-label">прогресс</span>
+            </div>
+            <div>
+                <span class="progress-percent">{{ current_lesson }}/{{ course.lessons }}</span>
+                <span class="progress-label">уроков пройдено</span>
+            </div>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {{ progress }}%"></div>
+        </div>
+    </div>
+
+    <!-- Список уроков -->
+    <h2 style="font-size: 1.8rem; margin-bottom: 20px;">Уроки курса</h2>
+
+    <!-- Урок 1: Модули и импорт -->
+    <div class="lesson-card {% if current_lesson > 0 %}completed{% elif current_lesson == 0 %}current{% endif %}" onclick="window.location.href='#lesson1'">
+        <div class="lesson-number">1</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Модули и импорт</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 0 %}completed{% elif current_lesson == 0 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 0 %}✅ Пройдено{% elif current_lesson == 0 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 1 -->
+    <div id="lesson1" class="theory-content" style="scroll-margin-top: 100px;">
+        <h2 style="margin-bottom: 20px;">Урок 1: Модули и импорт</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-cube"></i> Что такое модуль?</h3>
+            <p><strong>Модуль</strong> — это просто файл с кодом на Python с расширением .py. Модули позволяют организовывать код, разделять его на логические части и переиспользовать в разных программах.</p>
+            
+            <h4 style="margin: 20px 0 10px;">Способы импорта:</h4>
+            
+            <div class="code-block">
+                <pre>
+# 1. Импорт всего модуля
+import math
+print(math.sqrt(25))
+print(math.pi)
+
+# 2. Импорт с псевдонимом
+import datetime as dt
+today = dt.date.today()
+print(today)
+
+# 3. Импорт конкретных функций/переменных
+from random import randint, choice
+print(randint(1, 10))
+print(choice(['камень', 'ножницы', 'бумага']))
+
+# 4. Импорт всех имен (не рекомендуется!)
+from os import *  # Может привести к конфликтам имен</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-sitemap"></i> Пути поиска модулей</h3>
+            <p>Python ищет модули в следующих местах (в порядке приоритета):</p>
+            
+            <ol style="color: #9ab3d0; margin-left: 20px;">
+                <li>Текущая директория</li>
+                <li>PYTHONPATH (переменная окружения)</li>
+                <li>Стандартные пути установки Python</li>
+                <li>Пути в site-packages (для сторонних библиотек)</li>
+            </ol>
+
+            <div class="code-block">
+                <pre>
+import sys
+
+# Список путей поиска модулей
+for path in sys.path:
+    print(path)</pre>
+            </div>
+        </div>
+
+        <div class="navigation-buttons">
+            <button class="nav-btn" disabled><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" onclick="saveProgress(10, 0)">Далее <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+    </div>
+
+    <!-- Урок 2: Создание своих модулей -->
+    <div class="lesson-card {% if current_lesson > 1 %}completed{% elif current_lesson == 1 %}current{% endif %}" onclick="window.location.href='#lesson2'">
+        <div class="lesson-number">2</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Создание своих модулей</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 1 %}completed{% elif current_lesson == 1 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 1 %}✅ Пройдено{% elif current_lesson == 1 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 2 -->
+    {% if current_lesson >= 1 %}
+    <div id="lesson2" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 1 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 2: Создание своих модулей</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-file-code"></i> Создание простого модуля</h3>
+            <p>Создадим файл <code>my_utils.py</code>:</p>
+            
+            <div class="code-block">
+                <pre>
+# Файл: my_utils.py
+
+def greet(name):
+    """Приветствие"""
+    return f"Привет, {name}!"
+
+def add(a, b):
+    """Сложение двух чисел"""
+    return a + b
+
+def is_even(num):
+    """Проверка на четность"""
+    return num % 2 == 0
+
+PI = 3.14159
+AUTHOR = "PyMaster"</pre>
+            </div>
+
+            <p>Теперь можем использовать этот модуль в другой программе:</p>
+            
+            <div class="code-block">
+                <pre>
+# Файл: main.py
+import my_utils
+
+print(my_utils.greet("Анна"))
+print(my_utils.add(10, 5))
+print(my_utils.is_even(7))
+print(my_utils.PI)</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-play"></i> Защита от выполнения при импорте</h3>
+            <p>Иногда нужно, чтобы какой-то код выполнялся только при прямом запуске файла, но не при импорте. Для этого используется <code>if __name__ == "__main__":</code></p>
+            
+            <div class="code-block">
+                <pre>
+# Файл: calculator.py
+
+def add(a, b):
+    return a + b
+
+def subtract(a, b):
+    return a - b
+
+# Этот код выполнится ТОЛЬКО при запуске файла напрямую
+if __name__ == "__main__":
+    print("Тестирование модуля:")
+    print(f"5 + 3 = {add(5, 3)}")
+    print(f"10 - 4 = {subtract(10, 4)}")</pre>
+            </div>
+
+            <p>При импорте этого модуля тестовый код не выполнится:</p>
+            <div class="code-block">
+                <pre>
+import calculator  # Тестовый код не запустится
+
+result = calculator.add(100, 50)
+print(result)  # 150</pre>
+            </div>
+        </div>
+
+        <div class="navigation-buttons">
+            <button class="nav-btn" onclick="window.location.href='#lesson1'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" onclick="saveProgress(10, 1)">Далее <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Урок 3: Пакеты -->
+    <div class="lesson-card {% if current_lesson > 2 %}completed{% elif current_lesson == 2 %}current{% endif %}" onclick="window.location.href='#lesson3'">
+        <div class="lesson-number">3</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Пакеты</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 2 %}completed{% elif current_lesson == 2 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 2 %}✅ Пройдено{% elif current_lesson == 2 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 3 -->
+    {% if current_lesson >= 2 %}
+    <div id="lesson3" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 2 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 3: Пакеты</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-folder-tree"></i> Структура пакета</h3>
+            <p><strong>Пакет</strong> — это папка, содержащая несколько модулей и специальный файл <code>__init__.py</code>. Пакеты позволяют создавать иерархическую структуру проекта.</p>
+
+            <h4 style="margin: 20px 0 10px;">Пример структуры пакета:</h4>
+            <div class="code-block">
+                <pre>
+my_package/
+│
+├── __init__.py
+├── math_ops/
+│   ├── __init__.py
+│   ├── basic.py
+│   └── advanced.py
+├── string_ops/
+│   ├── __init__.py
+│   ├── formatting.py
+│   └── validation.py
+└── utils.py</pre>
+            </div>
+
+            <p>Содержимое модулей:</p>
+            <div class="code-block">
+                <pre>
+# math_ops/basic.py
+def add(a, b):
+    return a + b
+
+def subtract(a, b):
+    return a - b
+
+# math_ops/advanced.py
+def power(a, b):
+    return a ** b
+
+def factorial(n):
+    if n <= 1:
+        return 1
+    return n * factorial(n - 1)
+
+# __init__.py может быть пустым или содержать код инициализации</pre>
+            </div>
+
+            <p>Использование пакета:</p>
+            <div class="code-block">
+                <pre>
+# Импорт из пакета
+from my_package.math_ops.basic import add, subtract
+from my_package.math_ops.advanced import power, factorial
+
+print(add(10, 5))        # 15
+print(factorial(5))      # 120</pre>
+            </div>
+        </div>
+
+        <div class="navigation-buttons">
+            <button class="nav-btn" onclick="window.location.href='#lesson2'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" onclick="saveProgress(10, 2)">Далее <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Урок 4: Встроенные модули -->
+    <div class="lesson-card {% if current_lesson > 3 %}completed{% elif current_lesson == 3 %}current{% endif %}" onclick="window.location.href='#lesson4'">
+        <div class="lesson-number">4</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Встроенные модули</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 3 %}completed{% elif current_lesson == 3 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 3 %}✅ Пройдено{% elif current_lesson == 3 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 4 -->
+    {% if current_lesson >= 3 %}
+    <div id="lesson4" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 3 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 4: Встроенные модули</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-calculator"></i> Модуль math</h3>
+            
+            <div class="code-block">
+                <pre>
+import math
+
+# Константы
+print(math.pi)       # 3.141592653589793
+print(math.e)        # 2.718281828459045
+
+# Основные функции
+print(math.sqrt(25))      # 5.0 (квадратный корень)
+print(math.pow(2, 10))    # 1024.0 (возведение в степень)
+print(math.factorial(5))  # 120 (факториал)
+
+# Тригонометрия
+print(math.sin(math.pi/2))    # 1.0
+print(math.cos(0))            # 1.0
+
+# Округление
+print(math.ceil(4.2))    # 5 (вверх)
+print(math.floor(4.9))   # 4 (вниз)</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-clock"></i> Модуль datetime</h3>
+            
+            <div class="code-block">
+                <pre>
+import datetime
+
+# Текущая дата и время
+now = datetime.datetime.now()
+print(now)
+
+# Только дата
+today = datetime.date.today()
+print(today)
+
+# Создание конкретной даты
+birthday = datetime.date(1995, 5, 15)
+print(birthday)
+
+# Разница между датами
+delta = today - birthday
+print(f"Дней прошло: {delta.days}")
+
+# Форматирование даты
+print(today.strftime("%d.%m.%Y"))  # 15.05.2025
+print(now.strftime("%H:%M:%S"))    # 14:30:45</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-dice"></i> Модуль random</h3>
+            
+            <div class="code-block">
+                <pre>
+import random
+
+# Случайное число от 0 до 1
+print(random.random())
+
+# Случайное целое в диапазоне
+print(random.randint(1, 10))
+
+# Случайный элемент из списка
+colors = ['красный', 'зеленый', 'синий']
+print(random.choice(colors))
+
+# Перемешивание списка
+cards = [1, 2, 3, 4, 5, 6]
+random.shuffle(cards)
+print(cards)
+
+# Выбор нескольких элементов
+print(random.sample(range(100), 5))  # 5 случайных чисел из 0-99</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-network-wired"></i> Модуль os</h3>
+            
+            <div class="code-block">
+                <pre>
+import os
+
+# Текущая директория
+print(os.getcwd())
+
+# Смена директории
+os.chdir('/path/to/directory')
+
+# Список файлов в директории
+print(os.listdir('.'))
+
+# Создание папки
+os.mkdir('new_folder')
+
+# Проверка существования
+if os.path.exists('file.txt'):
+    print("Файл существует")
+
+# Получение переменных окружения
+print(os.environ.get('HOME'))</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-file"></i> Модуль sys</h3>
+            
+            <div class="code-block">
+                <pre>
+import sys
+
+# Версия Python
+print(sys.version)
+
+# Аргументы командной строки
+print(sys.argv)
+
+# Выход из программы
+sys.exit()
+
+# Информация о платформе
+print(sys.platform)  # 'win32', 'linux', 'darwin'</pre>
+            </div>
+        </div>
+
+        <div class="note-box">
+            <i class="fa-solid fa-star"></i>
+            <div class="note-box-content">
+                <p><strong>Полный список:</strong> В стандартной библиотеке Python сотни модулей: json, re (регулярные выражения), collections, itertools, functools, sqlite3 и многие другие.</p>
+            </div>
+        </div>
+
+        <div class="navigation-buttons">
+            <button class="nav-btn" onclick="window.location.href='#lesson3'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" onclick="saveProgress(10, 3)">Далее <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Урок 5: pip и сторонние библиотеки -->
+    <div class="lesson-card {% if current_lesson > 4 %}completed{% elif current_lesson == 4 %}current{% endif %}" onclick="window.location.href='#lesson5'">
+        <div class="lesson-number">5</div>
+        <div class="lesson-info">
+            <div class="lesson-title">pip и сторонние библиотеки</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 4 %}completed{% elif current_lesson == 4 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 4 %}✅ Пройдено{% elif current_lesson == 4 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 5 -->
+    {% if current_lesson >= 4 %}
+    <div id="lesson5" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 4 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 5: pip и сторонние библиотеки</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-download"></i> Менеджер пакетов pip</h3>
+            <p>pip — стандартный менеджер пакетов Python для установки сторонних библиотек из PyPI (Python Package Index).</p>
+
+            <h4 style="margin: 20px 0 10px;">Основные команды:</h4>
+            <div class="code-block">
+                <pre>
+# Установка пакета
+pip install requests
+
+# Установка конкретной версии
+pip install requests==2.28.1
+
+# Удаление пакета
+pip uninstall requests
+
+# Список установленных пакетов
+pip list
+
+# Информация о пакете
+pip show requests
+
+# Сохранение списка зависимостей
+pip freeze > requirements.txt
+
+# Установка из requirements.txt
+pip install -r requirements.txt</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-earth-europe"></i> requests — работа с HTTP</h3>
+            
+            <div class="code-block">
+                <pre>
+import requests
+
+# GET запрос
+response = requests.get('https://api.github.com')
+print(response.status_code)  # 200
+print(response.json())       # Ответ в формате JSON
+
+# GET с параметрами
+params = {'q': 'python', 'page': 1}
+response = requests.get('https://api.github.com/search/repositories', params=params)
+
+# POST запрос
+data = {'title': 'Новая задача', 'completed': False}
+response = requests.post('https://jsonplaceholder.typicode.com/todos', json=data)
+
+# Обработка ошибок
+try:
+    response = requests.get('https://несуществующий-сайт.ру', timeout=5)
+    response.raise_for_status()  # Выбросит исключение при ошибке HTTP
+except requests.exceptions.RequestException as e:
+    print(f"Ошибка запроса: {e}")</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-spider"></i> BeautifulSoup — парсинг HTML</h3>
+            
+            <div class="code-block">
+                <pre>
+from bs4 import BeautifulSoup
+import requests
+
+# Получаем страницу
+response = requests.get('https://example.com')
+soup = BeautifulSoup(response.text, 'html.parser')
+
+# Поиск элементов
+title = soup.find('title').text
+print(title)
+
+# Все ссылки
+for link in soup.find_all('a'):
+    print(link.get('href'))
+
+# Поиск по классу
+items = soup.find_all('div', class_='item')
+for item in items:
+    print(item.text.strip())</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-table"></i> pandas — работа с данными</h3>
+            
+            <div class="code-block">
+                <pre>
+import pandas as pd
+
+# Создание DataFrame
+data = {
+    'name': ['Анна', 'Иван', 'Мария'],
+    'age': [25, 30, 28],
+    'city': ['Москва', 'СПб', 'Казань']
+}
+df = pd.DataFrame(data)
+print(df)
+
+# Чтение из CSV
+df = pd.read_csv('data.csv')
+
+# Основные операции
+print(df.head())        # Первые 5 строк
+print(df.info())        # Информация о данных
+print(df.describe())    # Статистика
+
+# Фильтрация
+young = df[df['age'] < 30]
+print(young)
+
+# Группировка
+by_city = df.groupby('city')['age'].mean()
+print(by_city)</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-chart-line"></i> matplotlib — визуализация</h3>
+            
+            <div class="code-block">
+                <pre>
+import matplotlib.pyplot as plt
+
+# Простой график
+x = [1, 2, 3, 4, 5]
+y = [2, 4, 6, 8, 10]
+
+plt.plot(x, y, marker='o')
+plt.title('Пример графика')
+plt.xlabel('X')
+plt.ylabel('Y')
+plt.grid(True)
+plt.show()
+
+# Гистограмма
+data = [1, 2, 2, 3, 3, 3, 4, 4, 5]
+plt.hist(data, bins=5)
+plt.show()</pre>
+            </div>
+        </div>
+
+        <div class="navigation-buttons">
+            <button class="nav-btn" onclick="window.location.href='#lesson4'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" onclick="saveProgress(10, 4)">Далее <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Урок 6: Тест по модулям -->
+    <div class="lesson-card {% if current_lesson > 5 %}completed{% elif current_lesson == 5 %}current{% endif %}" onclick="window.location.href='#lesson6'">
+        <div class="lesson-number">6</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Тест: Модули и библиотеки</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-pen-to-square"></i> Тест • 10 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 5 %}completed{% elif current_lesson == 5 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 5 %}✅ Пройдено{% elif current_lesson == 5 %}📝 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 6 -->
+    {% if current_lesson >= 5 %}
+    <div id="lesson6" class="test-block" style="scroll-margin-top: 100px; {% if current_lesson != 5 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 6: Тест по модулям и библиотекам</h2>
+        
+        <div class="test-question">Вопрос: Как импортировать только функцию sqrt из модуля math, чтобы вызывать её как sqrt(25), а не как math.sqrt(25)?</div>
+        <div class="test-options">
+            <label class="test-option">
+                <input type="radio" name="q1" value="0"> import math
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q1" value="1"> from math import sqrt
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q1" value="2"> import sqrt from math
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q1" value="3"> include math.sqrt
+            </label>
+        </div>
+        <div id="feedback1" class="test-feedback" style="display: none;"></div>
+
+        <button class="test-btn" onclick="checkTest()">Проверить ответ</button>
+
+        <div class="navigation-buttons" style="margin-top: 30px;">
+            <button class="nav-btn" onclick="window.location.href='#lesson5'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" id="completeBtn" style="display: none;" onclick="completeCourse(10)">Завершить курс <i class="fa-solid fa-check"></i></button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Урок 7: Практика с модулями -->
+    <div class="lesson-card {% if current_lesson > 6 %}completed{% elif current_lesson == 6 %}current{% endif %}" onclick="window.location.href='#lesson7'">
+        <div class="lesson-number">7</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Практика с модулями</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-laptop-code"></i> Практика • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 6 %}completed{% elif current_lesson == 6 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 6 %}✅ Пройдено{% elif current_lesson == 6 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 7 -->
+    {% if current_lesson >= 6 %}
+    <div id="lesson7" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 6 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 7: Практика с модулями</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-puzzle-piece"></i> Практическое задание</h3>
+            <p>Создайте свой пакет для математических операций и программу для его тестирования.</p>
+
+            <h4 style="margin: 20px 0 10px;">Структура:</h4>
+            <div class="code-block">
+                <pre>
+math_package/
+│
+├── __init__.py
+├── basic.py      # сложение, вычитание, умножение, деление
+├── advanced.py   # степень, корень, факториал
+└── geometry.py   # площадь круга, прямоугольника, треугольника</pre>
+            </div>
+
+            <h4 style="margin: 20px 0 10px;">Пример решения:</h4>
+            <div class="code-block">
+                <pre>
+# math_package/basic.py
+def add(a, b):
+    return a + b
+
+def subtract(a, b):
+    return a - b
+
+def multiply(a, b):
+    return a * b
+
+def divide(a, b):
+    if b == 0:
+        raise ValueError("Деление на ноль!")
+    return a / b
+
+# math_package/advanced.py
+import math
+
+def power(a, b):
+    return a ** b
+
+def sqrt(a):
+    if a < 0:
+        raise ValueError("Корень из отрицательного числа!")
+    return math.sqrt(a)
+
+def factorial(n):
+    if n < 0:
+        raise ValueError("Факториал отрицательного числа!")
+    if n <= 1:
+        return 1
+    return n * factorial(n - 1)
+
+# math_package/geometry.py
+import math
+
+def circle_area(radius):
+    if radius < 0:
+        raise ValueError("Радиус не может быть отрицательным")
+    return math.pi * radius ** 2
+
+def rectangle_area(width, height):
+    if width < 0 or height < 0:
+        raise ValueError("Стороны не могут быть отрицательными")
+    return width * height
+
+def triangle_area(base, height):
+    if base < 0 or height < 0:
+        raise ValueError("Основание и высота должны быть положительными")
+    return 0.5 * base * height
+
+# main.py - программа для тестирования
+from math_package.basic import add, subtract, multiply, divide
+from math_package.advanced import power, sqrt, factorial
+from math_package.geometry import circle_area, rectangle_area, triangle_area
+
+def main():
+    print("=== Тестирование математического пакета ===")
+    
+    # Базовые операции
+    print(f"5 + 3 = {add(5, 3)}")
+    print(f"10 - 4 = {subtract(10, 4)}")
+    print(f"6 * 7 = {multiply(6, 7)}")
+    print(f"15 / 3 = {divide(15, 3)}")
+    
+    # Продвинутые операции
+    print(f"2^10 = {power(2, 10)}")
+    print(f"√25 = {sqrt(25)}")
+    print(f"5! = {factorial(5)}")
+    
+    # Геометрия
+    print(f"Площадь круга (r=5): {circle_area(5):.2f}")
+    print(f"Площадь прямоугольника (4x6): {rectangle_area(4, 6)}")
+    print(f"Площадь треугольника (основание=10, высота=5): {triangle_area(10, 5)}")
+
+if __name__ == "__main__":
+    main()</pre>
+            </div>
+        </div>
+
+        <div class="navigation-buttons">
+            <button class="nav-btn" onclick="window.location.href='#lesson6'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" onclick="completeCourse(10)">Завершить курс <i class="fa-solid fa-check"></i></button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Кнопка возврата -->
+    <div style="margin-top: 40px; text-align: center;">
+        <a href="{{ url_for('courses') }}" class="btn btn-outline">
+            <i class="fa-solid fa-arrow-left"></i> К списку курсов
+        </a>
+    </div>
+</div>
+
+<!-- Футер -->
+<footer class="footer">
+    <div class="container">
+        <p>© 2025 PyMaster · Модули и библиотеки</p>
+    </div>
+</footer>
+
+<script>
+    // Сохранение прогресса
+    async function saveProgress(courseId, lessonIndex) {
+        try {
+            const response = await fetch('/api/save-progress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    course_id: courseId,
+                    lesson_index: lessonIndex,
+                    completed: false
+                })
+            });
+            
+            if (response.ok) {
+                window.location.reload();
+            }
+        } catch (error) {
+            console.error('Ошибка сохранения прогресса:', error);
+        }
+    }
+
+    // Завершение курса
+    async function completeCourse(courseId) {
+        try {
+            const response = await fetch('/api/save-progress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    course_id: courseId,
+                    lesson_index: 6,
+                    completed: true
+                })
+            });
+            
+            if (response.ok) {
+                alert('🎉 Поздравляем! Вы завершили курс! +50 PYTH');
+                window.location.href = "{{ url_for('courses') }}";
+            }
+        } catch (error) {
+            console.error('Ошибка завершения курса:', error);
+        }
+    }
+
+    // Проверка теста
+    function checkTest() {
+        const q1 = document.querySelector('input[name="q1"]:checked');
+        let allCorrect = true;
+        
+        if (q1 && q1.value === '1') {
+            document.getElementById('feedback1').className = 'test-feedback correct';
+            document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! from math import sqrt импортирует только функцию sqrt.';
+            document.getElementById('feedback1').style.display = 'block';
+        } else {
+            document.getElementById('feedback1').className = 'test-feedback incorrect';
+            document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. Правильный ответ: from math import sqrt';
+            document.getElementById('feedback1').style.display = 'block';
+            allCorrect = false;
+        }
+        
+        if (allCorrect) {
+            document.getElementById('completeBtn').style.display = 'flex';
+        }
+    }
+
+    // Автоматическое скрытие flash сообщений
+    setTimeout(() => {
+        document.querySelectorAll('.flash-message').forEach(msg => {
+            msg.style.animation = 'slideOut 0.3s';
+            setTimeout(() => msg.remove(), 300);
+        });
+    }, 5000);
+</script>
+
+<style>
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+</style>
+</body>
+</html>
