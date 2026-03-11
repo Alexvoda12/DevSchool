@@ -4,9 +4,6 @@ import random
 import uuid
 from g4f.client import Client
 import traceback
-
-
-import sys
 import io
 import contextlib
 import math
@@ -312,7 +309,7 @@ def get_ai_response(user_message, chat_history, user_name):
 
 
 # Список разрешенных модулей
-ALLOWED_MODULES = ['math', 'time', 'os']
+ALLOWED_MODULES = ['math', 'time']
 
 # Безопасное выполнение Python кода
 @app.route('/api/run-code', methods=['POST'])
