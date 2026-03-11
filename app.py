@@ -309,7 +309,7 @@ def get_ai_response(user_message, chat_history, user_name):
 
 
 # Список разрешенных модулей
-ALLOWED_MODULES = ['math', 'time']
+ALLOWED_MODULES = ['math', 'time', 'os']
 
 # Безопасное выполнение Python кода
 @app.route('/api/run-code', methods=['POST'])
@@ -365,7 +365,7 @@ def run_code():
 
 # Проверка кода на безопасность
 # Список разрешенных модулей
-ALLOWED_MODULES = ['math', 'time', 'os']
+ALLOWED_MODULES = ['math', 'time']
 
 # Класс для эмуляции ввода данных
 class InputSimulator:
@@ -456,7 +456,6 @@ def check_task_with_tests():
                     '__builtins__': __builtins__,
                     'math': math,
                     'time': time,
-                    'os': os,
                     'print': print,
                     'input': input_simulator
                 }
@@ -575,7 +574,6 @@ def run_code_with_input():
                 '__builtins__': __builtins__,
                 'math': math,
                 'time': time,
-                'os': os,
                 'print': print,
                 'input': input_simulator  # Подменяем input на нашу эмуляцию
             }
