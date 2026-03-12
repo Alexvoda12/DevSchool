@@ -1,0 +1,1826 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyMaster · Асинхронное программирование в Python</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Базовые стили */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: auto;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            background: #0a0c0f;
+            color: #e3e9f1;
+            overflow-y: auto;
+        }
+        
+        .navbar {
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            width: 100%;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            width: 100%;
+        }
+        
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #8b5cf6;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #7c3aed;
+        }
+
+        .course-header {
+            background: linear-gradient(145deg, #0f172a, #1a2635);
+            border-radius: 40px;
+            padding: 40px;
+            margin-bottom: 30px;
+            border: 1px solid #2a3a55;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .course-header-icon {
+            width: 100px;
+            height: 100px;
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            color: #8b5cf6;
+        }
+        
+        .course-header-info {
+            flex: 1;
+        }
+        
+        .course-header-info h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(145deg, #ffffff, #d8b4fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .course-meta {
+            display: flex;
+            gap: 30px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        
+        .course-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #9ab3d0;
+        }
+        
+        .course-meta-item i {
+            color: #8b5cf6;
+        }
+        
+        .progress-section {
+            background: rgba(18, 26, 36, 0.7);
+            border: 1px solid #2a3a55;
+            border-radius: 32px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .progress-percent {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #8b5cf6;
+        }
+        
+        .progress-label {
+            color: #9ab3d0;
+        }
+        
+        .lesson-card {
+            background: rgba(18, 26, 36, 0.7);
+            border: 1px solid #2a3a55;
+            border-radius: 24px;
+            padding: 25px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .lesson-card:hover {
+            border-color: #8b5cf6;
+            transform: translateX(5px);
+            background: #1e2c3f;
+        }
+        
+        .lesson-card.completed {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+        }
+        
+        .lesson-card.current {
+            border-color: #8b5cf6;
+            background: rgba(139, 92, 246, 0.1);
+        }
+        
+        .lesson-number {
+            width: 50px;
+            height: 50px;
+            background: #1e293b;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: #8b5cf6;
+        }
+        
+        .lesson-card.completed .lesson-number {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+        
+        .lesson-card.current .lesson-number {
+            background: #8b5cf6;
+            color: white;
+        }
+        
+        .lesson-info {
+            flex: 1;
+        }
+        
+        .lesson-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #ffffff;
+        }
+        
+        .lesson-type {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #9ab3d0;
+            font-size: 0.85rem;
+        }
+        
+        .lesson-type i {
+            color: #8b5cf6;
+        }
+        
+        .lesson-status {
+            padding: 6px 15px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .lesson-status.completed {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid #10b981;
+        }
+        
+        .lesson-status.current {
+            background: rgba(139, 92, 246, 0.2);
+            color: #8b5cf6;
+            border: 1px solid #8b5cf6;
+        }
+        
+        .lesson-status.locked {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+        
+        .theory-content {
+            background: #1a2635;
+            border: 1px solid #2f405b;
+            border-radius: 24px;
+            padding: 30px;
+            margin: 20px 0;
+            scroll-margin-top: 100px;
+        }
+        
+        .theory-section {
+            margin-bottom: 40px;
+        }
+        
+        .theory-section h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #e9f0fa;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .theory-section h3 i {
+            color: #8b5cf6;
+        }
+        
+        .code-block {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            color: #fbbf24;
+            overflow-x: auto;
+        }
+        
+        .code-block pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .test-block {
+            background: #1a2635;
+            border: 1px solid #2f405b;
+            border-radius: 24px;
+            padding: 30px;
+            margin: 30px 0;
+            scroll-margin-top: 100px;
+        }
+        
+        .test-question {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+        
+        .test-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .test-option {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 40px;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .test-option:hover {
+            border-color: #8b5cf6;
+            background: #2d3a4f;
+        }
+        
+        .test-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #8b5cf6;
+        }
+        
+        .test-btn {
+            background: linear-gradient(145deg, #8b5cf6, #7c3aed);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 20px;
+        }
+        
+        .test-btn:hover {
+            background: linear-gradient(145deg, #a78bfa, #8b5cf6);
+            transform: scale(1.02);
+        }
+        
+        .test-feedback {
+            margin-top: 15px;
+            padding: 15px 20px;
+            border-radius: 40px;
+            font-size: 0.95rem;
+            animation: fadeIn 0.3s;
+        }
+        
+        .test-feedback.correct {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid #10b981;
+            color: #10b981;
+        }
+        
+        .test-feedback.incorrect {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        .nav-btn {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-btn:hover:not(:disabled) {
+            background: #2d3a4f;
+            border-color: #8b5cf6;
+        }
+        
+        .nav-btn.next {
+            background: linear-gradient(145deg, #8b5cf6, #7c3aed);
+            border: 1px solid #8b5cf6;
+        }
+        
+        .nav-btn.next:hover:not(:disabled) {
+            background: linear-gradient(145deg, #a78bfa, #8b5cf6);
+        }
+        
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .footer {
+            border-top: 1px solid #1a2635;
+            padding: 40px 0;
+            margin-top: 60px;
+            text-align: center;
+            color: #6b8bb0;
+        }
+        
+        .flash-messages {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .flash-message {
+            padding: 16px 24px;
+            border-radius: 40px;
+            margin-bottom: 10px;
+            animation: slideIn 0.3s;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-left: 4px solid #10b981;
+            background: rgba(4, 120, 87, 0.95);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0%); opacity: 1; }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
+        @media (max-width: 768px) {
+            .course-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .course-meta {
+                justify-content: center;
+            }
+            
+            .lesson-card {
+                flex-wrap: wrap;
+            }
+            
+            .lesson-status {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        .note-box {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid #8b5cf6;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .note-box i {
+            color: #8b5cf6;
+            font-size: 1.5rem;
+        }
+
+        .note-box-content {
+            color: #e9f0fa;
+        }
+
+        .note-box-content p {
+            margin: 5px 0;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .comparison-table th {
+            text-align: left;
+            padding: 12px;
+            background: #1e293b;
+            color: #8b5cf6;
+            border: 1px solid #334155;
+        }
+
+        .comparison-table td {
+            padding: 12px;
+            border: 1px solid #334155;
+            color: #9ab3d0;
+        }
+
+        .comparison-table tr:hover {
+            background: #1e293b;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Flash сообщения -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <i class="fa-solid fa-circle-check"></i> {{ message }}
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<!-- Навбар -->
+<nav class="navbar">
+    <div class="container nav-wrapper">
+        <div class="logo">
+            <i class="fa-brands fa-python logo-icon"></i>
+            <span class="logo-text">PyMaster</span>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('main') }}">Главная</a>
+            <a href="{{ url_for('courses') }}" class="active">Курсы</a>
+            <a href="{{ url_for('tasks') }}">Задачи</a>
+            <a href="{{ url_for('ai_assistant') }}">GPT-4</a>
+            <a href="{{ url_for('dashboard') }}">Кабинет</a>
+            
+            <div class="pyth-balance" onclick="window.location.href='{{ url_for('shop') }}'">
+                <i class="fa-solid fa-coins"></i>
+                <span>{{ user.balance }} PYTH</span>
+            </div>
+            
+            <a href="{{ url_for('logout') }}" class="logout-btn">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Основной контент -->
+<div class="container" style="padding: 40px 24px;">
+    <!-- Шапка курса -->
+    <div class="course-header">
+        <div class="course-header-icon">
+            <i class="fa-solid fa-bolt"></i>
+        </div>
+        <div class="course-header-info">
+            <h1>{{ course.title }}</h1>
+            <div class="course-meta">
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-clock"></i> {{ course.hours }} часов
+                </span>
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-book-open"></i> {{ course.lessons }} уроков
+                </span>
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-signal"></i> 
+                    <span class="course-level level-advanced">Продвинутый уровень</span>
+                </span>
+            </div>
+            <p style="color: #9ab3d0;">Научитесь писать эффективный асинхронный код, который не простаивает в ожидании. Asyncio, корутины, конкурентность и параллелизм.</p>
+        </div>
+    </div>
+
+    <!-- Прогресс -->
+    <div class="progress-section">
+        <div class="progress-stats">
+            <div>
+                <span class="progress-percent">{{ progress }}%</span>
+                <span class="progress-label">прогресс</span>
+            </div>
+            <div>
+                <span class="progress-percent">{{ current_lesson }}/{{ course.lessons }}</span>
+                <span class="progress-label">уроков пройдено</span>
+            </div>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {{ progress }}%"></div>
+        </div>
+    </div>
+
+    <!-- Список уроков -->
+    <h2 style="font-size: 1.8rem; margin-bottom: 20px;">Уроки курса</h2>
+
+    <!-- Урок 1: Синхронное vs Асинхронное программирование -->
+    <div class="lesson-card {% if current_lesson > 0 %}completed{% elif current_lesson == 0 %}current{% endif %}" onclick="window.location.href='#lesson1'">
+        <div class="lesson-number">1</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Синхронное vs Асинхронное программирование</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 0 %}completed{% elif current_lesson == 0 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 0 %}✅ Пройдено{% elif current_lesson == 0 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 1 -->
+    <div id="lesson1" class="theory-content" style="scroll-margin-top: 100px;">
+        <h2 style="margin-bottom: 20px;">Урок 1: Синхронное vs Асинхронное программирование</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-clock"></i> Синхронный код (обычный)</h3>
+            <p>В синхронном программировании операции выполняются последовательно. Пока одна операция не закончится, следующая не начнется.</p>
+            
+            <div class="code-block">
+                <pre>
+import time
+
+def task(name, seconds):
+    print(f"Задача {name} началась")
+    time.sleep(seconds)  # Имитация долгой операции (I/O, запрос к API и т.д.)
+    print(f"Задача {name} завершилась")
+    return f"Результат {name}"
+
+# Синхронное выполнение
+start = time.time()
+
+result1 = task("A", 2)
+result2 = task("B", 3)
+result3 = task("C", 1)
+
+print(f"Все результаты: {result1}, {result2}, {result3}")
+print(f"Общее время: {time.time() - start:.2f} секунд")
+# Общее время: ~6 секунд (2+3+1)</pre>
+            </div>
+
+            <p>Проблема: программа простаивает, пока ждет завершения I/O операций (чтение файлов, запросы к сети, работа с БД).</p>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-gauge-high"></i> Асинхронный код</h3>
+            <p>Асинхронный код позволяет программе не ждать завершения операции, а переключиться на другую задачу.</p>
+            
+            <div class="code-block">
+                <pre>
+import asyncio
+import time
+
+async def task(name, seconds):
+    print(f"Задача {name} началась")
+    await asyncio.sleep(seconds)  # Асинхронное ожидание
+    print(f"Задача {name} завершилась")
+    return f"Результат {name}"
+
+async def main():
+    # Запускаем задачи конкурентно
+    task_a = asyncio.create_task(task("A", 2))
+    task_b = asyncio.create_task(task("B", 3))
+    task_c = asyncio.create_task(task("C", 1))
+    
+    # Ждем завершения всех задач
+    results = await asyncio.gather(task_a, task_b, task_c)
+    print(f"Все результаты: {results}")
+
+start = time.time()
+asyncio.run(main())
+print(f"Общее время: {time.time() - start:.2f} секунд")
+# Общее время: ~3 секунды (максимальное время из всех задач)</pre>
+            </div>
+
+            <div class="note-box">
+                <i class="fa-solid fa-lightbulb"></i>
+                <div class="note-box-content">
+                    <p><strong>Аналогия из жизни:</strong></p>
+                    <p><strong>Синхронно:</strong> Вы заказываете кофе и стоите у стойки, пока его готовят, ничего больше не делая.</p>
+                    <p><strong>Асинхронно:</strong> Вы заказываете кофе, берете номерок и идете читать книгу. Когда кофе готов, вам приносят его.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-scale-balanced"></i> Сравнение подходов</h3>
+            
+            <table class="comparison-table">
+                <tr>
+                    <th>Характеристика</th>
+                    <th>Синхронный</th>
+                    <th>Асинхронный</th>
+                </tr>
+                <tr>
+                    <td>Выполнение</td>
+                    <td>Последовательное</td>
+                    <td>Конкурентное (переключение)</td>
+                </tr>
+                <tr>
+                    <td>Ожидание I/O</td>
+                    <td>Блокирует программу</td>
+                    <td>Не блокирует, переключается</td>
+                </tr>
+                <tr>
+                    <td>Сложность кода</td>
+                    <td>Низкая</td>
+                    <td>Выше (async/await)</td>
+                </tr>
+                <tr>
+                    <td>Производительность</td>
+                    <td>Ниже при I/O операциях</td>
+                    <td>Выше при I/O операциях</td>
+                </tr>
+                <tr>
+                    <td>Для CPU-bound задач</td>
+                    <td>Подходит</td>
+                    <td>Не подходит</td>
+                </tr>
+            </table>
+
+            <p><strong>CPU-bound задачи:</strong> требуют много вычислений (сортировка, математика) — здесь асинхронность не поможет.</p>
+            <p><strong>I/O-bound задачи:</strong> ожидание ввода-вывода (сеть, диски) — здесь асинхронность дает огромный прирост.</p>
+        </div>
+
+        <div class="navigation-buttons">
+            <button class="nav-btn" disabled><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" onclick="saveProgress(12, 0)">Далее <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+    </div>
+
+    <!-- Урок 2: Основы asyncio и корутины -->
+    <div class="lesson-card {% if current_lesson > 1 %}completed{% elif current_lesson == 1 %}current{% endif %}" onclick="window.location.href='#lesson2'">
+        <div class="lesson-number">2</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Основы asyncio и корутины</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 1 %}completed{% elif current_lesson == 1 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 1 %}✅ Пройдено{% elif current_lesson == 1 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 2 -->
+    {% if current_lesson >= 1 %}
+    <div id="lesson2" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 1 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 2: Основы asyncio и корутины</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-key"></i> Ключевые понятия</h3>
+            
+            <ul style="color: #9ab3d0; margin-left: 20px;">
+                <li><strong>Корутина (coroutine):</strong> функция, объявленная с <code>async def</code>. Может приостанавливать выполнение.</li>
+                <li><strong>await:</strong> ключевое слово для ожидания результата корутины.</li>
+                <li><strong>Событийный цикл (event loop):</strong> сердце asyncio, управляет выполнением задач.</li>
+                <li><strong>Задача (Task):</strong> обертка для корутины, позволяющая запустить её конкурентно.</li>
+            </ul>
+
+            <div class="code-block">
+                <pre>
+import asyncio
+
+# Определяем корутину
+async def say_hello():
+    print("Привет")
+    await asyncio.sleep(1)  # Асинхронное ожидание
+    print("Мир")
+
+# Запуск корутины
+asyncio.run(say_hello())
+
+# Более сложный пример
+async def fetch_data(seconds, name):
+    print(f"Начинаем загрузку {name}...")
+    await asyncio.sleep(seconds)  # Имитация загрузки данных
+    print(f"Загрузка {name} завершена")
+    return f"Данные {name}"
+
+async def main():
+    # Последовательное выполнение
+    result1 = await fetch_data(2, "A")
+    result2 = await fetch_data(1, "B")
+    print(result1, result2)
+
+# asyncio.run(main())  # Займет 3 секунды
+
+async def main_concurrent():
+    # Конкурентное выполнение
+    task1 = asyncio.create_task(fetch_data(2, "A"))
+    task2 = asyncio.create_task(fetch_data(1, "B"))
+    
+    result1 = await task1
+    result2 = await task2
+    print(result1, result2)
+
+# asyncio.run(main_concurrent())  # Займет 2 секунды (максимальное время)</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-diagram-project"></i> Создание и управление задачами</h3>
+
+            <div class="code-block">
+                <pre>
+import asyncio
+
+async def worker(name, delay):
+    for i in range(3):
+        print(f"Работник {name}: шаг {i}")
+        await asyncio.sleep(delay)
+    return f"Работник {name} завершил работу"
+
+async def main():
+    # Создаем несколько задач
+    tasks = [
+        asyncio.create_task(worker("A", 1), name="WorkerA"),
+        asyncio.create_task(worker("B", 1.5), name="WorkerB"),
+        asyncio.create_task(worker("C", 0.5), name="WorkerC"),
+    ]
+    
+    # Ждем все задачи
+    results = await asyncio.gather(*tasks)
+    print(f"Результаты: {results}")
+    
+    # Информация о задачах
+    for task in tasks:
+        print(f"Задача {task.get_name()}: завершена={task.done()}")
+
+asyncio.run(main())</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-stopwatch"></i> asyncio.gather vs asyncio.wait</h3>
+
+            <div class="code-block">
+                <pre>
+import asyncio
+
+async def task(name, delay, fail=False):
+    await asyncio.sleep(delay)
+    if fail:
+        raise ValueError(f"Ошибка в задаче {name}")
+    return f"Результат {name}"
+
+async def main():
+    # gather - собирает результаты всех задач
+    try:
+        results = await asyncio.gather(
+            task("A", 1),
+            task("B", 2),
+            task("C", 0.5),
+            return_exceptions=False  # Если True, возвращает исключения как результаты
+        )
+        print(f"Gather results: {results}")
+    except Exception as e:
+        print(f"Gather поймал ошибку: {e}")
+    
+    # wait - ожидает задачи с определенными условиями
+    tasks = [
+        asyncio.create_task(task("X", 1)),
+        asyncio.create_task(task("Y", 2)),
+        asyncio.create_task(task("Z", 3)),
+    ]
+    
+    done, pending = await asyncio.wait(tasks, timeout=2.5)
+    
+    print(f"Завершено: {len(done)} задач")
+    for t in done:
+        print(f"  {t.result()}")
+    
+    print(f"Ожидают: {len(pending)} задач")
+    # Отменяем оставшиеся задачи
+    for t in pending:
+        t.cancel()
+
+asyncio.run(main())</pre>
+            </div>
+        </div>
+
+        <div class="note-box">
+            <i class="fa-solid fa-exclamation-triangle"></i>
+            <div class="note-box-content">
+                <p><strong>Важно!</strong> В асинхронном коде нельзя использовать обычный <code>time.sleep()</code> — он заблокирует весь событийный цикл. Всегда используйте <code>await asyncio.sleep()</code>.</p>
+            </div>
+        </div>
+
+        <div class="navigation-buttons">
+            <button class="nav-btn" onclick="window.location.href='#lesson1'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" onclick="saveProgress(12, 1)">Далее <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Урок 3: Асинхронная работа с сетью -->
+    <div class="lesson-card {% if current_lesson > 2 %}completed{% elif current_lesson == 2 %}current{% endif %}" onclick="window.location.href='#lesson3'">
+        <div class="lesson-number">3</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Асинхронная работа с сетью</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 2 %}completed{% elif current_lesson == 2 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 2 %}✅ Пройдено{% elif current_lesson == 2 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 3 -->
+    {% if current_lesson >= 2 %}
+    <div id="lesson3" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 2 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 3: Асинхронная работа с сетью</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-cloud"></i> Библиотека aiohttp</h3>
+            <p>Для асинхронных HTTP-запросов используется <code>aiohttp</code> (альтернатива requests).</p>
+
+            <h4 style="margin: 20px 0 10px;">Установка:</h4>
+            <div class="code-block">
+                <pre>
+pip install aiohttp</pre>
+            </div>
+
+            <h4 style="margin: 20px 0 10px;">Пример: синхронный requests (медленно)</h4>
+            <div class="code-block">
+                <pre>
+import requests
+import time
+
+urls = [
+    "https://jsonplaceholder.typicode.com/posts/1",
+    "https://jsonplaceholder.typicode.com/posts/2",
+    "https://jsonplaceholder.typicode.com/posts/3",
+    "https://jsonplaceholder.typicode.com/posts/4",
+    "https://jsonplaceholder.typicode.com/posts/5",
+]
+
+start = time.time()
+results = []
+
+for url in urls:
+    response = requests.get(url)
+    results.append(response.json())
+    print(f"Загружено: {url}")
+
+print(f"Время: {time.time() - start:.2f} сек")
+# ~2-3 секунды</pre>
+            </div>
+
+            <h4 style="margin: 20px 0 10px;">Пример: асинхронный aiohttp (быстро)</h4>
+            <div class="code-block">
+                <pre>
+import asyncio
+import aiohttp
+import time
+
+urls = [
+    "https://jsonplaceholder.typicode.com/posts/1",
+    "https://jsonplaceholder.typicode.com/posts/2",
+    "https://jsonplaceholder.typicode.com/posts/3",
+    "https://jsonplaceholder.typicode.com/posts/4",
+    "https://jsonplaceholder.typicode.com/posts/5",
+]
+
+async def fetch_url(session, url):
+    async with session.get(url) as response:
+        return await response.json()
+
+async def fetch_all():
+    async with aiohttp.ClientSession() as session:
+        tasks = [fetch_url(session, url) for url in urls]
+        results = await asyncio.gather(*tasks)
+        return results
+
+start = time.time()
+results = asyncio.run(fetch_all())
+print(f"Время: {time.time() - start:.2f} сек")
+# ~0.5-1 секунда (все запросы параллельно)</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-gauge"></i> Ограничение количества одновременных запросов</h3>
+            <p>Чтобы не перегружать сервер, можно использовать семафоры для ограничения конкурентности.</p>
+
+            <div class="code-block">
+                <pre>
+import asyncio
+import aiohttp
+
+async def fetch_url(session, url, semaphore):
+    async with semaphore:  # Ограничиваем количество одновременных запросов
+        print(f"Запрос к {url}")
+        async with session.get(url) as response:
+            return await response.text()
+
+async def main():
+    urls = [f"https://jsonplaceholder.typicode.com/posts/{i}" for i in range(1, 21)]
+    
+    # Ограничиваем до 5 одновременных запросов
+    semaphore = asyncio.Semaphore(5)
+    
+    async with aiohttp.ClientSession() as session:
+        tasks = [fetch_url(session, url, semaphore) for url in urls]
+        results = await asyncio.gather(*tasks)
+        print(f"Загружено {len(results)} страниц")
+
+asyncio.run(main())</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-rotate"></i> Тайм-ауты и обработка ошибок</h3>
+
+            <div class="code-block">
+                <pre>
+import asyncio
+import aiohttp
+
+async def fetch_with_timeout(session, url, timeout=5):
+    try:
+        # Устанавливаем тайм-аут для запроса
+        async with session.get(url, timeout=timeout) as response:
+            return await response.text()
+    except asyncio.TimeoutError:
+        print(f"Тайм-аут при запросе к {url}")
+        return None
+    except aiohttp.ClientError as e:
+        print(f"Ошибка клиента при запросе к {url}: {e}")
+        return None
+    except Exception as e:
+        print(f"Неизвестная ошибка при запросе к {url}: {e}")
+        return None
+
+async def main():
+    timeout = aiohttp.ClientTimeout(total=3)
+    async with aiohttp.ClientSession(timeout=timeout) as session:
+        urls = [
+            "https://jsonplaceholder.typicode.com/posts/1",
+            "https://несуществующий-сайт.ру",
+            "https://jsonplaceholder.typicode.com/posts/2",
+        ]
+        
+        tasks = [fetch_with_timeout(session, url) for url in urls]
+        results = await asyncio.gather(*tasks)
+        
+        for i, result in enumerate(results):
+            print(f"Результат {i}: {result is not None}")
+
+asyncio.run(main())</pre>
+            </div>
+        </div>
+
+        <div class="navigation-buttons">
+            <button class="nav-btn" onclick="window.location.href='#lesson2'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" onclick="saveProgress(12, 2)">Далее <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Урок 4: Асинхронная работа с файлами -->
+    <div class="lesson-card {% if current_lesson > 3 %}completed{% elif current_lesson == 3 %}current{% endif %}" onclick="window.location.href='#lesson4'">
+        <div class="lesson-number">4</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Асинхронная работа с файлами</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 3 %}completed{% elif current_lesson == 3 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 3 %}✅ Пройдено{% elif current_lesson == 3 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 4 -->
+    {% if current_lesson >= 3 %}
+    <div id="lesson4" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 3 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 4: Асинхронная работа с файлами</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-file"></i> Библиотека aiofiles</h3>
+            <p>Для асинхронной работы с файлами используется библиотека <code>aiofiles</code>.</p>
+
+            <h4 style="margin: 20px 0 10px;">Установка:</h4>
+            <div class="code-block">
+                <pre>
+pip install aiofiles</pre>
+            </div>
+
+            <div class="code-block">
+                <pre>
+import asyncio
+import aiofiles
+
+async def write_file(filename, content):
+    """Асинхронная запись в файл"""
+    async with aiofiles.open(filename, 'w', encoding='utf-8') as f:
+        await f.write(content)
+    print(f"Файл {filename} записан")
+
+async def read_file(filename):
+    """Асинхронное чтение файла"""
+    async with aiofiles.open(filename, 'r', encoding='utf-8') as f:
+        content = await f.read()
+    return content
+
+async def main():
+    # Запись нескольких файлов параллельно
+    tasks = [
+        write_file('file1.txt', 'Содержимое файла 1'),
+        write_file('file2.txt', 'Содержимое файла 2'),
+        write_file('file3.txt', 'Содержимое файла 3'),
+    ]
+    await asyncio.gather(*tasks)
+    
+    # Чтение файлов параллельно
+    read_tasks = [
+        read_file('file1.txt'),
+        read_file('file2.txt'),
+        read_file('file3.txt'),
+    ]
+    contents = await asyncio.gather(*read_tasks)
+    
+    for i, content in enumerate(contents, 1):
+        print(f"Файл {i}: {content}")
+
+asyncio.run(main())</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-copy"></i> Копирование больших файлов</h3>
+
+            <div class="code-block">
+                <pre>
+import asyncio
+import aiofiles
+
+async def copy_file_chunked(src, dst, chunk_size=1024*1024):
+    """Копирование файла чанками (для больших файлов)"""
+    async with aiofiles.open(src, 'rb') as src_file:
+        async with aiofiles.open(dst, 'wb') as dst_file:
+            while True:
+                chunk = await src_file.read(chunk_size)
+                if not chunk:
+                    break
+                await dst_file.write(chunk)
+    
+    print(f"Файл {src} скопирован в {dst}")
+
+async def main():
+    # Копируем несколько файлов параллельно
+    files_to_copy = [
+        ('big_file1.bin', 'copy1.bin'),
+        ('big_file2.bin', 'copy2.bin'),
+        ('big_file3.bin', 'copy3.bin'),
+    ]
+    
+    tasks = [copy_file_chunked(src, dst) for src, dst in files_to_copy]
+    await asyncio.gather(*tasks)
+
+# asyncio.run(main())</pre>
+            </div>
+        </div>
+
+        <div class="navigation-buttons">
+            <button class="nav-btn" onclick="window.location.href='#lesson3'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" onclick="saveProgress(12, 3)">Далее <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Урок 5: Синхронизация и очереди -->
+    <div class="lesson-card {% if current_lesson > 4 %}completed{% elif current_lesson == 4 %}current{% endif %}" onclick="window.location.href='#lesson5'">
+        <div class="lesson-number">5</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Синхронизация и очереди</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 4 %}completed{% elif current_lesson == 4 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 4 %}✅ Пройдено{% elif current_lesson == 4 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 5 -->
+    {% if current_lesson >= 4 %}
+    <div id="lesson5" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 4 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 5: Синхронизация и очереди</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-train"></i> Asyncio.Queue</h3>
+            <p>Очереди позволяют организовать взаимодействие между задачами (производитель-потребитель).</p>
+
+            <div class="code-block">
+                <pre>
+import asyncio
+import random
+
+async def producer(queue, name):
+    """Производитель генерирует данные"""
+    for i in range(5):
+        item = f"Товар {i} от {name}"
+        await asyncio.sleep(random.random())  # Случайная задержка
+        await queue.put(item)
+        print(f"[{name}] Произвел: {item}")
+    
+    # Сигнал о завершении
+    await queue.put(None)
+
+async def consumer(queue, name):
+    """Потребитель обрабатывает данные"""
+    while True:
+        item = await queue.get()
+        if item is None:
+            # Возвращаем None обратно для других потребителей
+            await queue.put(None)
+            break
+        
+        await asyncio.sleep(random.random() * 2)  # Обработка занимает время
+        print(f"[{name}] Обработал: {item}")
+        queue.task_done()
+
+async def main():
+    queue = asyncio.Queue(maxsize=3)  # Очередь максимум на 3 элемента
+    
+    # Запускаем производителей и потребителей
+    producers = [
+        asyncio.create_task(producer(queue, f"Производитель_{i}"))
+        for i in range(2)
+    ]
+    
+    consumers = [
+        asyncio.create_task(consumer(queue, f"Потребитель_{i}"))
+        for i in range(3)
+    ]
+    
+    # Ждем завершения производителей
+    await asyncio.gather(*producers)
+    
+    # Ждем завершения обработки всех элементов
+    await queue.join()
+    
+    # Отменяем потребителей
+    for c in consumers:
+        c.cancel()
+
+asyncio.run(main())</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-lock"></i> Примитивы синхронизации</h3>
+
+            <div class="code-block">
+                <pre>
+import asyncio
+
+# Семафор - ограничивает количество одновременных доступов
+async def worker(semaphore, name):
+    async with semaphore:
+        print(f"{name} начал работу")
+        await asyncio.sleep(1)
+        print(f"{name} закончил работу")
+
+async def semaphore_example():
+    semaphore = asyncio.Semaphore(2)  # Максимум 2 одновременных
+    tasks = [worker(semaphore, f"Worker_{i}") for i in range(5)]
+    await asyncio.gather(*tasks)
+
+# Событие - уведомление между задачами
+async def waiter(event, name):
+    print(f"{name} ждет события...")
+    await event.wait()
+    print(f"{name} получил событие!")
+
+async def setter(event):
+    await asyncio.sleep(2)
+    print("Событие происходит!")
+    event.set()
+
+async def event_example():
+    event = asyncio.Event()
+    tasks = [
+        waiter(event, f"Waiter_{i}") for i in range(3)
+    ]
+    tasks.append(setter(event))
+    await asyncio.gather(*tasks)
+
+# Замок (Lock) - для защиты общего ресурса
+counter = 0
+lock = asyncio.Lock()
+
+async def increment():
+    global counter
+    async with lock:
+        temp = counter
+        await asyncio.sleep(0.1)  # Имитация работы
+        counter = temp + 1
+        print(f"Счетчик: {counter}")
+
+async def lock_example():
+    tasks = [increment() for _ in range(10)]
+    await asyncio.gather(*tasks)
+    print(f"Итоговый счетчик: {counter}")
+
+# asyncio.run(semaphore_example())
+# asyncio.run(event_example())
+# asyncio.run(lock_example())</pre>
+            </div>
+        </div>
+
+        <div class="navigation-buttons">
+            <button class="nav-btn" onclick="window.location.href='#lesson4'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" onclick="saveProgress(12, 4)">Далее <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Урок 6: Многопоточность и многопроцессность -->
+    <div class="lesson-card {% if current_lesson > 5 %}completed{% elif current_lesson == 5 %}current{% endif %}" onclick="window.location.href='#lesson6'">
+        <div class="lesson-number">6</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Многопоточность и многопроцессность</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 5 %}completed{% elif current_lesson == 5 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 5 %}✅ Пройдено{% elif current_lesson == 5 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 6 -->
+    {% if current_lesson >= 5 %}
+    <div id="lesson6" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 5 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 6: Многопоточность и многопроцессность</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-cubes"></i> Сравнение подходов</h3>
+            
+            <table class="comparison-table">
+                <tr>
+                    <th>Подход</th>
+                    <th>Когда использовать</th>
+                    <th>Плюсы</th>
+                    <th>Минусы</th>
+                </tr>
+                <tr>
+                    <td><strong>asyncio</strong></td>
+                    <td>I/O-bound задачи (сеть, файлы)</td>
+                    <td>Очень легковесный, тысячи задач</td>
+                    <td>Специфичный синтаксис, не для CPU</td>
+                </tr>
+                <tr>
+                    <td><strong>threading</strong></td>
+                    <td>I/O-bound, блокирующие операции</td>
+                    <td>Привычный, параллельный I/O</td>
+                    <td>GIL, сложнее синхронизация</td>
+                </tr>
+                <tr>
+                    <td><strong>multiprocessing</strong></td>
+                    <td>CPU-bound задачи</td>
+                    <td>Обходит GIL, настоящий параллелизм</td>
+                    <td>Тяжеловесный, сложнее обмен данными</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-threads"></i> Многопоточность (threading)</h3>
+
+            <div class="code-block">
+                <pre>
+import threading
+import time
+
+def worker(name, seconds):
+    print(f"Поток {name} начал работу")
+    time.sleep(seconds)  # Блокирующая операция
+    print(f"Поток {name} завершил работу")
+    return f"Результат {name}"
+
+# Создание и запуск потоков
+threads = []
+for i in range(5):
+    t = threading.Thread(target=worker, args=(f"Thread-{i}", i))
+    t.start()
+    threads.append(t)
+
+# Ожидание завершения
+for t in threads:
+    t.join()
+
+print("Все потоки завершены")
+
+# С передачей результатов (через очередь)
+import queue
+
+def worker_with_queue(name, q):
+    result = f"Результат от {name}"
+    time.sleep(1)
+    q.put(result)
+
+q = queue.Queue()
+threads = []
+for i in range(3):
+    t = threading.Thread(target=worker_with_queue, args=(f"Thread-{i}", q))
+    t.start()
+    threads.append(t)
+
+for t in threads:
+    t.join()
+
+while not q.empty():
+    print(q.get())</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-microchip"></i> Многопроцессность (multiprocessing)</h3>
+
+            <div class="code-block">
+                <pre>
+import multiprocessing
+import time
+import math
+
+def cpu_intensive(n):
+    """CPU-интенсивная задача"""
+    print(f"Процесс {multiprocessing.current_process().name} начал вычисления")
+    result = sum(math.sqrt(i) for i in range(n))
+    print(f"Процесс завершил вычисления")
+    return result
+
+if __name__ == "__main__":
+    # Создание пула процессов
+    with multiprocessing.Pool(processes=4) as pool:
+        numbers = [10_000_000, 20_000_000, 30_000_000, 40_000_000]
+        
+        # Параллельное выполнение
+        start = time.time()
+        results = pool.map(cpu_intensive, numbers)
+        print(f"Время с multiprocessing: {time.time() - start:.2f} сек")
+        print(f"Результаты: {results}")
+    
+    # Для сравнения - последовательное выполнение
+    start = time.time()
+    sequential_results = [cpu_intensive(n) for n in numbers]
+    print(f"Время последовательно: {time.time() - start:.2f} сек")
+
+# Обмен данными между процессами
+from multiprocessing import Process, Queue
+
+def producer(q):
+    for i in range(5):
+        q.put(f"Данные {i}")
+    q.put(None)  # Сигнал завершения
+
+def consumer(q):
+    while True:
+        data = q.get()
+        if data is None:
+            break
+        print(f"Потребитель получил: {data}")
+
+if __name__ == "__main__":
+    q = Queue()
+    p1 = Process(target=producer, args=(q,))
+    p2 = Process(target=consumer, args=(q,))
+    
+    p1.start()
+    p2.start()
+    
+    p1.join()
+    p2.join()</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-bolt"></i> Concurrent.futures (высокоуровневый API)</h3>
+
+            <div class="code-block">
+                <pre>
+import concurrent.futures
+import time
+import math
+
+def io_bound_task(seconds):
+    """Имитация I/O операции"""
+    time.sleep(seconds)
+    return f"Завершено за {seconds} сек"
+
+def cpu_bound_task(n):
+    """Имитация CPU операции"""
+    return sum(i * i for i in range(n))
+
+# ThreadPoolExecutor для I/O-bound задач
+with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+    futures = [executor.submit(io_bound_task, i) for i in [1, 2, 3]]
+    
+    for future in concurrent.futures.as_completed(futures):
+        print(future.result())
+
+# ProcessPoolExecutor для CPU-bound задач
+with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
+    numbers = [10_000_000, 20_000_000, 30_000_000]
+    results = list(executor.map(cpu_bound_task, numbers))
+    print(f"Результаты: {results}")
+
+# Map для удобства
+with concurrent.futures.ThreadPoolExecutor() as executor:
+    urls = ['url1', 'url2', 'url3']
+    results = executor.map(io_bound_task, [1, 2, 1])
+    for result in results:
+        print(result)</pre>
+            </div>
+        </div>
+
+        <div class="note-box">
+            <i class="fa-solid fa-key"></i>
+            <div class="note-box-content">
+                <p><strong>Правило выбора:</strong></p>
+                <ul>
+                    <li><strong>asyncio:</strong> много сетевых запросов, работа с API</li>
+                    <li><strong>threading:</strong> блокирующие I/O операции, но не хотим переписывать на asyncio</li>
+                    <li><strong>multiprocessing:</strong> сложные вычисления, обработка больших данных</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="navigation-buttons">
+            <button class="nav-btn" onclick="window.location.href='#lesson5'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" onclick="saveProgress(12, 5)">Далее <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Урок 7: Тест по асинхронному программированию -->
+    <div class="lesson-card {% if current_lesson > 6 %}completed{% elif current_lesson == 6 %}current{% endif %}" onclick="window.location.href='#lesson7'">
+        <div class="lesson-number">7</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Тест: Асинхронное программирование</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-pen-to-square"></i> Тест • 10 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 6 %}completed{% elif current_lesson == 6 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 6 %}✅ Пройдено{% elif current_lesson == 6 %}📝 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 7 -->
+    {% if current_lesson >= 6 %}
+    <div id="lesson7" class="test-block" style="scroll-margin-top: 100px; {% if current_lesson != 6 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 7: Тест по асинхронному программированию</h2>
+        
+        <div class="test-question">Вопрос: Для решения какого типа задач асинхронное программирование в Python подходит лучше всего?</div>
+        <div class="test-options">
+            <label class="test-option">
+                <input type="radio" name="q1" value="0"> Для сложных математических расчетов (например, вычисление числа Пи)
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q1" value="1"> Для сортировки огромного массива данных
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q1" value="2"> Для веб-приложения, которое ожидает ответы от множества внешних серверов
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q1" value="3"> Для чтения огромного файла с диска (последовательно)
+            </label>
+        </div>
+        <div id="feedback1" class="test-feedback" style="display: none;"></div>
+
+        <button class="test-btn" onclick="checkTest()">Проверить ответ</button>
+
+        <div class="navigation-buttons" style="margin-top: 30px;">
+            <button class="nav-btn" onclick="window.location.href='#lesson6'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" id="completeBtn" style="display: none;" onclick="completeCourse(12)">Завершить курс <i class="fa-solid fa-check"></i></button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Урок 8: Практический проект -->
+    <div class="lesson-card {% if current_lesson > 7 %}completed{% elif current_lesson == 7 %}current{% endif %}" onclick="window.location.href='#lesson8'">
+        <div class="lesson-number">8</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Практический проект: Асинхронный парсер</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-laptop-code"></i> Практика • 30 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 7 %}completed{% elif current_lesson == 7 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 7 %}✅ Пройдено{% elif current_lesson == 7 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 8 -->
+    {% if current_lesson >= 7 %}
+    <div id="lesson8" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 7 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 8: Практический проект — Асинхронный парсер</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-code"></i> Проект: Парсер новостей</h3>
+            <p>Создадим асинхронный парсер, который собирает заголовки новостей с нескольких сайтов.</p>
+
+            <div class="code-block">
+                <pre>
+import asyncio
+import aiohttp
+from bs4 import BeautifulSoup
+import time
+
+class AsyncNewsParser:
+    def __init__(self, max_concurrent=5):
+        self.semaphore = asyncio.Semaphore(max_concurrent)
+        self.results = []
+    
+    async def fetch_page(self, session, url):
+        """Асинхронная загрузка страницы"""
+        async with self.semaphore:
+            try:
+                print(f"Загрузка: {url}")
+                async with session.get(url, timeout=10) as response:
+                    html = await response.text()
+                    print(f"✓ Загружено: {url} ({len(html)} символов)")
+                    return url, html
+            except Exception as e:
+                print(f"✗ Ошибка загрузки {url}: {e}")
+                return url, None
+    
+    async def parse_page(self, url, html):
+        """Парсинг страницы (может быть CPU-bound, поэтому в отдельном потоке)"""
+        if not html:
+            return None
+        
+        # Используем run_in_executor для CPU-bound парсинга
+        loop = asyncio.get_event_loop()
+        soup = await loop.run_in_executor(None, BeautifulSoup, html, 'html.parser')
+        
+        # Извлекаем заголовки (зависит от структуры сайта)
+        titles = []
+        for h2 in soup.find_all(['h2', 'h3'])[:5]:
+            text = h2.get_text().strip()
+            if text and len(text) > 10:
+                titles.append(text)
+        
+        return {
+            'url': url,
+            'titles': titles,
+            'count': len(titles)
+        }
+    
+    async def process_site(self, session, url):
+        """Обработка одного сайта"""
+        url, html = await self.fetch_page(session, url)
+        result = await self.parse_page(url, html)
+        if result:
+            self.results.append(result)
+            print(f"  Найдено {result['count']} заголовков на {url}")
+    
+    async def run(self, urls):
+        """Запуск парсера"""
+        async with aiohttp.ClientSession() as session:
+            tasks = [self.process_site(session, url) for url in urls]
+            await asyncio.gather(*tasks)
+        return self.results
+
+async def main():
+    # Список сайтов для парсинга
+    urls = [
+        'https://news.ycombinator.com',
+        'https://www.python.org/blogs/',
+        'https://realpython.com/',
+        'https://habr.com/ru/hub/python/',
+        'https://dev.to/t/python',
+        'https://www.reddit.com/r/Python/',
+    ]
+    
+    parser = AsyncNewsParser(max_concurrent=3)
+    
+    start = time.time()
+    results = await parser.run(urls)
+    elapsed = time.time() - start
+    
+    print("\n" + "="*50)
+    print(f"Парсинг завершен за {elapsed:.2f} секунд")
+    print(f"Обработано сайтов: {len(results)}")
+    print("="*50)
+    
+    for result in results:
+        print(f"\n{result['url']}:")
+        for i, title in enumerate(result['titles'], 1):
+            print(f"  {i}. {title[:70]}...")
+
+if __name__ == "__main__":
+    asyncio.run(main())</pre>
+            </div>
+
+            <p>Этот проект демонстрирует:</p>
+            <ul style="color: #9ab3d0;">
+                <li>Асинхронные HTTP-запросы (aiohttp)</li>
+                <li>Ограничение конкурентности (семафор)</li>
+                <li>Обработку ошибок и таймаутов</li>
+                <li>Комбинацию asyncio с CPU-bound кодом (run_in_executor)</li>
+                <li>Сбор и агрегацию результатов</li>
+            </ul>
+        </div>
+
+        <div class="navigation-buttons">
+            <button class="nav-btn" onclick="window.location.href='#lesson7'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" onclick="completeCourse(12)">Завершить курс <i class="fa-solid fa-check"></i></button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Кнопка возврата -->
+    <div style="margin-top: 40px; text-align: center;">
+        <a href="{{ url_for('courses') }}" class="btn btn-outline">
+            <i class="fa-solid fa-arrow-left"></i> К списку курсов
+        </a>
+    </div>
+</div>
+
+<!-- Футер -->
+<footer class="footer">
+    <div class="container">
+        <p>© 2025 PyMaster · Асинхронное программирование</p>
+    </div>
+</footer>
+
+<script>
+    // Сохранение прогресса
+    async function saveProgress(courseId, lessonIndex) {
+        try {
+            const response = await fetch('/api/save-progress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    course_id: courseId,
+                    lesson_index: lessonIndex,
+                    completed: false
+                })
+            });
+            
+            if (response.ok) {
+                window.location.reload();
+            }
+        } catch (error) {
+            console.error('Ошибка сохранения прогресса:', error);
+        }
+    }
+
+    // Завершение курса
+    async function completeCourse(courseId) {
+        try {
+            const response = await fetch('/api/save-progress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    course_id: courseId,
+                    lesson_index: 7,
+                    completed: true
+                })
+            });
+            
+            if (response.ok) {
+                alert('🎉 Поздравляем! Вы завершили курс! +50 PYTH');
+                window.location.href = "{{ url_for('courses') }}";
+            }
+        } catch (error) {
+            console.error('Ошибка завершения курса:', error);
+        }
+    }
+
+    // Проверка теста
+    function checkTest() {
+        const q1 = document.querySelector('input[name="q1"]:checked');
+        let allCorrect = true;
+        
+        if (q1 && q1.value === '2') {
+            document.getElementById('feedback1').className = 'test-feedback correct';
+            document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! Асинхронное программирование лучше всего подходит для I/O-bound задач, где время тратится на ожидание ответов от внешних серверов.';
+            document.getElementById('feedback1').style.display = 'block';
+        } else {
+            document.getElementById('feedback1').className = 'test-feedback incorrect';
+            document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. Асинхронное программирование лучше всего подходит для I/O-bound задач (ожидание ответов от серверов, чтение файлов), а не для CPU-bound вычислений.';
+            document.getElementById('feedback1').style.display = 'block';
+            allCorrect = false;
+        }
+        
+        if (allCorrect) {
+            document.getElementById('completeBtn').style.display = 'flex';
+        }
+    }
+
+    // Автоматическое скрытие flash сообщений
+    setTimeout(() => {
+        document.querySelectorAll('.flash-message').forEach(msg => {
+            msg.style.animation = 'slideOut 0.3s';
+            setTimeout(() => msg.remove(), 300);
+        });
+    }, 5000);
+</script>
+
+<style>
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+</style>
+</body>
+</html>
