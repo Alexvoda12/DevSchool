@@ -667,10 +667,7 @@ print(my_car.mileage)  # 100</pre>
             </div>
         </div>
 
-        <div class="navigation-buttons">
-            <button class="nav-btn" disabled><i class="fa-solid fa-arrow-left"></i> Назад</button>
-            <button class="nav-btn next" onclick="saveProgress(7, 0)">Далее <i class="fa-solid fa-arrow-right"></i></button>
-        </div>
+        
     </div>
 
     <!-- Урок 2: Атрибуты и методы -->
@@ -770,10 +767,7 @@ print(Math.is_even(4))       # True</pre>
             </div>
         </div>
 
-        <div class="navigation-buttons">
-            <button class="nav-btn" onclick="window.location.href='#lesson1'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
-            <button class="nav-btn next" onclick="saveProgress(7, 1)">Далее <i class="fa-solid fa-arrow-right"></i></button>
-        </div>
+        
     </div>
     {% endif %}
 
@@ -889,10 +883,7 @@ p.age = 26        # Работает сеттер
             </div>
         </div>
 
-        <div class="navigation-buttons">
-            <button class="nav-btn" onclick="window.location.href='#lesson2'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
-            <button class="nav-btn next" onclick="saveProgress(7, 2)">Далее <i class="fa-solid fa-arrow-right"></i></button>
-        </div>
+    
     </div>
     {% endif %}
 
@@ -1024,10 +1015,7 @@ print(duck.speak()) # Дональд крякает</pre>
             </div>
         </div>
 
-        <div class="navigation-buttons">
-            <button class="nav-btn" onclick="window.location.href='#lesson3'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
-            <button class="nav-btn next" onclick="saveProgress(7, 3)">Далее <i class="fa-solid fa-arrow-right"></i></button>
-        </div>
+        
     </div>
     {% endif %}
 
@@ -1152,10 +1140,7 @@ animal_actions(Cat())</pre>
             </div>
         </div>
 
-        <div class="navigation-buttons">
-            <button class="nav-btn" onclick="window.location.href='#lesson4'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
-            <button class="nav-btn next" onclick="saveProgress(7, 4)">Далее <i class="fa-solid fa-arrow-right"></i></button>
-        </div>
+        
     </div>
     {% endif %}
 
@@ -1268,10 +1253,7 @@ print(book1(50))            # Открыта страница 50</pre>
             </div>
         </div>
 
-        <div class="navigation-buttons">
-            <button class="nav-btn" onclick="window.location.href='#lesson5'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
-            <button class="nav-btn next" onclick="saveProgress(7, 5)">Далее <i class="fa-solid fa-arrow-right"></i></button>
-        </div>
+        
     </div>
     {% endif %}
 
@@ -1434,9 +1416,14 @@ print(book1(50))            # Открыта страница 50</pre>
 </footer>
 
 <script>
-    // Сохранение прогресса
-    async function saveProgress(courseId, lessonIndex) {
+    // ID текущего курса
+    const courseId = {{ course.id }};
+    const totalLessons = {{ course.lessons }};
+    
+    // Функция перехода к уроку по клику
+    async function goToLesson(lessonIndex) {
         try {
+            // Сохраняем прогресс (отмечаем какой урок сейчас открыт)
             const response = await fetch('/api/save-progress', {
                 method: 'POST',
                 headers: {
@@ -1450,15 +1437,104 @@ print(book1(50))            # Открыта страница 50</pre>
             });
             
             if (response.ok) {
-                window.location.reload();
+                // Плавная прокрутка к уроку
+                const lessonElement = document.getElementById(`lesson${lessonIndex + 1}`);
+                if (lessonElement) {
+                    lessonElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    
+                    // Обновляем URL без перезагрузки страницы
+                    history.pushState(null, null, `#lesson${lessonIndex + 1}`);
+                    
+                    // Обновляем стили уроков
+                    updateLessonStyles(lessonIndex);
+                } else {
+                    // Если элемент не найден, перезагружаем страницу
+                    window.location.reload();
+                }
+            } else {
+                console.error('Ошибка сохранения прогресса:', response.status);
             }
         } catch (error) {
             console.error('Ошибка сохранения прогресса:', error);
+            alert('Произошла ошибка при переходе к уроку. Попробуйте еще раз.');
         }
     }
-
-    // Завершение курса
-    async function completeCourse(courseId) {
+    
+    // Функция обновления стилей уроков
+    function updateLessonStyles(activeLessonIndex) {
+        const lessonCards = document.querySelectorAll('.lesson-card');
+        const lessonContents = document.querySelectorAll('.theory-content, .test-block');
+        
+        // Обновляем карточки
+        lessonCards.forEach((card, index) => {
+            card.classList.remove('current');
+            
+            // Определяем, активен ли урок
+            if (index === activeLessonIndex) {
+                card.classList.add('current');
+            } else {
+                card.classList.remove('current');
+            }
+            
+            // Обновляем статус
+            const statusElement = card.querySelector('.lesson-status');
+            if (statusElement) {
+                if (index === activeLessonIndex) {
+                    statusElement.className = 'lesson-status current';
+                    
+                    // Определяем тип урока
+                    const lessonType = card.querySelector('.lesson-type i');
+                    if (lessonType && lessonType.classList.contains('fa-pen-to-square')) {
+                        statusElement.innerHTML = '📝 Текущий';
+                    } else {
+                        statusElement.innerHTML = '📖 Текущий';
+                    }
+                } else {
+                    // Для неактивных уроков просто показываем, что они доступны
+                    statusElement.className = 'lesson-status';
+                    statusElement.innerHTML = '📚 Доступен';
+                }
+            }
+        });
+        
+        // Обновляем видимость контента
+        lessonContents.forEach((content, index) => {
+            if (index === activeLessonIndex) {
+                content.style.display = 'block';
+                // Анимируем появление
+                content.style.animation = 'fadeIn 0.5s';
+            } else {
+                content.style.display = 'none';
+            }
+        });
+        
+        // Обновляем прогресс-бар (просто показываем какой урок открыт)
+        updateProgressBar(activeLessonIndex + 1);
+    }
+    
+    // Функция обновления прогресс-бара
+    function updateProgressBar(currentLesson) {
+        const progressPercent = Math.round((currentLesson / totalLessons) * 100);
+        
+        const progressFill = document.querySelector('.progress-fill');
+        const progressPercentSpan = document.querySelector('.progress-percent:first-child');
+        const progressCounter = document.querySelectorAll('.progress-percent')[1];
+        
+        if (progressFill) {
+            progressFill.style.width = `${progressPercent}%`;
+        }
+        
+        if (progressPercentSpan) {
+            progressPercentSpan.textContent = `${progressPercent}%`;
+        }
+        
+        if (progressCounter) {
+            progressCounter.textContent = `${currentLesson}/${totalLessons}`;
+        }
+    }
+    
+    // Функция завершения курса (опционально)
+    async function completeCourse() {
         try {
             const response = await fetch('/api/save-progress', {
                 method: 'POST',
@@ -1467,7 +1543,7 @@ print(book1(50))            # Открыта страница 50</pre>
                 },
                 body: JSON.stringify({
                     course_id: courseId,
-                    lesson_index: 9,
+                    lesson_index: totalLessons - 1,
                     completed: true
                 })
             });
@@ -1475,88 +1551,202 @@ print(book1(50))            # Открыта страница 50</pre>
             if (response.ok) {
                 alert('🎉 Поздравляем! Вы завершили курс! +50 PYTH');
                 window.location.href = "{{ url_for('courses') }}";
+            } else {
+                console.error('Ошибка завершения курса:', response.status);
+                alert('Произошла ошибка при завершении курса. Попробуйте еще раз.');
             }
         } catch (error) {
             console.error('Ошибка завершения курса:', error);
+            alert('Произошла ошибка при завершении курса. Попробуйте еще раз.');
         }
     }
-
-    // Проверка теста
-    function checkTest() {
+    
+    // Функция проверки теста для урока 3
+    function checkLesson3Test() {
         let allCorrect = true;
         
-        // Вопрос 1
         const q1 = document.querySelector('input[name="q1"]:checked');
-        if (q1 && q1.value === '1') {
+        const q2 = document.querySelector('input[name="q2"]:checked');
+        
+        // Проверка наличия выбранных ответов
+        if (!q1) {
+            document.getElementById('feedback1').className = 'test-feedback incorrect';
+            document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-xmark"></i> Выберите ответ на вопрос 1';
+            document.getElementById('feedback1').style.display = 'block';
+            allCorrect = false;
+        } else if (q1.value === '2') {
             document.getElementById('feedback1').className = 'test-feedback correct';
-            document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! Класс - это шаблон для создания объектов.';
+            document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! Строки всегда пишутся в кавычках.';
             document.getElementById('feedback1').style.display = 'block';
         } else {
             document.getElementById('feedback1').className = 'test-feedback incorrect';
-            document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. Класс - это чертеж для создания объектов.';
+            document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. Правильный ответ: name = "Анна"';
             document.getElementById('feedback1').style.display = 'block';
             allCorrect = false;
         }
         
-        // Вопрос 2
-        const q2 = document.querySelector('input[name="q2"]:checked');
-        if (q2 && q2.value === '1') {
+        if (!q2) {
+            document.getElementById('feedback2').className = 'test-feedback incorrect';
+            document.getElementById('feedback2').innerHTML = '<i class="fa-solid fa-xmark"></i> Выберите ответ на вопрос 2';
+            document.getElementById('feedback2').style.display = 'block';
+            allCorrect = false;
+        } else if (q2.value === '1') {
             document.getElementById('feedback2').className = 'test-feedback correct';
-            document.getElementById('feedback2').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! __init__ - это конструктор, инициализирующий объект.';
+            document.getElementById('feedback2').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! 3.14 - это число с плавающей точкой (float).';
             document.getElementById('feedback2').style.display = 'block';
         } else {
             document.getElementById('feedback2').className = 'test-feedback incorrect';
-            document.getElementById('feedback2').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. __init__ используется для инициализации объекта.';
+            document.getElementById('feedback2').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. Правильный ответ: float';
             document.getElementById('feedback2').style.display = 'block';
             allCorrect = false;
         }
         
-        // Вопрос 3
-        const q3 = document.querySelector('input[name="q3"]:checked');
-        if (q3 && q3.value === '1') {
-            document.getElementById('feedback3').className = 'test-feedback correct';
-            document.getElementById('feedback3').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! Инкапсуляция скрывает внутренние данные.';
-            document.getElementById('feedback3').style.display = 'block';
+        return allCorrect;
+    }
+    
+    // Функция проверки теста для урока 5
+    function checkLesson5Test() {
+        let allCorrect = true;
+        
+        const q1 = document.querySelector('input[name="q5_1"]:checked');
+        const q2 = document.querySelector('input[name="q5_2"]:checked');
+        
+        // Проверка вопроса 1
+        if (!q1) {
+            document.getElementById('feedback5_1').className = 'test-feedback incorrect';
+            document.getElementById('feedback5_1').innerHTML = '<i class="fa-solid fa-xmark"></i> Выберите ответ на вопрос 1';
+            document.getElementById('feedback5_1').style.display = 'block';
+            allCorrect = false;
+        } else if (q1.value === '0') {
+            document.getElementById('feedback5_1').className = 'test-feedback correct';
+            document.getElementById('feedback5_1').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! Python - это язык программирования.';
+            document.getElementById('feedback5_1').style.display = 'block';
         } else {
-            document.getElementById('feedback3').className = 'test-feedback incorrect';
-            document.getElementById('feedback3').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. Инкапсуляция - это сокрытие данных.';
-            document.getElementById('feedback3').style.display = 'block';
+            document.getElementById('feedback5_1').className = 'test-feedback incorrect';
+            document.getElementById('feedback5_1').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. Python - это язык программирования.';
+            document.getElementById('feedback5_1').style.display = 'block';
             allCorrect = false;
         }
         
-        // Вопрос 4
-        const q4 = document.querySelector('input[name="q4"]:checked');
-        if (q4 && q4.value === '1') {
-            document.getElementById('feedback4').className = 'test-feedback correct';
-            document.getElementById('feedback4').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! Два подчеркивания делают атрибут приватным.';
-            document.getElementById('feedback4').style.display = 'block';
+        // Проверка вопроса 2
+        if (!q2) {
+            document.getElementById('feedback5_2').className = 'test-feedback incorrect';
+            document.getElementById('feedback5_2').innerHTML = '<i class="fa-solid fa-xmark"></i> Выберите ответ на вопрос 2';
+            document.getElementById('feedback5_2').style.display = 'block';
+            allCorrect = false;
+        } else if (q2.value === '1') {
+            document.getElementById('feedback5_2').className = 'test-feedback correct';
+            document.getElementById('feedback5_2').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! Комментарии начинаются с #.';
+            document.getElementById('feedback5_2').style.display = 'block';
         } else {
-            document.getElementById('feedback4').className = 'test-feedback incorrect';
-            document.getElementById('feedback4').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. Приватные атрибуты обозначаются __ (два подчеркивания).';
-            document.getElementById('feedback4').style.display = 'block';
+            document.getElementById('feedback5_2').className = 'test-feedback incorrect';
+            document.getElementById('feedback5_2').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. Комментарии начинаются с #.';
+            document.getElementById('feedback5_2').style.display = 'block';
             allCorrect = false;
         }
         
-        // Вопрос 5
-        const q5 = document.querySelector('input[name="q5"]:checked');
-        if (q5 && q5.value === '0') {
-            document.getElementById('feedback5').className = 'test-feedback correct';
-            document.getElementById('feedback5').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! super() возвращает родительский класс.';
-            document.getElementById('feedback5').style.display = 'block';
-        } else {
-            document.getElementById('feedback5').className = 'test-feedback incorrect';
-            document.getElementById('feedback5').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. super() используется для вызова методов родителя.';
-            document.getElementById('feedback5').style.display = 'block';
-            allCorrect = false;
+        return allCorrect;
+    }
+    
+    // Универсальная функция проверки тестов
+    function checkTest(lessonNum) {
+        let allCorrect = false;
+        
+        if (lessonNum === 3) {
+            allCorrect = checkLesson3Test();
+        } else if (lessonNum === 5) {
+            allCorrect = checkLesson5Test();
         }
         
+        // Если тест пройден, показываем сообщение
         if (allCorrect) {
-            document.getElementById('completeBtn').style.display = 'flex';
-        } else {
-            document.getElementById('completeBtn').style.display = 'none';
+            // Показываем кнопку завершения для последнего теста
+            if (lessonNum === 5) {
+                document.getElementById('completeBtn').style.display = 'flex';
+            } else {
+                // Для остальных тестов просто показываем сообщение
+                const successMessage = document.createElement('div');
+                successMessage.className = 'test-feedback correct';
+                successMessage.innerHTML = '<i class="fa-solid fa-check"></i> 🎉 Тест пройден успешно!';
+                successMessage.style.marginTop = '20px';
+                
+                const testBlock = document.querySelector('.test-block');
+                if (testBlock && !testBlock.querySelector('.final-success')) {
+                    successMessage.classList.add('final-success');
+                    testBlock.appendChild(successMessage);
+                }
+            }
         }
     }
-
+    
+    // Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        const lessonCards = document.querySelectorAll('.lesson-card');
+        const currentLessonIndex = parseInt('{{ current_lesson }}') || 0;
+        
+        // Сначала убираем все статусы блокировки
+        lessonCards.forEach((card) => {
+            const statusElement = card.querySelector('.lesson-status');
+            if (statusElement) {
+                statusElement.classList.remove('locked');
+            }
+        });
+        
+        // Обновляем стили при загрузке
+        updateLessonStyles(currentLessonIndex);
+        
+        // Добавляем обработчики кликов на карточки уроков
+        lessonCards.forEach((card, index) => {
+            card.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Проверяем, не кликнули ли по кнопке внутри карточки
+                if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+                    return;
+                }
+                
+                // Переходим к уроку (все уроки доступны)
+                goToLesson(index);
+            });
+            
+            // Добавляем курсор pointer для интерактивности
+            card.style.cursor = 'pointer';
+        });
+        
+        // Обработка якоря в URL при загрузке
+        if (window.location.hash) {
+            const hash = window.location.hash;
+            const lessonMatch = hash.match(/lesson(\d+)/);
+            if (lessonMatch) {
+                const lessonIndex = parseInt(lessonMatch[1]) - 1;
+                if (lessonIndex >= 0 && lessonIndex < totalLessons) {
+                    // Небольшая задержка для полной загрузки DOM
+                    setTimeout(() => {
+                        goToLesson(lessonIndex);
+                    }, 100);
+                }
+            }
+        }
+        
+        // Добавляем обработчики для радио-кнопок в тестах
+        const radioButtons3 = document.querySelectorAll('input[name="q1"], input[name="q2"]');
+        radioButtons3.forEach(radio => {
+            radio.addEventListener('change', function() {
+                // Скрываем предыдущие сообщения об ошибках при изменении ответа
+                const feedbacks = document.querySelectorAll('#feedback1, #feedback2');
+                feedbacks.forEach(fb => fb.style.display = 'none');
+            });
+        });
+        
+        const radioButtons5 = document.querySelectorAll('input[name="q5_1"], input[name="q5_2"]');
+        radioButtons5.forEach(radio => {
+            radio.addEventListener('change', function() {
+                const feedbacks = document.querySelectorAll('#feedback5_1, #feedback5_2');
+                feedbacks.forEach(fb => fb.style.display = 'none');
+            });
+        });
+    });
+    
     // Автоматическое скрытие flash сообщений
     setTimeout(() => {
         document.querySelectorAll('.flash-message').forEach(msg => {
@@ -1565,6 +1755,45 @@ print(book1(50))            # Открыта страница 50</pre>
         });
     }, 5000);
 </script>
+
+<style>
+    /* Анимация для появления контента */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Стили для карточек уроков */
+    .lesson-card {
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .lesson-card:hover {
+        transform: translateX(10px);
+        border-color: #3b82f6;
+    }
+    
+    .lesson-card.current {
+        border-color: #3b82f6;
+        background: rgba(59, 130, 246, 0.1);
+    }
+    
+    .lesson-status {
+        padding: 6px 15px;
+        border-radius: 40px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+        border: 1px solid #3b82f6;
+    }
+    
+    /* Убираем стили для заблокированных уроков */
+    .lesson-status.locked {
+        display: none;
+    }
+</style>
 
 <style>
     @keyframes slideOut {

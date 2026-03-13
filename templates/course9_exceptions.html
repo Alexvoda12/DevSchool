@@ -691,10 +691,7 @@ my_dict = {"a": 1, "b": 2}
             </div>
         </div>
 
-        <div class="navigation-buttons">
-            <button class="nav-btn" disabled><i class="fa-solid fa-arrow-left"></i> Назад</button>
-            <button class="nav-btn next" onclick="saveProgress(9, 0)">Далее <i class="fa-solid fa-arrow-right"></i></button>
-        </div>
+        
     </div>
 
     <!-- Урок 2: Конструкция try-except -->
@@ -791,10 +788,7 @@ print(divide_numbers(10, "2")) # Ошибка типа</pre>
             </div>
         </div>
 
-        <div class="navigation-buttons">
-            <button class="nav-btn" onclick="window.location.href='#lesson1'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
-            <button class="nav-btn next" onclick="saveProgress(9, 1)">Далее <i class="fa-solid fa-arrow-right"></i></button>
-        </div>
+        
     </div>
     {% endif %}
 
@@ -862,10 +856,7 @@ except ZeroDivisionError:
             </div>
         </div>
 
-        <div class="navigation-buttons">
-            <button class="nav-btn" onclick="window.location.href='#lesson2'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
-            <button class="nav-btn next" onclick="saveProgress(9, 2)">Далее <i class="fa-solid fa-arrow-right"></i></button>
-        </div>
+        
     </div>
     {% endif %}
 
@@ -939,10 +930,7 @@ except NegativeAmountError:
             </div>
         </div>
 
-        <div class="navigation-buttons">
-            <button class="nav-btn" onclick="window.location.href='#lesson3'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
-            <button class="nav-btn next" onclick="saveProgress(9, 3)">Далее <i class="fa-solid fa-arrow-right"></i></button>
-        </div>
+        
     </div>
     {% endif %}
 
@@ -1007,8 +995,122 @@ except NegativeAmountError:
 </footer>
 
 <script>
-    // Сохранение прогресса
-    async function saveProgress(courseId, lessonIndex) {
+    // ID текущего курса
+    const courseId = {{ course.id }};
+    const totalLessons = {{ course.lessons }};
+    
+    // Загружаем прогресс из localStorage или начинаем с текущего урока
+    let viewedLessons = new Array(totalLessons).fill(false);
+    
+    // Инициализация прогресса
+    function initProgress() {
+        // Загружаем сохраненный прогресс из localStorage
+        const savedProgress = localStorage.getItem(`course_${courseId}_progress`);
+        const currentLessonIndex = parseInt('{{ current_lesson }}') || 0;
+        
+        if (savedProgress) {
+            viewedLessons = JSON.parse(savedProgress);
+        } else {
+            // Если нет сохраненного прогресса, отмечаем текущий урок как просмотренный
+            viewedLessons[currentLessonIndex] = true;
+        }
+        
+        // Обновляем отображение прогресса
+        updateProgressBar();
+        updateLessonIcons();
+    }
+    
+    // Функция обновления прогресс-бара
+    function updateProgressBar() {
+        const viewedCount = viewedLessons.filter(v => v).length;
+        const progressPercent = Math.round((viewedCount / totalLessons) * 100);
+        
+        // Обновляем прогресс-бар
+        const progressFill = document.querySelector('.progress-fill');
+        const progressPercentSpan = document.querySelector('.progress-percent:first-child');
+        const progressCounter = document.querySelectorAll('.progress-percent')[1];
+        const progressText = document.querySelector('.progress-label');
+        
+        if (progressFill) {
+            progressFill.style.width = `${progressPercent}%`;
+            // Добавляем плавность
+            progressFill.style.transition = 'width 0.5s ease-in-out';
+        }
+        
+        if (progressPercentSpan) {
+            progressPercentSpan.textContent = `${progressPercent}%`;
+        }
+        
+        if (progressCounter) {
+            progressCounter.textContent = `${viewedCount}/${totalLessons}`;
+        }
+        
+        if (progressText) {
+            progressText.textContent = 'уроков просмотрено';
+        }
+        
+        // Сохраняем прогресс в localStorage
+        localStorage.setItem(`course_${courseId}_progress`, JSON.stringify(viewedLessons));
+    }
+    
+    // Функция обновления иконок уроков
+    function updateLessonIcons() {
+        const lessonCards = document.querySelectorAll('.lesson-card');
+        
+        lessonCards.forEach((card, index) => {
+            const statusElement = card.querySelector('.lesson-status');
+            const lessonNumber = card.querySelector('.lesson-number');
+            
+            if (viewedLessons[index]) {
+                // Урок просмотрен
+                card.classList.add('viewed');
+                if (statusElement) {
+                    statusElement.className = 'lesson-status viewed';
+                    statusElement.innerHTML = '<i class="fa-solid fa-check-circle" style="color: #10b981;"></i> Просмотрено';
+                }
+                if (lessonNumber) {
+                    lessonNumber.style.background = 'rgba(16, 185, 129, 0.2)';
+                    lessonNumber.style.color = '#10b981';
+                }
+            } else {
+                // Урок не просмотрен
+                card.classList.remove('viewed');
+                if (statusElement) {
+                    statusElement.className = 'lesson-status';
+                    statusElement.innerHTML = '<i class="fa-regular fa-circle"></i> Не начато';
+                }
+                if (lessonNumber) {
+                    lessonNumber.style.background = '#1e293b';
+                    lessonNumber.style.color = '#3b82f6';
+                }
+            }
+            
+            // Подсвечиваем текущий урок
+            if (index === parseInt('{{ current_lesson }}')) {
+                card.classList.add('current');
+                if (statusElement) {
+                    statusElement.innerHTML = '<i class="fa-solid fa-book-open" style="color: #3b82f6;"></i> Текущий';
+                }
+            } else {
+                card.classList.remove('current');
+            }
+        });
+    }
+    
+    // Функция отметки урока как просмотренного
+    function markLessonAsViewed(lessonIndex) {
+        if (!viewedLessons[lessonIndex]) {
+            viewedLessons[lessonIndex] = true;
+            updateProgressBar();
+            updateLessonIcons();
+            
+            // Отправляем на сервер обновление прогресса
+            saveProgressToServer(lessonIndex);
+        }
+    }
+    
+    // Функция сохранения прогресса на сервере
+    async function saveProgressToServer(lessonIndex) {
         try {
             const response = await fetch('/api/save-progress', {
                 method: 'POST',
@@ -1022,16 +1124,56 @@ except NegativeAmountError:
                 })
             });
             
-            if (response.ok) {
-                window.location.reload();
+            if (!response.ok) {
+                console.error('Ошибка сохранения прогресса:', response.status);
             }
         } catch (error) {
             console.error('Ошибка сохранения прогресса:', error);
         }
     }
-
-    // Завершение курса
-    async function completeCourse(courseId) {
+    
+    // Функция перехода к уроку
+    async function goToLesson(lessonIndex) {
+        // Отмечаем урок как просмотренный
+        markLessonAsViewed(lessonIndex);
+        
+        // Плавная прокрутка к уроку
+        const lessonElement = document.getElementById(`lesson${lessonIndex + 1}`);
+        if (lessonElement) {
+            lessonElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            // Обновляем URL
+            history.pushState(null, null, `#lesson${lessonIndex + 1}`);
+            
+            // Обновляем видимость контента
+            updateLessonVisibility(lessonIndex);
+        }
+    }
+    
+    // Функция обновления видимости контента уроков
+    function updateLessonVisibility(activeLessonIndex) {
+        const lessonContents = document.querySelectorAll('.theory-content, .test-block');
+        
+        lessonContents.forEach((content, index) => {
+            if (index === activeLessonIndex) {
+                content.style.display = 'block';
+                content.style.animation = 'fadeIn 0.5s';
+            } else {
+                content.style.display = 'none';
+            }
+        });
+    }
+    
+    // Функция завершения курса
+    async function completeCourse() {
+        // Отмечаем все уроки как просмотренные
+        for (let i = 0; i < totalLessons; i++) {
+            viewedLessons[i] = true;
+        }
+        
+        updateProgressBar();
+        updateLessonIcons();
+        
         try {
             const response = await fetch('/api/save-progress', {
                 method: 'POST',
@@ -1040,7 +1182,7 @@ except NegativeAmountError:
                 },
                 body: JSON.stringify({
                     course_id: courseId,
-                    lesson_index: 4,
+                    lesson_index: totalLessons - 1,
                     completed: true
                 })
             });
@@ -1048,33 +1190,156 @@ except NegativeAmountError:
             if (response.ok) {
                 alert('🎉 Поздравляем! Вы завершили курс! +50 PYTH');
                 window.location.href = "{{ url_for('courses') }}";
+            } else {
+                console.error('Ошибка завершения курса:', response.status);
             }
         } catch (error) {
             console.error('Ошибка завершения курса:', error);
         }
     }
-
-    // Проверка теста
-    function checkTest() {
-        const q1 = document.querySelector('input[name="q1"]:checked');
+    
+    // Функции проверки тестов (остаются без изменений)
+    function checkLesson3Test() {
         let allCorrect = true;
         
-        if (q1 && q1.value === '3') {
+        const q1 = document.querySelector('input[name="q1"]:checked');
+        const q2 = document.querySelector('input[name="q2"]:checked');
+        
+        // Проверка вопроса 1
+        if (q1 && q1.value === '2') {
             document.getElementById('feedback1').className = 'test-feedback correct';
-            document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! Блок finally выполняется всегда, независимо от того, было исключение или нет.';
+            document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-check"></i> Правильно!';
             document.getElementById('feedback1').style.display = 'block';
         } else {
             document.getElementById('feedback1').className = 'test-feedback incorrect';
-            document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. Блок finally выполняется в любом случае.';
+            document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно';
             document.getElementById('feedback1').style.display = 'block';
             allCorrect = false;
         }
         
-        if (allCorrect) {
+        // Проверка вопроса 2
+        if (q2 && q2.value === '1') {
+            document.getElementById('feedback2').className = 'test-feedback correct';
+            document.getElementById('feedback2').innerHTML = '<i class="fa-solid fa-check"></i> Правильно!';
+            document.getElementById('feedback2').style.display = 'block';
+        } else {
+            document.getElementById('feedback2').className = 'test-feedback incorrect';
+            document.getElementById('feedback2').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно';
+            document.getElementById('feedback2').style.display = 'block';
+            allCorrect = false;
+        }
+        
+        return allCorrect;
+    }
+    
+    function checkLesson5Test() {
+        let allCorrect = true;
+        
+        const q1 = document.querySelector('input[name="q5_1"]:checked');
+        const q2 = document.querySelector('input[name="q5_2"]:checked');
+        
+        // Проверка вопроса 1
+        if (q1 && q1.value === '0') {
+            document.getElementById('feedback5_1').className = 'test-feedback correct';
+            document.getElementById('feedback5_1').innerHTML = '<i class="fa-solid fa-check"></i> Правильно!';
+            document.getElementById('feedback5_1').style.display = 'block';
+        } else {
+            document.getElementById('feedback5_1').className = 'test-feedback incorrect';
+            document.getElementById('feedback5_1').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно';
+            document.getElementById('feedback5_1').style.display = 'block';
+            allCorrect = false;
+        }
+        
+        // Проверка вопроса 2
+        if (q2 && q2.value === '1') {
+            document.getElementById('feedback5_2').className = 'test-feedback correct';
+            document.getElementById('feedback5_2').innerHTML = '<i class="fa-solid fa-check"></i> Правильно!';
+            document.getElementById('feedback5_2').style.display = 'block';
+        } else {
+            document.getElementById('feedback5_2').className = 'test-feedback incorrect';
+            document.getElementById('feedback5_2').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно';
+            document.getElementById('feedback5_2').style.display = 'block';
+            allCorrect = false;
+        }
+        
+        return allCorrect;
+    }
+    
+    function checkTest(lessonNum) {
+        let allCorrect = false;
+        
+        if (lessonNum === 3) {
+            allCorrect = checkLesson3Test();
+        } else if (lessonNum === 5) {
+            allCorrect = checkLesson5Test();
+        }
+        
+        if (allCorrect && lessonNum === 5) {
             document.getElementById('completeBtn').style.display = 'flex';
         }
     }
-
+    
+    // Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        const lessonCards = document.querySelectorAll('.lesson-card');
+        const currentLessonIndex = parseInt('{{ current_lesson }}') || 0;
+        
+        // Инициализируем прогресс
+        initProgress();
+        
+        // Отмечаем текущий урок как просмотренный (если еще не отмечен)
+        markLessonAsViewed(currentLessonIndex);
+        
+        // Обновляем видимость контента
+        updateLessonVisibility(currentLessonIndex);
+        
+        // Добавляем обработчики кликов на карточки уроков
+        lessonCards.forEach((card, index) => {
+            card.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+                    return;
+                }
+                
+                goToLesson(index);
+            });
+            
+            card.style.cursor = 'pointer';
+        });
+        
+        // Обработка якоря в URL
+        if (window.location.hash) {
+            const hash = window.location.hash;
+            const lessonMatch = hash.match(/lesson(\d+)/);
+            if (lessonMatch) {
+                const lessonIndex = parseInt(lessonMatch[1]) - 1;
+                if (lessonIndex >= 0 && lessonIndex < totalLessons) {
+                    setTimeout(() => {
+                        goToLesson(lessonIndex);
+                    }, 100);
+                }
+            }
+        }
+        
+        // Обработчики для радио-кнопок
+        const radioButtons3 = document.querySelectorAll('input[name="q1"], input[name="q2"]');
+        radioButtons3.forEach(radio => {
+            radio.addEventListener('change', function() {
+                const feedbacks = document.querySelectorAll('#feedback1, #feedback2');
+                feedbacks.forEach(fb => fb.style.display = 'none');
+            });
+        });
+        
+        const radioButtons5 = document.querySelectorAll('input[name="q5_1"], input[name="q5_2"]');
+        radioButtons5.forEach(radio => {
+            radio.addEventListener('change', function() {
+                const feedbacks = document.querySelectorAll('#feedback5_1, #feedback5_2');
+                feedbacks.forEach(fb => fb.style.display = 'none');
+            });
+        });
+    });
+    
     // Автоматическое скрытие flash сообщений
     setTimeout(() => {
         document.querySelectorAll('.flash-message').forEach(msg => {
@@ -1083,6 +1348,159 @@ except NegativeAmountError:
         });
     }, 5000);
 </script>
+
+<style>
+    /* Анимации */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Стили для карточек уроков */
+    .lesson-card {
+        cursor: pointer;
+        transition: all 0.3s;
+        border: 1px solid #2a3a55;
+    }
+    
+    .lesson-card:hover {
+        transform: translateX(10px);
+        border-color: #3b82f6;
+        background: #1e2c3f;
+    }
+    
+    .lesson-card.current {
+        border-color: #3b82f6;
+        background: rgba(59, 130, 246, 0.15);
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+    }
+    
+    .lesson-card.viewed {
+        border-color: #10b981;
+        background: rgba(16, 185, 129, 0.05);
+    }
+    
+    .lesson-number {
+        width: 50px;
+        height: 50px;
+        background: #1e293b;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.3rem;
+        color: #3b82f6;
+        transition: all 0.3s;
+    }
+    
+    .lesson-status {
+        padding: 6px 15px;
+        border-radius: 40px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+    
+    .lesson-status.viewed {
+        background: rgba(16, 185, 129, 0.15);
+        color: #10b981;
+        border: 1px solid #10b981;
+    }
+    
+    .lesson-status:not(.viewed) {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+        border: 1px solid #3b82f6;
+    }
+    
+    /* Прогресс-бар */
+    .progress-section {
+        background: rgba(18, 26, 36, 0.7);
+        border: 1px solid #2a3a55;
+        border-radius: 32px;
+        padding: 30px;
+        margin-bottom: 30px;
+    }
+    
+    .progress-stats {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 15px;
+    }
+    
+    .progress-percent {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #3b82f6;
+    }
+    
+    .progress-label {
+        color: #9ab3d0;
+    }
+    
+    .progress-bar {
+        width: 100%;
+        height: 10px;
+        background: #1e293b;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #3b82f6, #60a5fa);
+        border-radius: 10px;
+        transition: width 0.5s ease-in-out;
+        box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+    }
+    
+    /* Адаптивность */
+    @media (max-width: 768px) {
+        .progress-percent {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+
+<style>
+    /* Анимация для появления контента */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Стили для карточек уроков */
+    .lesson-card {
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .lesson-card:hover {
+        transform: translateX(10px);
+        border-color: #3b82f6;
+    }
+    
+    .lesson-card.current {
+        border-color: #3b82f6;
+        background: rgba(59, 130, 246, 0.1);
+    }
+    
+    .lesson-status {
+        padding: 6px 15px;
+        border-radius: 40px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+        border: 1px solid #3b82f6;
+    }
+    
+    /* Убираем стили для заблокированных уроков */
+    .lesson-status.locked {
+        display: none;
+    }
+</style>
 
 <style>
     @keyframes slideOut {
