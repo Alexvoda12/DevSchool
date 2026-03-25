@@ -543,6 +543,7 @@
             <a href="{{ url_for('tasks') }}">Задачи</a>
             <a href="{{ url_for('ai_assistant') }}">GPT-4</a>
             <a href="{{ url_for('dashboard') }}">Кабинет</a>
+            <a href="{{ url_for('about') }}" class="{% if request.endpoint == 'about' %}active{% endif %}">О нас</a>
             
             <div class="pyth-balance" onclick="window.location.href='{{ url_for('shop') }}'">
                 <i class="fa-solid fa-coins"></i>

@@ -1638,40 +1638,45 @@ def clear_chat():
     return jsonify({'success': True})
 
 # Добавление прогресса (демо)
-@app.route('/add-progress')
-def add_progress():
-    if 'user' not in session:
-        return redirect(url_for('login'))
+# @app.route('/add-progress')
+# def add_progress():
+#     if 'user' not in session:
+#         return redirect(url_for('login'))
     
-    email = session['user']['email']
-    users[email]['total_hours'] += 1
-    users[email]['course_progress'] = min(100, users[email]['course_progress'] + 2)
+#     email = session['user']['email']
+#     users[email]['total_hours'] += 1
+#     users[email]['course_progress'] = min(100, users[email]['course_progress'] + 2)
     
-    if users[email]['course_progress'] >= 100:
-        users[email]['courses_completed'] += 1
-        users[email]['course_progress'] = 0
-        courses = ['Django для профи', 'FastAPI', 'Асинхронный Python', 'Python для Data Science']
-        users[email]['current_course'] = random.choice(courses)
+#     if users[email]['course_progress'] >= 100:
+#         users[email]['courses_completed'] += 1
+#         users[email]['course_progress'] = 0
+#         courses = ['Django для профи', 'FastAPI', 'Асинхронный Python', 'Python для Data Science']
+#         users[email]['current_course'] = random.choice(courses)
         
-        users[email]['balance'] = users[email].get('balance', 0) + 50
-        transaction = {
-            'id': str(uuid.uuid4())[:8],
-            'type': 'bonus',
-            'amount': 50,
-            'date': datetime.now(),
-            'description': 'Бонус за завершение курса'
-        }
-        users[email]['transaction_history'].append(transaction)
+#         users[email]['balance'] = users[email].get('balance', 0) + 50
+#         transaction = {
+#             'id': str(uuid.uuid4())[:8],
+#             'type': 'bonus',
+#             'amount': 50,
+#             'date': datetime.now(),
+#             'description': 'Бонус за завершение курса'
+#         }
+#         users[email]['transaction_history'].append(transaction)
         
-        flash('🎉 Поздравляем! Вы завершили курс! +50 PYTH', 'success')
+#         flash('🎉 Поздравляем! Вы завершили курс! +50 PYTH', 'success')
     
-    session['user']['total_hours'] = users[email]['total_hours']
-    session['user']['course_progress'] = users[email]['course_progress']
-    session['user']['courses_completed'] = users[email]['courses_completed']
-    session['user']['balance'] = users[email].get('balance', 0)
+#     session['user']['total_hours'] = users[email]['total_hours']
+#     session['user']['course_progress'] = users[email]['course_progress']
+#     session['user']['courses_completed'] = users[email]['courses_completed']
+#     session['user']['balance'] = users[email].get('balance', 0)
     
-    flash('⏱️ Прогресс обновлен! +1 час обучения', 'success')
-    return redirect(url_for('profile'))
+#     flash('⏱️ Прогресс обновлен! +1 час обучения', 'success')
+#     return redirect(url_for('profile'))
+
+# Страница "О нас"
+@app.route('/about')
+def about():
+    return render_template('about.html')
 
 # API для обновления времени на платформе
 @app.route('/api/update-time', methods=['POST'])
@@ -1714,7 +1719,6 @@ def update_time():
         'message': f'Время обновлено'
     })
 
-
 # Выход
 @app.route('/logout')
 def logout():
@@ -1723,4 +1727,4 @@ def logout():
     return redirect(url_for('main'))
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5050)
+    app.run(debug=True, host='0.0.0.0', port=1000)
