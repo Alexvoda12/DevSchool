@@ -49,7 +49,33 @@ courses_meta = {
     9: {'title': 'Исключения и ошибки', 'level': 'intermediate', 'price_coins': 199, 'price_rub': 1990, 'icon': 'fa-solid fa-bug', 'lessons': 5, 'hours': 4},
     10: {'title': 'Модули и библиотеки', 'level': 'advanced', 'price_coins': 349, 'price_rub': 3490, 'icon': 'fa-solid fa-boxes', 'lessons': 7, 'hours': 7},
     11: {'title': 'Тестирование кода', 'level': 'advanced', 'price_coins': 299, 'price_rub': 2990, 'icon': 'fa-solid fa-vial', 'lessons': 6, 'hours': 6},
-    12: {'title': 'Асинхронное программирование', 'level': 'advanced', 'price_coins': 449, 'price_rub': 4490, 'icon': 'fa-solid fa-bolt', 'lessons': 8, 'hours': 9}
+    12: {'title': 'Асинхронное программирование', 'level': 'advanced', 'price_coins': 449, 'price_rub': 4490, 'icon': 'fa-solid fa-bolt', 'lessons': 8, 'hours': 9},
+    13: {'title': 'Паттерны проектирования на Python', 'level': 'expert', 'price_coins': 5490, 'price_rub': 5490, 'icon': 'fa-solid fa-diagram-project', 'lessons': 24, 'hours': 10, 'description': 'Изучение классических паттернов GoF (Singleton, Factory, Observer, Strategy) с адаптацией под Pythonic-way.'},
+    14: {'title': 'Чистая архитектура и DDD', 'level': 'expert', 'price_coins': 6490, 'price_rub': 6490, 'icon': 'fa-solid fa-layer-group', 'lessons': 28, 'hours': 12, 'description': 'Как строить большие проекты с разделением на слои (Domain, Application, Infrastructure). Внедрение зависимостей.'},
+    15: {'title': 'Декораторы и метапрограммирование', 'level': 'advanced', 'price_coins': 3990, 'price_rub': 3990, 'icon': 'fa-solid fa-magic', 'lessons': 16, 'hours': 6, 'description': 'Создание своих декораторов с аргументами, метаклассы, магия dunder методов.'},
+    
+    # === Базы данных и хранение ===
+    16: {'title': 'SQLAlchemy: ORM для профи', 'level': 'advanced', 'price_coins': 4490, 'price_rub': 4490, 'icon': 'fa-solid fa-database', 'lessons': 20, 'hours': 8, 'description': 'Работа с базами данных через SQLAlchemy 2.0: модели, отношения, миграции (Alembic), оптимизация запросов.'},
+    17: {'title': 'Redis и кэширование', 'level': 'advanced', 'price_coins': 3490, 'price_rub': 3490, 'icon': 'fa-solid fa-bolt', 'lessons': 14, 'hours': 5, 'description': 'Использование Redis как кэша, брокера задач, для хранения сессий. Работа с структурами данных Redis.'},
+    18: {'title': 'NoSQL для Python-разработчика', 'level': 'advanced', 'price_coins': 3990, 'price_rub': 3990, 'icon': 'fa-solid fa-database', 'lessons': 18, 'hours': 7, 'description': 'MongoDB, Cassandra, Elasticsearch: когда и как использовать, интеграция с Python, проектирование схем.'},
+    
+    # === Сеть и веб-разработка ===
+    19: {'title': 'FastAPI: современный backend', 'level': 'advanced', 'price_coins': 5490, 'price_rub': 5490, 'icon': 'fa-solid fa-bolt', 'lessons': 26, 'hours': 10, 'description': 'Асинхронные эндпоинты, Pydantic-модели, dependency injection, WebSocket, документация OpenAPI.'},
+    20: {'title': 'Django: Pro-уровень', 'level': 'expert', 'price_coins': 7490, 'price_rub': 7490, 'icon': 'fa-brands fa-python', 'lessons': 32, 'hours': 14, 'description': 'Оптимизация запросов, кастомные middleware, сигналы, Django REST Framework (DRF), деплой.'},
+    21: {'title': 'gRPC и микросервисы', 'level': 'expert', 'price_coins': 4990, 'price_rub': 4990, 'icon': 'fa-solid fa-network-wired', 'lessons': 18, 'hours': 7, 'description': 'Построение высокопроизводительных микросервисов на gRPC, Protocol Buffers, взаимодействие между сервисами.'},
+    
+    # === Data Science и AI ===
+    22: {'title': 'NumPy и Pandas: анализ данных', 'level': 'intermediate', 'price_coins': 4990, 'price_rub': 4990, 'icon': 'fa-solid fa-chart-line', 'lessons': 24, 'hours': 9, 'description': 'Векторизация, DataFrame, работа с большими таблицами, очистка данных. Базовый вход в Data Science.'},
+    23: {'title': 'Введение в ML на Python', 'level': 'advanced', 'price_coins': 6490, 'price_rub': 6490, 'icon': 'fa-solid fa-brain', 'lessons': 28, 'hours': 12, 'description': 'Scikit-learn, построение моделей, оценка качества, feature engineering. Практические кейсы.'},
+    
+    # === Инструменты и DevOps ===
+    24: {'title': 'Docker и Kubernetes для Python', 'level': 'advanced', 'price_coins': 5490, 'price_rub': 5490, 'icon': 'fa-brands fa-docker', 'lessons': 22, 'hours': 9, 'description': 'Контейнеризация Python-приложений, Dockerfile, docker-compose, оркестрация в Kubernetes.'},
+    25: {'title': 'CI/CD для Python-проектов', 'level': 'advanced', 'price_coins': 3990, 'price_rub': 3990, 'icon': 'fa-solid fa-gears', 'lessons': 16, 'hours': 6, 'description': 'GitHub Actions, GitLab CI, автоматическое тестирование, линтинг, деплой на сервер.'},
+    26: {'title': 'Асинхронность: от основ до драйверов', 'level': 'expert', 'price_coins': 5490, 'price_rub': 5490, 'icon': 'fa-solid fa-bolt', 'lessons': 24, 'hours': 10, 'description': 'Углубленный курс по asyncio: event loop, корутины, конкурентность, aiohttp, asyncpg, работа с асинхронными драйверами БД.'},
+    
+    # === Безопасность и качество ===
+    27: {'title': 'Безопасность Python-приложений', 'level': 'advanced', 'price_coins': 4990, 'price_rub': 4990, 'icon': 'fa-solid fa-shield-halved', 'lessons': 20, 'hours': 8, 'description': 'OWASP Top 10 для Python: SQL-инъекции, XSS, уязвимости десериализации, защита API.'},
+    28: {'title': 'Профилирование и оптимизация', 'level': 'expert', 'price_coins': 4490, 'price_rub': 4490, 'icon': 'fa-solid fa-gauge-high', 'lessons': 18, 'hours': 7, 'description': 'cProfile, memory_profiler, оптимизация алгоритмов, устранение узких мест (bottlenecks), работа с GIL.'}
 }
 
 # Преобразуем в список для совместимости
@@ -1347,18 +1373,35 @@ def course_page(course_id):
     
     # Определяем шаблон для курса
     template_map = {
-        1: 'course1_python_basics.html',
-        2: 'course2_operations.html',
-        3: 'course3_loops.html',
-        4: 'course4_lists.html',
-        5: 'course5_dicts.html',
-        6: 'course6_functions.html',
-        7: 'course7_oop.html',
-        8: 'course8_files.html',
-        9: 'course9_exceptions.html',
-        10: 'course10_modules.html',
-        11: 'course11_testing.html',
-        12: 'course12_async.html'
+    # Существующие курсы
+    1: 'course1_python_basics.html',
+    2: 'course2_operations.html',
+    3: 'course3_loops.html',
+    4: 'course4_lists.html',
+    5: 'course5_dicts.html',
+    6: 'course6_functions.html',
+    7: 'course7_oop.html',
+    8: 'course8_files.html',
+    9: 'course9_exceptions.html',
+    10: 'course10_modules.html',
+    11: 'course11_testing.html',
+    12: 'course12_async.html',
+    13: 'course13_patterns.html',
+    14: 'course14_clean_architecture.html',
+    15: 'course15_metaprogramming.html',
+    16: 'course16_sqlalchemy.html',
+    17: 'course17_redis.html',
+    18: 'course18_nosql.html',
+    19: 'course19_fastapi.html',
+    20: 'course20_django_pro.html',
+    21: 'course21_grpc.html',
+    22: 'course22_numpy_pandas.html',
+    23: 'course23_ml_intro.html',
+    24: 'course24_docker_k8s.html',
+    25: 'course25_cicd.html',
+    26: 'course26_async_pro.html',
+    27: 'course27_security.html',
+    28: 'course28_optimization.html'
     }
     
     template = template_map.get(course_id, 'course_template.html')
@@ -1638,40 +1681,40 @@ def clear_chat():
     return jsonify({'success': True})
 
 # Добавление прогресса (демо)
-# @app.route('/add-progress')
-# def add_progress():
-#     if 'user' not in session:
-#         return redirect(url_for('login'))
+@app.route('/add-progress')
+def add_progress():
+    if 'user' not in session:
+        return redirect(url_for('login'))
     
-#     email = session['user']['email']
-#     users[email]['total_hours'] += 1
-#     users[email]['course_progress'] = min(100, users[email]['course_progress'] + 2)
+    email = session['user']['email']
+    users[email]['total_hours'] += 1
+    users[email]['course_progress'] = min(100, users[email]['course_progress'] + 2)
     
-#     if users[email]['course_progress'] >= 100:
-#         users[email]['courses_completed'] += 1
-#         users[email]['course_progress'] = 0
-#         courses = ['Django для профи', 'FastAPI', 'Асинхронный Python', 'Python для Data Science']
-#         users[email]['current_course'] = random.choice(courses)
+    if users[email]['course_progress'] >= 100:
+        users[email]['courses_completed'] += 1
+        users[email]['course_progress'] = 0
+        courses = ['Django для профи', 'FastAPI', 'Асинхронный Python', 'Python для Data Science']
+        users[email]['current_course'] = random.choice(courses)
         
-#         users[email]['balance'] = users[email].get('balance', 0) + 50
-#         transaction = {
-#             'id': str(uuid.uuid4())[:8],
-#             'type': 'bonus',
-#             'amount': 50,
-#             'date': datetime.now(),
-#             'description': 'Бонус за завершение курса'
-#         }
-#         users[email]['transaction_history'].append(transaction)
+        users[email]['balance'] = users[email].get('balance', 0) + 50
+        transaction = {
+            'id': str(uuid.uuid4())[:8],
+            'type': 'bonus',
+            'amount': 50,
+            'date': datetime.now(),
+            'description': 'Бонус за завершение курса'
+        }
+        users[email]['transaction_history'].append(transaction)
         
-#         flash('🎉 Поздравляем! Вы завершили курс! +50 PYTH', 'success')
+        flash('🎉 Поздравляем! Вы завершили курс! +50 PYTH', 'success')
     
-#     session['user']['total_hours'] = users[email]['total_hours']
-#     session['user']['course_progress'] = users[email]['course_progress']
-#     session['user']['courses_completed'] = users[email]['courses_completed']
-#     session['user']['balance'] = users[email].get('balance', 0)
+    session['user']['total_hours'] = users[email]['total_hours']
+    session['user']['course_progress'] = users[email]['course_progress']
+    session['user']['courses_completed'] = users[email]['courses_completed']
+    session['user']['balance'] = users[email].get('balance', 0)
     
-#     flash('⏱️ Прогресс обновлен! +1 час обучения', 'success')
-#     return redirect(url_for('profile'))
+    flash('⏱️ Прогресс обновлен! +1 час обучения', 'success')
+    return redirect(url_for('profile'))
 
 # Страница "О нас"
 @app.route('/about')

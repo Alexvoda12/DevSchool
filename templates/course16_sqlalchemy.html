@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyMaster · SQLAlchemy: ORM для профи</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Базовые стили для прокрутки (как в остальных курсах) */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: auto;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            background: #0a0c0f;
+            color: #e3e9f1;
+            overflow-y: auto;
+        }
+        .navbar { flex-shrink: 0; position: sticky; top: 0; z-index: 100; width: 100%; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; width: 100%; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
+        .course-header { background: linear-gradient(145deg, #0f172a, #1a2635); border-radius: 40px; padding: 40px; margin-bottom: 30px; border: 1px solid #2a3a55; display: flex; align-items: center; gap: 30px; flex-wrap: wrap; }
+        .course-header-icon { width: 100px; height: 100px; background: rgba(59, 130, 246, 0.1); border-radius: 30px; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; color: #3b82f6; }
+        .course-header-info { flex: 1; }
+        .course-header-info h1 { font-size: 2.5rem; margin-bottom: 10px; background: linear-gradient(145deg, #ffffff, #a5c9ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .course-meta { display: flex; gap: 30px; margin: 15px 0; flex-wrap: wrap; }
+        .course-meta-item { display: flex; align-items: center; gap: 8px; color: #9ab3d0; }
+        .progress-section { background: rgba(18, 26, 36, 0.7); border: 1px solid #2a3a55; border-radius: 32px; padding: 30px; margin-bottom: 30px; }
+        .progress-stats { display: flex; justify-content: space-between; margin-bottom: 15px; }
+        .progress-percent { font-size: 2rem; font-weight: 700; color: #3b82f6; }
+        .lesson-card { background: rgba(18, 26, 36, 0.7); border: 1px solid #2a3a55; border-radius: 24px; padding: 25px; margin-bottom: 15px; transition: all 0.3s; cursor: pointer; display: flex; align-items: center; gap: 20px; }
+        .lesson-card:hover { border-color: #3b82f6; transform: translateX(5px); background: #1e2c3f; }
+        .lesson-card.current { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
+        .lesson-number { width: 50px; height: 50px; background: #1e293b; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.3rem; color: #3b82f6; }
+        .lesson-card.current .lesson-number { background: #3b82f6; color: white; }
+        .lesson-info { flex: 1; }
+        .lesson-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 5px; color: #ffffff; }
+        .lesson-type { display: flex; align-items: center; gap: 5px; color: #9ab3d0; font-size: 0.85rem; }
+        .lesson-status { padding: 6px 15px; border-radius: 40px; font-size: 0.85rem; font-weight: 500; background: rgba(59, 130, 246, 0.2); color: #3b82f6; border: 1px solid #3b82f6; }
+        .theory-content { background: #1a2635; border: 1px solid #2f405b; border-radius: 24px; padding: 30px; margin: 20px 0; scroll-margin-top: 100px; }
+        .theory-section { margin-bottom: 40px; }
+        .theory-section h3 { font-size: 1.5rem; margin-bottom: 20px; color: #e9f0fa; display: flex; align-items: center; gap: 10px; }
+        .code-block { background: #0f172a; border: 1px solid #334155; border-radius: 16px; padding: 20px; margin: 20px 0; font-family: 'Courier New', monospace; color: #fbbf24; overflow-x: auto; }
+        .code-block pre { margin: 0; white-space: pre-wrap; word-wrap: break-word; }
+        .note-box { background: rgba(245, 158, 11, 0.1); border: 1px solid #f59e0b; border-radius: 20px; padding: 20px; margin: 20px 0; display: flex; gap: 15px; align-items: flex-start; }
+        .test-block { background: #1a2635; border: 1px solid #2f405b; border-radius: 24px; padding: 30px; margin: 30px 0; scroll-margin-top: 100px; }
+        .test-question { font-size: 1.2rem; margin-bottom: 20px; color: #ffffff; }
+        .test-options { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+        .test-option { background: #1e293b; border: 1px solid #334155; border-radius: 40px; padding: 15px 20px; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: all 0.2s; }
+        .test-option:hover { border-color: #3b82f6; background: #2d3a4f; }
+        .test-btn { background: linear-gradient(145deg, #2563eb, #1d4ed8); color: white; border: none; padding: 12px 30px; border-radius: 40px; font-weight: 600; cursor: pointer; margin-top: 20px; }
+        .test-feedback { margin-top: 15px; padding: 15px 20px; border-radius: 40px; font-size: 0.95rem; animation: fadeIn 0.3s; }
+        .test-feedback.correct { background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #10b981; }
+        .test-feedback.incorrect { background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #ef4444; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .navigation-buttons { display: flex; justify-content: space-between; margin-top: 30px; }
+        .nav-btn { background: #1e293b; border: 1px solid #334155; color: white; padding: 12px 30px; border-radius: 40px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .nav-btn.next { background: linear-gradient(145deg, #2563eb, #1d4ed8); border: 1px solid #3b82f6; }
+        .footer { border-top: 1px solid #1a2635; padding: 40px 0; margin-top: 60px; text-align: center; color: #6b8bb0; }
+        .flash-messages { position: fixed; top: 100px; right: 20px; z-index: 1000; }
+        .flash-message { padding: 16px 24px; border-radius: 40px; margin-bottom: 10px; animation: slideIn 0.3s; backdrop-filter: blur(10px); background: rgba(4, 120, 87, 0.95); display: flex; align-items: center; gap: 12px; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0%); opacity: 1; } }
+        @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+        @media (max-width: 768px) { .course-header { flex-direction: column; text-align: center; } .lesson-card { flex-wrap: wrap; } .lesson-status { width: 100%; text-align: center; } }
+    </style>
+</head>
+<body>
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}<div class="flash-messages">{% for category, message in messages %}<div class="flash-message flash-{{ category }}"><i class="fa-solid fa-circle-check"></i> {{ message }}</div>{% endfor %}</div>{% endif %}
+{% endwith %}
+<nav class="navbar"><div class="container nav-wrapper"><div class="logo"><i class="fa-brands fa-python logo-icon"></i><span class="logo-text">PyMaster</span></div><div class="nav-links"><a href="{{ url_for('main') }}">Главная</a><a href="{{ url_for('courses') }}" class="active">Курсы</a><a href="{{ url_for('tasks') }}">Задачи</a><a href="{{ url_for('ai_assistant') }}">GPT-4</a><a href="{{ url_for('dashboard') }}">Кабинет</a><a href="{{ url_for('about') }}">О нас</a><div class="pyth-balance" onclick="window.location.href='{{ url_for('shop') }}'"><i class="fa-solid fa-coins"></i><span>{{ user.balance }} PYTH</span></div><a href="{{ url_for('logout') }}" class="logout-btn"><i class="fa-solid fa-arrow-right-from-bracket"></i></a></div></div></nav>
+<div class="container" style="padding: 40px 24px;">
+    <div class="course-header"><div class="course-header-icon"><i class="fa-solid fa-database"></i></div><div class="course-header-info"><h1>{{ course.title }}</h1><div class="course-meta"><span class="course-meta-item"><i class="fa-solid fa-clock"></i> {{ course.hours }} часов</span><span class="course-meta-item"><i class="fa-solid fa-book-open"></i> {{ course.lessons }} уроков</span><span class="course-meta-item"><i class="fa-solid fa-signal"></i> <span class="course-level level-advanced">Продвинутый</span></span></div><p style="color: #9ab3d0;">Работа с базами данных через SQLAlchemy 2.0: модели, отношения, миграции (Alembic), оптимизация запросов.</p></div></div>
+    <div class="progress-section"><div class="progress-stats"><div><span class="progress-percent">{{ progress }}%</span><span class="progress-label">прогресс</span></div><div><span class="progress-percent">{{ current_lesson }}/{{ course.lessons }}</span><span class="progress-label">уроков пройдено</span></div></div><div class="progress-bar"><div class="progress-fill" style="width: {{ progress }}%"></div></div></div>
+    <h2 style="font-size: 1.8rem; margin-bottom: 20px;">Уроки курса</h2>
+
+    <!-- УРОК 1: Введение в SQLAlchemy и Core -->
+    <div class="lesson-card {% if current_lesson > 0 %}completed{% elif current_lesson == 0 %}current{% endif %}" onclick="window.location.href='#lesson1'"><div class="lesson-number">1</div><div class="lesson-info"><div class="lesson-title">Введение в SQLAlchemy и Core</div><div class="lesson-type"><i class="fa-solid fa-book-open"></i> Теория • 20 минут</div></div><div class="lesson-status">{% if current_lesson > 0 %}✅ Пройдено{% elif current_lesson == 0 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}</div></div>
+    <div id="lesson1" class="theory-content" style="scroll-margin-top: 100px;">
+        <h2>Урок 1: Введение в SQLAlchemy и Core</h2>
+        <div class="theory-section"><h3><i class="fa-solid fa-cube"></i> Что такое SQLAlchemy?</h3><p>SQLAlchemy — это мощная библиотека Python для работы с реляционными базами данных. Она предоставляет два основных подхода: <strong>Core</strong> (низкоуровневый SQL-выражения) и <strong>ORM</strong> (объектно-реляционное отображение).</p><div class="code-block"><pre># Установка: pip install sqlalchemy
+from sqlalchemy import create_engine, text
+
+# Создание подключения (SQLite для примера)
+engine = create_engine("sqlite:///example.db", echo=True)
+
+# Выполнение raw SQL через Core
+with engine.connect() as conn:
+    result = conn.execute(text("SELECT 'Hello, DB'"))
+    print(result.all())</pre></div></div>
+        <div class="theory-section"><h3><i class="fa-solid fa-plug"></i> Движок и сессии</h3><p><strong>Engine</strong> — точка входа в базу. <strong>Session</strong> — рабочая область ORM. Core использует подключения напрямую.</p><div class="code-block"><pre>from sqlalchemy import MetaData, Table, Column, Integer, String
+
+metadata = MetaData()
+users = Table(
+    'users', metadata,
+    Column('id', Integer, primary_key=True),
+    Column('name', String(50)),
+    Column('age', Integer)
+)
+metadata.create_all(engine)  # Создаст таблицу</pre></div></div>
+    </div>
+
+    <!-- УРОК 2: Модели и базовые операции ORM -->
+    <div class="lesson-card {% if current_lesson > 1 %}completed{% elif current_lesson == 1 %}current{% endif %}" onclick="window.location.href='#lesson2'"><div class="lesson-number">2</div><div class="lesson-info"><div class="lesson-title">Модели и базовые операции ORM</div><div class="lesson-type"><i class="fa-solid fa-book-open"></i> Теория • 25 минут</div></div><div class="lesson-status">{% if current_lesson > 1 %}✅ Пройдено{% elif current_lesson == 1 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}</div></div>
+    {% if current_lesson >= 1 %}<div id="lesson2" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 1 %}display: none;{% endif %}"><h2>Урок 2: Модели и базовые операции ORM</h2><div class="theory-section"><h3><i class="fa-solid fa-table"></i> Declarative Base</h3><div class="code-block"><pre>from sqlalchemy.orm import declarative_base, sessionmaker
+
+Base = declarative_base()
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(50), nullable=False)
+    age = Column(Integer)
+
+Base.metadata.create_all(engine)
+Session = sessionmaker(bind=engine)
+session = Session()
+
+# CREATE
+new_user = User(name="Анна", age=28)
+session.add(new_user)
+session.commit()
+
+# READ
+user = session.query(User).filter_by(name="Анна").first()
+print(user.name, user.age)
+
+# UPDATE
+user.age = 29
+session.commit()
+
+# DELETE
+session.delete(user)
+session.commit()</pre></div></div></div>{% endif %}
+
+    <!-- УРОК 3: Отношения: один-ко-многим, многие-ко-многим -->
+    <div class="lesson-card {% if current_lesson > 2 %}completed{% elif current_lesson == 2 %}current{% endif %}" onclick="window.location.href='#lesson3'"><div class="lesson-number">3</div><div class="lesson-info"><div class="lesson-title">Отношения: один-ко-многим, многие-ко-многим</div><div class="lesson-type"><i class="fa-solid fa-book-open"></i> Теория • 30 минут</div></div><div class="lesson-status">{% if current_lesson > 2 %}✅ Пройдено{% elif current_lesson == 2 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}</div></div>
+    {% if current_lesson >= 2 %}<div id="lesson3" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 2 %}display: none;{% endif %}"><h2>Урок 3: Отношения</h2><div class="theory-section"><h3><i class="fa-solid fa-code-branch"></i> Один-ко-многим (ForeignKey)</h3><div class="code-block"><pre>from sqlalchemy import ForeignKey
+from sqlalchemy.orm import relationship
+
+class Post(Base):
+    __tablename__ = 'posts'
+    id = Column(Integer, primary_key=True)
+    title = Column(String)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    author = relationship("User", back_populates="posts")
+
+User.posts = relationship("Post", order_by=Post.id, back_populates="author")
+
+user = session.query(User).first()
+new_post = Post(title="Мой первый пост", author=user)
+session.add(new_post)
+session.commit()
+print(user.posts[0].title)</pre></div><h3>Многие-ко-многим</h3><div class="code-block"><pre>association_table = Table('user_group', Base.metadata,
+    Column('user_id', ForeignKey('users.id')),
+    Column('group_id', ForeignKey('groups.id'))
+)
+class Group(Base):
+    __tablename__ = 'groups'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    members = relationship("User", secondary=association_table, back_populates="groups")
+
+User.groups = relationship("Group", secondary=association_table, back_populates="members")</pre></div></div></div>{% endif %}
+
+    <!-- УРОК 4: Миграции с Alembic -->
+    <div class="lesson-card {% if current_lesson > 3 %}completed{% elif current_lesson == 3 %}current{% endif %}" onclick="window.location.href='#lesson4'"><div class="lesson-number">4</div><div class="lesson-info"><div class="lesson-title">Миграции с Alembic</div><div class="lesson-type"><i class="fa-solid fa-book-open"></i> Теория • 20 минут</div></div><div class="lesson-status">{% if current_lesson > 3 %}✅ Пройдено{% elif current_lesson == 3 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}</div></div>
+    {% if current_lesson >= 3 %}<div id="lesson4" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 3 %}display: none;{% endif %}"><h2>Урок 4: Миграции с Alembic</h2><div class="theory-section"><h3><i class="fa-solid fa-code-branch"></i> Управление схемой БД</h3><p>Alembic — инструмент для версионирования изменений схемы.</p><div class="code-block"><pre># Установка: pip install alembic
+# Инициализация: alembic init alembic
+# Настройка alembic.ini и env.py для подключения к engine
+
+# Создать миграцию: alembic revision -m "create users table"
+# В файле миграции:
+def upgrade():
+    op.create_table('users',
+        sa.Column('id', sa.Integer, primary_key=True),
+        sa.Column('name', sa.String(50))
+    )
+def downgrade():
+    op.drop_table('users')
+
+# Применить миграции: alembic upgrade head</pre></div></div></div>{% endif %}
+
+    <!-- УРОК 5: Оптимизация запросов и ленивая/жадная загрузка -->
+    <div class="lesson-card {% if current_lesson > 4 %}completed{% elif current_lesson == 4 %}current{% endif %}" onclick="window.location.href='#lesson5'"><div class="lesson-number">5</div><div class="lesson-info"><div class="lesson-title">Оптимизация запросов и загрузка</div><div class="lesson-type"><i class="fa-solid fa-book-open"></i> Теория • 25 минут</div></div><div class="lesson-status">{% if current_lesson > 4 %}✅ Пройдено{% elif current_lesson == 4 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}</div></div>
+    {% if current_lesson >= 4 %}<div id="lesson5" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 4 %}display: none;{% endif %}"><h2>Урок 5: Оптимизация запросов</h2><div class="theory-section"><h3><i class="fa-solid fa-gauge-high"></i> joinedload и selectinload</h3><div class="code-block"><pre>from sqlalchemy.orm import joinedload, selectinload
+
+# Ленивая загрузка (по умолчанию) – N+1 проблема
+users = session.query(User).all()
+for u in users:
+    print(u.posts)  # выполнит отдельный запрос для каждого юзера
+
+# Жадная загрузка (JOIN)
+users = session.query(User).options(joinedload(User.posts)).all()
+# selectinload – отдельный запрос, но эффективнее для больших данных
+users = session.query(User).options(selectinload(User.posts)).all()</pre></div><div class="code-block"><pre># Пагинация и индексы
+users = session.query(User).filter(User.age > 18).limit(10).offset(0).all()
+# Индексы: Index('idx_user_age', User.age)</pre></div></div></div>{% endif %}
+
+    <!-- УРОК 6: Асинхронный SQLAlchemy (asyncio) -->
+    <div class="lesson-card {% if current_lesson > 5 %}completed{% elif current_lesson == 5 %}current{% endif %}" onclick="window.location.href='#lesson6'"><div class="lesson-number">6</div><div class="lesson-info"><div class="lesson-title">Асинхронный SQLAlchemy</div><div class="lesson-type"><i class="fa-solid fa-book-open"></i> Теория • 25 минут</div></div><div class="lesson-status">{% if current_lesson > 5 %}✅ Пройдено{% elif current_lesson == 5 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}</div></div>
+    {% if current_lesson >= 5 %}<div id="lesson6" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 5 %}display: none;{% endif %}"><h2>Урок 6: Асинхронный SQLAlchemy</h2><div class="theory-section"><h3><i class="fa-solid fa-bolt"></i> asyncpg + SQLAlchemy 1.4+</h3><div class="code-block"><pre>from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker
+
+engine = create_async_engine("postgresql+asyncpg://user:pass@localhost/db")
+async_session = sessionmaker(engine, class_=AsyncSession)
+
+async def get_users():
+    async with async_session() as session:
+        result = await session.execute(select(User))
+        users = result.scalars().all()
+        return users</pre></div></div></div>{% endif %}
+
+    <!-- УРОК 7: Тест по SQLAlchemy -->
+    <div class="lesson-card {% if current_lesson > 6 %}completed{% elif current_lesson == 6 %}current{% endif %}" onclick="window.location.href='#lesson7'"><div class="lesson-number">7</div><div class="lesson-info"><div class="lesson-title">Тест: SQLAlchemy</div><div class="lesson-type"><i class="fa-solid fa-pen-to-square"></i> Тест • 15 минут</div></div><div class="lesson-status">{% if current_lesson > 6 %}✅ Пройдено{% elif current_lesson == 6 %}📝 Текущий{% else %}🔒 Заблокировано{% endif %}</div></div>
+    {% if current_lesson >= 6 %}<div id="lesson7" class="test-block" style="scroll-margin-top: 100px; {% if current_lesson != 6 %}display: none;{% endif %}"><h2>Урок 7: Тест по SQLAlchemy</h2><div class="test-question">Вопрос: Какой метод ORM лучше всего использовать для избежания проблемы N+1 запросов при загрузке связанных объектов?</div><div class="test-options"><label class="test-option"><input type="radio" name="q1" value="0"> .all() и цикл</label><label class="test-option"><input type="radio" name="q1" value="1"> joinedload() или selectinload()</label><label class="test-option"><input type="radio" name="q1" value="2"> просто relationship без опций</label></div><div id="feedback1" class="test-feedback" style="display: none;"></div>
+    <button class="test-btn" onclick="checkTest()">Проверить ответ</button>
+    <div class="navigation-buttons" style="margin-top: 30px;"><button class="nav-btn" onclick="window.location.href='#lesson6'"><i class="fa-solid fa-arrow-left"></i> Назад</button><button class="nav-btn next" id="completeBtn" style="display: none;" onclick="completeCourse(16)">Завершить курс <i class="fa-solid fa-check"></i></button></div></div>{% endif %}
+
+    <!-- УРОК 8: Практика (проект) -->
+    <div class="lesson-card {% if current_lesson > 7 %}completed{% elif current_lesson == 7 %}current{% endif %}" onclick="window.location.href='#lesson8'"><div class="lesson-number">8</div><div class="lesson-info"><div class="lesson-title">Практика: Блог на SQLAlchemy</div><div class="lesson-type"><i class="fa-solid fa-laptop-code"></i> Практика • 30 минут</div></div><div class="lesson-status">{% if current_lesson > 7 %}✅ Пройдено{% elif current_lesson == 7 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}</div></div>
+    {% if current_lesson >= 7 %}<div id="lesson8" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 7 %}display: none;{% endif %}"><h2>Урок 8: Практический проект — Блог с комментариями</h2><div class="theory-section"><div class="code-block"><pre># models.py
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    posts = relationship("Post", back_populates="author", cascade="all, delete-orphan")
+class Post(Base):
+    __tablename__ = 'posts'
+    id = Column(Integer, primary_key=True)
+    title = Column(String)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    author = relationship("User", back_populates="posts")
+    comments = relationship("Comment", back_populates="post")
+class Comment(Base):
+    __tablename__ = 'comments'
+    id = Column(Integer, primary_key=True)
+    text = Column(String)
+    post_id = Column(Integer, ForeignKey('posts.id'))
+    post = relationship("Post", back_populates="comments")
+
+# Использование: создание, запросы с оптимизацией
+posts = session.query(Post).options(joinedload(Post.author), joinedload(Post.comments)).all()</pre></div></div></div>{% endif %}
+
+    <div style="margin-top: 40px; text-align: center;"><a href="{{ url_for('courses') }}" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> К списку курсов</a></div>
+</div>
+<footer class="footer"><div class="container"><p>© 2025 PyMaster · SQLAlchemy: ORM для профи</p></div></footer>
+
+<script>
+    const courseId = {{ course.id }};
+    const totalLessons = {{ course.lessons }};
+    async function goToLesson(lessonIndex) {
+        try {
+            const response = await fetch('/api/save-progress', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ course_id: courseId, lesson_index: lessonIndex, completed: false }) });
+            if (response.ok) {
+                const lessonElement = document.getElementById(`lesson${lessonIndex + 1}`);
+                if (lessonElement) { lessonElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); history.pushState(null, null, `#lesson${lessonIndex + 1}`); updateLessonStyles(lessonIndex); }
+                else window.location.reload();
+            }
+        } catch(e) { alert('Ошибка сохранения прогресса'); }
+    }
+    function updateLessonStyles(activeLessonIndex) {
+        const cards = document.querySelectorAll('.lesson-card'), contents = document.querySelectorAll('.theory-content, .test-block');
+        cards.forEach((card, idx) => {
+            card.classList.remove('current');
+            if (idx === activeLessonIndex) card.classList.add('current');
+            const status = card.querySelector('.lesson-status');
+            if (status) {
+                if (idx === activeLessonIndex) status.innerHTML = (card.querySelector('.lesson-type i')?.classList.contains('fa-pen-to-square')) ? '📝 Текущий' : '📖 Текущий';
+                else status.innerHTML = '📚 Доступен';
+            }
+        });
+        contents.forEach((c, idx) => { c.style.display = (idx === activeLessonIndex) ? 'block' : 'none'; if (idx === activeLessonIndex) c.style.animation = 'fadeIn 0.5s'; });
+        updateProgressBar(activeLessonIndex + 1);
+    }
+    function updateProgressBar(currentLesson) {
+        let percent = Math.round((currentLesson / totalLessons) * 100);
+        let fill = document.querySelector('.progress-fill');
+        if (fill) fill.style.width = `${percent}%`;
+        let spans = document.querySelectorAll('.progress-percent');
+        if (spans[0]) spans[0].textContent = `${percent}%`;
+        if (spans[1]) spans[1].textContent = `${currentLesson}/${totalLessons}`;
+    }
+    async function completeCourse() {
+        try {
+            const response = await fetch('/api/save-progress', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ course_id: courseId, lesson_index: totalLessons - 1, completed: true }) });
+            if (response.ok) { alert('🎉 Поздравляем! Вы завершили курс! +50 PYTH'); window.location.href = "{{ url_for('courses') }}"; }
+            else alert('Ошибка завершения курса');
+        } catch(e) { alert('Ошибка завершения курса'); }
+    }
+    function checkTest() {
+        let selected = document.querySelector('input[name="q1"]:checked');
+        let feedback = document.getElementById('feedback1');
+        if (!selected) { feedback.className = 'test-feedback incorrect'; feedback.innerHTML = '<i class="fa-solid fa-xmark"></i> Выберите ответ'; feedback.style.display = 'block'; return; }
+        if (selected.value === '1') {
+            feedback.className = 'test-feedback correct';
+            feedback.innerHTML = '<i class="fa-solid fa-check"></i> Правильно! joinedload/selectinload решают проблему N+1.';
+            feedback.style.display = 'block';
+            document.getElementById('completeBtn').style.display = 'flex';
+        } else {
+            feedback.className = 'test-feedback incorrect';
+            feedback.innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. Нужно использовать joinedload или selectinload.';
+            feedback.style.display = 'block';
+        }
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        let currentIdx = parseInt('{{ current_lesson }}') || 0;
+        document.querySelectorAll('.lesson-card').forEach((card, idx) => { card.addEventListener('click', function(e) { if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) goToLesson(idx); }); card.style.cursor = 'pointer'; });
+        updateLessonStyles(currentIdx);
+        if (window.location.hash) { let match = window.location.hash.match(/lesson(\d+)/); if (match) { let idx = parseInt(match[1]) - 1; if (idx >= 0 && idx < totalLessons) setTimeout(() => goToLesson(idx), 100); } }
+        setTimeout(() => { document.querySelectorAll('.flash-message').forEach(msg => { msg.style.animation = 'slideOut 0.3s'; setTimeout(() => msg.remove(), 300); }); }, 5000);
+    });
+</script>
+<style>@keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }</style>
+</body>
+</html>
