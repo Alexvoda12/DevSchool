@@ -1,0 +1,1649 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyMaster · gRPC и микросервисы</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Базовые стили для прокрутки (как в других курсах) */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: auto;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            background: #0a0c0f;
+            color: #e3e9f1;
+            overflow-y: auto;
+        }
+        
+        .navbar {
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            width: 100%;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            width: 100%;
+        }
+        
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #8b5cf6;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #7c3aed;
+        }
+
+        .course-header {
+            background: linear-gradient(145deg, #0f172a, #1a2635);
+            border-radius: 40px;
+            padding: 40px;
+            margin-bottom: 30px;
+            border: 1px solid #2a3a55;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .course-header-icon {
+            width: 100px;
+            height: 100px;
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            color: #8b5cf6;
+        }
+        
+        .course-header-info {
+            flex: 1;
+        }
+        
+        .course-header-info h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(145deg, #ffffff, #d8b4fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .course-meta {
+            display: flex;
+            gap: 30px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        
+        .course-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #9ab3d0;
+        }
+        
+        .course-meta-item i {
+            color: #8b5cf6;
+        }
+        
+        .progress-section {
+            background: rgba(18, 26, 36, 0.7);
+            border: 1px solid #2a3a55;
+            border-radius: 32px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .progress-percent {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #8b5cf6;
+        }
+        
+        .progress-label {
+            color: #9ab3d0;
+        }
+        
+        .lesson-card {
+            background: rgba(18, 26, 36, 0.7);
+            border: 1px solid #2a3a55;
+            border-radius: 24px;
+            padding: 25px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .lesson-card:hover {
+            border-color: #8b5cf6;
+            transform: translateX(5px);
+            background: #1e2c3f;
+        }
+        
+        .lesson-card.completed {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+        }
+        
+        .lesson-card.current {
+            border-color: #8b5cf6;
+            background: rgba(139, 92, 246, 0.1);
+        }
+        
+        .lesson-number {
+            width: 50px;
+            height: 50px;
+            background: #1e293b;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: #8b5cf6;
+        }
+        
+        .lesson-card.completed .lesson-number {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+        
+        .lesson-card.current .lesson-number {
+            background: #8b5cf6;
+            color: white;
+        }
+        
+        .lesson-info {
+            flex: 1;
+        }
+        
+        .lesson-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #ffffff;
+        }
+        
+        .lesson-type {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #9ab3d0;
+            font-size: 0.85rem;
+        }
+        
+        .lesson-type i {
+            color: #8b5cf6;
+        }
+        
+        .lesson-status {
+            padding: 6px 15px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .lesson-status.completed {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid #10b981;
+        }
+        
+        .lesson-status.current {
+            background: rgba(139, 92, 246, 0.2);
+            color: #8b5cf6;
+            border: 1px solid #8b5cf6;
+        }
+        
+        .lesson-status.locked {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+        
+        .theory-content {
+            background: #1a2635;
+            border: 1px solid #2f405b;
+            border-radius: 24px;
+            padding: 30px;
+            margin: 20px 0;
+            scroll-margin-top: 100px;
+        }
+        
+        .theory-section {
+            margin-bottom: 40px;
+        }
+        
+        .theory-section h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #e9f0fa;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .theory-section h3 i {
+            color: #8b5cf6;
+        }
+        
+        .code-block {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            color: #fbbf24;
+            overflow-x: auto;
+        }
+        
+        .code-block pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .test-block {
+            background: #1a2635;
+            border: 1px solid #2f405b;
+            border-radius: 24px;
+            padding: 30px;
+            margin: 30px 0;
+            scroll-margin-top: 100px;
+        }
+        
+        .test-question {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+        
+        .test-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .test-option {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 40px;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .test-option:hover {
+            border-color: #8b5cf6;
+            background: #2d3a4f;
+        }
+        
+        .test-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #8b5cf6;
+        }
+        
+        .test-btn {
+            background: linear-gradient(145deg, #8b5cf6, #7c3aed);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 20px;
+        }
+        
+        .test-btn:hover {
+            background: linear-gradient(145deg, #a78bfa, #8b5cf6);
+            transform: scale(1.02);
+        }
+        
+        .test-feedback {
+            margin-top: 15px;
+            padding: 15px 20px;
+            border-radius: 40px;
+            font-size: 0.95rem;
+            animation: fadeIn 0.3s;
+        }
+        
+        .test-feedback.correct {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid #10b981;
+            color: #10b981;
+        }
+        
+        .test-feedback.incorrect {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        .nav-btn {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-btn:hover:not(:disabled) {
+            background: #2d3a4f;
+            border-color: #8b5cf6;
+        }
+        
+        .nav-btn.next {
+            background: linear-gradient(145deg, #8b5cf6, #7c3aed);
+            border: 1px solid #8b5cf6;
+        }
+        
+        .nav-btn.next:hover:not(:disabled) {
+            background: linear-gradient(145deg, #a78bfa, #8b5cf6);
+        }
+        
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .footer {
+            border-top: 1px solid #1a2635;
+            padding: 40px 0;
+            margin-top: 60px;
+            text-align: center;
+            color: #6b8bb0;
+        }
+        
+        .flash-messages {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .flash-message {
+            padding: 16px 24px;
+            border-radius: 40px;
+            margin-bottom: 10px;
+            animation: slideIn 0.3s;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-left: 4px solid #10b981;
+            background: rgba(4, 120, 87, 0.95);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0%); opacity: 1; }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
+        @media (max-width: 768px) {
+            .course-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .course-meta {
+                justify-content: center;
+            }
+            
+            .lesson-card {
+                flex-wrap: wrap;
+            }
+            
+            .lesson-status {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        .note-box {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid #8b5cf6;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .note-box i {
+            color: #8b5cf6;
+            font-size: 1.5rem;
+        }
+
+        .note-box-content {
+            color: #e9f0fa;
+        }
+
+        .note-box-content p {
+            margin: 5px 0;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .comparison-table th {
+            text-align: left;
+            padding: 12px;
+            background: #1e293b;
+            color: #8b5cf6;
+            border: 1px solid #334155;
+        }
+
+        .comparison-table td {
+            padding: 12px;
+            border: 1px solid #334155;
+            color: #9ab3d0;
+        }
+
+        .comparison-table tr:hover {
+            background: #1e293b;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Flash сообщения -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <i class="fa-solid fa-circle-check"></i> {{ message }}
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<!-- Навбар -->
+<nav class="navbar">
+    <div class="container nav-wrapper">
+        <div class="logo">
+            <i class="fa-brands fa-python logo-icon"></i>
+            <span class="logo-text">PyMaster</span>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('main') }}">Главная</a>
+            <a href="{{ url_for('courses') }}" class="active">Курсы</a>
+            <a href="{{ url_for('tasks') }}" class="{% if request.endpoint == 'tasks' %}active{% endif %}">Задачи</a>
+            <a href="{{ url_for('ai_assistant') }}">GPT-4</a>
+            <a href="{{ url_for('dashboard') }}">Кабинет</a>
+            <a href="{{ url_for('about') }}" class="{% if request.endpoint == 'about' %}active{% endif %}">О нас</a>
+            
+            <div class="pyth-balance" onclick="window.location.href='{{ url_for('shop') }}'">
+                <i class="fa-solid fa-coins"></i>
+                <span>{{ user.balance }} PYTH</span>
+            </div>
+            
+            <a href="{{ url_for('logout') }}" class="logout-btn">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Основной контент -->
+<div class="container" style="padding: 40px 24px;">
+    <!-- Шапка курса -->
+    <div class="course-header">
+        <div class="course-header-icon">
+            <i class="fa-solid fa-network-wired"></i>
+        </div>
+        <div class="course-header-info">
+            <h1>{{ course.title }}</h1>
+            <div class="course-meta">
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-clock"></i> {{ course.hours }} часов
+                </span>
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-book-open"></i> {{ course.lessons }} уроков
+                </span>
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-signal"></i> 
+                    <span class="course-level level-advanced">Эксперт-уровень</span>
+                </span>
+            </div>
+            <p style="color: #9ab3d0;">Постройте высокопроизводительные микросервисы с использованием gRPC и Protocol Buffers. Изучите взаимодействие между сервисами, стриминг данных и асинхронную обработку.</p>
+        </div>
+    </div>
+
+    <!-- Прогресс -->
+    <div class="progress-section">
+        <div class="progress-stats">
+            <div>
+                <span class="progress-percent">{{ progress }}%</span>
+                <span class="progress-label">прогресс</span>
+            </div>
+            <div>
+                <span class="progress-percent">{{ current_lesson }}/{{ course.lessons }}</span>
+                <span class="progress-label">уроков пройдено</span>
+            </div>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {{ progress }}%"></div>
+        </div>
+    </div>
+
+    <!-- Список уроков -->
+    <h2 style="font-size: 1.8rem; margin-bottom: 20px;">Уроки курса</h2>
+
+    <!-- Урок 1: Введение в микросервисы -->
+    <div class="lesson-card {% if current_lesson > 0 %}completed{% elif current_lesson == 0 %}current{% endif %}" onclick="window.location.href='#lesson1'">
+        <div class="lesson-number">1</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Введение в микросервисы</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 0 %}completed{% elif current_lesson == 0 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 0 %}✅ Пройдено{% elif current_lesson == 0 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 1 -->
+    <div id="lesson1" class="theory-content" style="scroll-margin-top: 100px;">
+        <h2 style="margin-bottom: 20px;">Урок 1: Введение в микросервисы</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-city"></i> Монолит против микросервисов</h3>
+            <p>Традиционные приложения часто строятся как монолит — одно большое приложение, содержащее весь функционал. С ростом сложности монолит становится тяжело масштабировать и поддерживать.</p>
+            
+            <p><strong>Микросервисная архитектура</strong> — это подход, при котором приложение разбивается на небольшие, независимые сервисы, каждый из которых отвечает за свою бизнес-функцию. Сервисы общаются между собой по сети.</p>
+            
+            <h4 style="margin: 20px 0 10px;">Сравнение архитектур:</h4>
+            <table class="comparison-table">
+                <tr>
+                    <th>Характеристика</th>
+                    <th>Монолит</th>
+                    <th>Микросервисы</th>
+                </tr>
+                <tr>
+                    <td>Масштабирование</td>
+                    <td>Все приложение целиком</td>
+                    <td>Каждый сервис независимо</td>
+                </tr>
+                <tr>
+                    <td>Разработка</td>
+                    <td>Одна кодовая база</td>
+                    <td>Разные команды, разные технологии</td>
+                </tr>
+                <tr>
+                    <td>Развертывание</td>
+                    <td>Единое развертывание</td>
+                    <td>Независимое развертывание сервисов</td>
+                </tr>
+                <tr>
+                    <td>Технологии</td>
+                    <td>Один стек технологий</td>
+                    <td>Разные стеки под разные задачи</td>
+                </tr>
+                <tr>
+                    <td>Сложность</td>
+                    <td>Низкая на старте</td>
+                    <td>Высокая (сетевое взаимодействие)</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-comments"></i> Способы коммуникации между сервисами</h3>
+            <ul style="color: #9ab3d0; margin-left: 20px;">
+                <li><strong>HTTP/REST:</strong> Самый распространенный, но не самый эффективный</li>
+                <li><strong>gRPC:</strong> Высокопроизводительный RPC-фреймворк от Google</li>
+                <li><strong>Message Brokers (RabbitMQ, Kafka):</strong> Асинхронная коммуникация через очереди</li>
+                <li><strong>GraphQL:</strong> Гибкий запрос данных от клиента</li>
+            </ul>
+            <p>В этом курсе мы сосредоточимся на gRPC — современном и производительном протоколе для микросервисов.</p>
+        </div>
+
+        
+    </div>
+
+    <!-- Урок 2: Что такое gRPC и Protocol Buffers -->
+    <div class="lesson-card {% if current_lesson > 1 %}completed{% elif current_lesson == 1 %}current{% endif %}" onclick="window.location.href='#lesson2'">
+        <div class="lesson-number">2</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Что такое gRPC и Protocol Buffers</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 1 %}completed{% elif current_lesson == 1 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 1 %}✅ Пройдено{% elif current_lesson == 1 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 2 -->
+    {% if current_lesson >= 1 %}
+    <div id="lesson2" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 1 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 2: Что такое gRPC и Protocol Buffers</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-bolt"></i> gRPC (gRPC Remote Procedure Call)</h3>
+            <p>gRPC — это высокопроизводительный, открытый фреймворк для удаленного вызова процедур (RPC), разработанный Google. Он использует HTTP/2 для транспорта и Protocol Buffers для сериализации данных.</p>
+            
+            <h4 style="margin: 20px 0 10px;">Ключевые особенности gRPC:</h4>
+            <ul style="color: #9ab3d0; margin-left: 20px;">
+                <li><strong>Высокая производительность:</strong> Бинарная сериализация Protobuf</li>
+                <li><strong>Мультиязычность:</strong> Поддерживает Python, Go, Java, C++, Node.js и многие другие</li>
+                <li><strong>Стриминг:</strong> Поддерживает односторонний и двусторонний стриминг</li>
+                <li><strong>HTTP/2:</strong> Мультиплексирование запросов, сжатие заголовков</li>
+                <li><strong>Автоматическая генерация кода:</strong> Клиенты и серверы генерируются из .proto файлов</li>
+            </ul>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-file-code"></i> Protocol Buffers (protobuf)</h3>
+            <p>Protocol Buffers — это язык описания структур данных и механизм сериализации, разработанный Google. Он позволяет описывать сообщения в компактном бинарном формате.</p>
+            
+            <div class="code-block">
+                <pre>
+# Пример .proto файла
+syntax = "proto3";
+
+// Сервис для работы с пользователями
+service UserService {
+    rpc GetUser (UserRequest) returns (UserResponse);
+    rpc CreateUser (CreateUserRequest) returns (UserResponse);
+    rpc ListUsers (Empty) returns (stream UserResponse); // Стриминг
+}
+
+// Сообщение для запроса
+message UserRequest {
+    int32 user_id = 1;
+}
+
+// Сообщение для ответа
+message UserResponse {
+    int32 id = 1;
+    string name = 2;
+    string email = 3;
+    int32 age = 4;
+}
+
+message CreateUserRequest {
+    string name = 1;
+    string email = 2;
+    int32 age = 3;
+}
+
+message Empty {}  // Пустое сообщение</pre>
+            </div>
+
+            <h4 style="margin: 20px 0 10px;">Преимущества protobuf над JSON:</h4>
+            <ul style="color: #9ab3d0; margin-left: 20px;">
+                <li><strong>Размер:</strong> Бинарный формат занимает меньше места</li>
+                <li><strong>Скорость:</strong> Сериализация/десериализация быстрее</li>
+                <li><strong>Типизация:</strong> Строгая типизация полей</li>
+                <li><strong>Обратная совместимость:</strong> Легко добавлять новые поля</li>
+            </ul>
+        </div>
+
+        <div class="note-box">
+            <i class="fa-solid fa-wrench"></i>
+            <div class="note-box-content">
+                <p><strong>Установка инструментов:</strong></p>
+                <p>Для работы с gRPC в Python нужно установить:</p>
+                <pre style="background: #0f172a; padding: 10px; border-radius: 12px; margin-top: 10px;">
+pip install grpcio grpcio-tools protobuf</pre>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 3: Создание gRPC сервера на Python -->
+    <div class="lesson-card {% if current_lesson > 2 %}completed{% elif current_lesson == 2 %}current{% endif %}" onclick="window.location.href='#lesson3'">
+        <div class="lesson-number">3</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Создание gRPC сервера на Python</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 30 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 2 %}completed{% elif current_lesson == 2 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 2 %}✅ Пройдено{% elif current_lesson == 2 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 3 -->
+    {% if current_lesson >= 2 %}
+    <div id="lesson3" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 2 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 3: Создание gRPC сервера на Python</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-server"></i> Пошаговое создание сервера</h3>
+            
+            <p><strong>Шаг 1: Определение сервиса в .proto файле</strong></p>
+            <div class="code-block">
+                <pre>
+# user_service.proto
+syntax = "proto3";
+
+service UserService {
+    rpc GetUser (UserRequest) returns (UserResponse);
+}
+
+message UserRequest {
+    int32 user_id = 1;
+}
+
+message UserResponse {
+    int32 id = 1;
+    string name = 2;
+    string email = 3;
+}</pre>
+            </div>
+
+            <p><strong>Шаг 2: Генерация Python кода</strong></p>
+            <div class="code-block">
+                <pre>
+python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. user_service.proto</pre>
+            </div>
+
+            <p><strong>Шаг 3: Реализация сервера</strong></p>
+            <div class="code-block">
+                <pre>
+import grpc
+from concurrent import futures
+import user_service_pb2
+import user_service_pb2_grpc
+
+# База данных пользователей (в реальности - настоящая БД)
+users_db = {
+    1: {"id": 1, "name": "Анна", "email": "anna@example.com"},
+    2: {"id": 2, "name": "Иван", "email": "ivan@example.com"},
+}
+
+class UserServiceServicer(user_service_pb2_grpc.UserServiceServicer):
+    def GetUser(self, request, context):
+        user_id = request.user_id
+        user = users_db.get(user_id)
+        
+        if user:
+            return user_service_pb2.UserResponse(
+                id=user["id"],
+                name=user["name"],
+                email=user["email"]
+            )
+        else:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            context.set_details("Пользователь не найден")
+            return user_service_pb2.UserResponse()
+
+def serve():
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    user_service_pb2_grpc.add_UserServiceServicer_to_server(
+        UserServiceServicer(), server
+    )
+    server.add_insecure_port('[::]:50051')
+    server.start()
+    print("gRPC сервер запущен на порту 50051")
+    server.wait_for_termination()
+
+if __name__ == '__main__':
+    serve()</pre>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 4: gRPC клиент на Python -->
+    <div class="lesson-card {% if current_lesson > 3 %}completed{% elif current_lesson == 3 %}current{% endif %}" onclick="window.location.href='#lesson4'">
+        <div class="lesson-number">4</div>
+        <div class="lesson-info">
+            <div class="lesson-title">gRPC клиент на Python</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 3 %}completed{% elif current_lesson == 3 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 3 %}✅ Пройдено{% elif current_lesson == 3 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 4 -->
+    {% if current_lesson >= 3 %}
+    <div id="lesson4" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 3 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 4: gRPC клиент на Python</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-laptop-code"></i> Создание клиента</h3>
+            
+            <div class="code-block">
+                <pre>
+import grpc
+import user_service_pb2
+import user_service_pb2_grpc
+
+def run():
+    # Подключение к серверу
+    with grpc.insecure_channel('localhost:50051') as channel:
+        stub = user_service_pb2_grpc.UserServiceStub(channel)
+        
+        # Запрос пользователя с ID=1
+        try:
+            response = stub.GetUser(user_service_pb2.UserRequest(user_id=1))
+            print(f"Пользователь найден: {response.name}, {response.email}")
+        except grpc.RpcError as e:
+            print(f"Ошибка: {e.code()} - {e.details()}")
+        
+        # Запрос несуществующего пользователя
+        try:
+            response = stub.GetUser(user_service_pb2.UserRequest(user_id=999))
+            print(f"Пользователь: {response.name}")
+        except grpc.RpcError as e:
+            print(f"Ошибка: {e.code()} - {e.details()}")
+
+if __name__ == '__main__':
+    run()</pre>
+            </div>
+
+            <h4 style="margin: 20px 0 10px;">Синхронные и асинхронные вызовы:</h4>
+            <div class="code-block">
+                <pre>
+# Асинхронный клиент (grpcio-aio)
+import grpc.aio
+
+async def async_client():
+    async with grpc.aio.insecure_channel('localhost:50051') as channel:
+        stub = user_service_pb2_grpc.UserServiceStub(channel)
+        response = await stub.GetUser(user_service_pb2.UserRequest(user_id=1))
+        print(response.name)</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-clock"></i> Таймауты и повторные попытки</h3>
+            
+            <div class="code-block">
+                <pre>
+import grpc
+from grpc import StatusCode
+
+def robust_call():
+    with grpc.insecure_channel('localhost:50051') as channel:
+        stub = user_service_pb2_grpc.UserServiceStub(channel)
+        
+        # Таймаут в 5 секунд
+        try:
+            response = stub.GetUser(
+                user_service_pb2.UserRequest(user_id=1),
+                timeout=5
+            )
+            return response
+        except grpc.RpcError as e:
+            if e.code() == StatusCode.DEADLINE_EXCEEDED:
+                print("Сервер не ответил вовремя")
+            elif e.code() == StatusCode.UNAVAILABLE:
+                print("Сервер недоступен")
+            raise</pre>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 5: Типы вызовов в gRPC -->
+    <div class="lesson-card {% if current_lesson > 4 %}completed{% elif current_lesson == 4 %}current{% endif %}" onclick="window.location.href='#lesson5'">
+        <div class="lesson-number">5</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Типы вызовов в gRPC</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 4 %}completed{% elif current_lesson == 4 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 4 %}✅ Пройдено{% elif current_lesson == 4 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 5 -->
+    {% if current_lesson >= 4 %}
+    <div id="lesson5" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 4 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 5: Типы вызовов в gRPC</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-diagram-project"></i> Четыре типа вызовов</h3>
+            
+            <h4 style="margin: 20px 0 10px;">1. Unary (запрос-ответ) - самый простой</h4>
+            <div class="code-block">
+                <pre>
+# .proto
+service Calculator {
+    rpc Add (Numbers) returns (Result);
+}</pre>
+            </div>
+
+            <h4 style="margin: 20px 0 10px;">2. Server Streaming - сервер стримит данные</h4>
+            <div class="code-block">
+                <pre>
+# .proto
+service DataService {
+    rpc GetUpdates (Empty) returns (stream Update);
+}
+
+# Сервер
+def GetUpdates(self, request, context):
+    for i in range(10):
+        yield Update(message=f"Сообщение {i}")
+
+# Клиент
+for update in stub.GetUpdates(Empty()):
+    print(update.message)</pre>
+            </div>
+
+            <h4 style="margin: 20px 0 10px;">3. Client Streaming - клиент стримит данные</h4>
+            <div class="code-block">
+                <pre>
+# .proto
+service UploadService {
+    rpc Upload (stream Chunk) returns (UploadResult);
+}
+
+# Сервер
+def Upload(self, request_iterator, context):
+    total_size = 0
+    for chunk in request_iterator:
+        total_size += len(chunk.data)
+    return UploadResult(size=total_size)
+
+# Клиент
+def send_chunks(stub):
+    def generate():
+        for i in range(5):
+            yield Chunk(data=f"Chunk {i}".encode())
+    response = stub.Upload(generate())
+    print(f"Загружено: {response.size} байт")</pre>
+            </div>
+
+            <h4 style="margin: 20px 0 10px;">4. Bidirectional Streaming - двусторонний стриминг</h4>
+            <div class="code-block">
+                <pre>
+# .proto
+service ChatService {
+    rpc Chat (stream ChatMessage) returns (stream ChatMessage);
+}
+
+# Сервер
+def Chat(self, request_iterator, context):
+    for message in request_iterator:
+        # Обработка сообщения
+        response = ChatMessage(
+            text=f"Эхо: {message.text}",
+            user="server"
+        )
+        yield response</pre>
+            </div>
+        </div>
+
+        <div class="note-box">
+            <i class="fa-solid fa-star"></i>
+            <div class="note-box-content">
+                <p><strong>Практический пример:</strong> Стриминг идеально подходит для передачи больших файлов, датчиков в реальном времени, чатов, обработки логов.</p>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 6: Безопасность и аутентификация в gRPC -->
+    <div class="lesson-card {% if current_lesson > 5 %}completed{% elif current_lesson == 5 %}current{% endif %}" onclick="window.location.href='#lesson6'">
+        <div class="lesson-number">6</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Безопасность и аутентификация</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 5 %}completed{% elif current_lesson == 5 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 5 %}✅ Пройдено{% elif current_lesson == 5 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 6 -->
+    {% if current_lesson >= 5 %}
+    <div id="lesson6" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 5 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 6: Безопасность и аутентификация</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-shield-halved"></i> TLS/SSL шифрование</h3>
+            <p>Для защищенной передачи данных используйте TLS (как HTTPS).</p>
+            
+            <div class="code-block">
+                <pre>
+# Сервер с TLS
+with open('server.key', 'rb') as f:
+    private_key = f.read()
+with open('server.crt', 'rb') as f:
+    certificate_chain = f.read()
+
+credentials = grpc.ssl_server_credentials(
+    [(private_key, certificate_chain)]
+)
+server.add_secure_port('[::]:50051', credentials)
+
+# Клиент с TLS
+with open('ca.crt', 'rb') as f:
+    ca_cert = f.read()
+
+credentials = grpc.ssl_channel_credentials(ca_cert)
+channel = grpc.secure_channel('localhost:50051', credentials)</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-id-card"></i> Аутентификация через токены</h3>
+            <p>Используйте метаданные (заголовки) для передачи токенов.</p>
+            
+            <div class="code-block">
+                <pre>
+# Клиент - добавляем токен
+metadata = [('authorization', 'Bearer my-secret-token')]
+response = stub.GetUser(
+    user_service_pb2.UserRequest(user_id=1),
+    metadata=metadata
+)
+
+# Сервер - проверяем токен
+def GetUser(self, request, context):
+    metadata = dict(context.invocation_metadata())
+    token = metadata.get('authorization')
+    
+    if token != 'Bearer my-secret-token':
+        context.set_code(grpc.StatusCode.UNAUTHENTICATED)
+        context.set_details('Неверный токен')
+        return user_service_pb2.UserResponse()
+    
+    # Обработка запроса...</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-tasks"></i> Интерсепторы (Interceptors)</h3>
+            <p>Интерсепторы позволяют перехватывать запросы для логирования, аутентификации, метрик.</p>
+            
+            <div class="code-block">
+                <pre>
+# Интерсептор для логирования
+class LoggingInterceptor(grpc.ServerInterceptor):
+    def intercept_service(self, continuation, handler_call_details):
+        print(f"Вызов метода: {handler_call_details.method}")
+        return continuation(handler_call_details)
+
+# Подключение интерсептора
+server = grpc.server(
+    futures.ThreadPoolExecutor(max_workers=10),
+    interceptors=[LoggingInterceptor()]
+)</pre>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 7: Тест по gRPC -->
+    <div class="lesson-card {% if current_lesson > 6 %}completed{% elif current_lesson == 6 %}current{% endif %}" onclick="window.location.href='#lesson7'">
+        <div class="lesson-number">7</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Тест: gRPC и микросервисы</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-pen-to-square"></i> Тест • 15 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 6 %}completed{% elif current_lesson == 6 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 6 %}✅ Пройдено{% elif current_lesson == 6 %}📝 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 7 -->
+    {% if current_lesson >= 6 %}
+    <div id="lesson7" class="test-block" style="scroll-margin-top: 100px; {% if current_lesson != 6 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 7: Тест по gRPC</h2>
+        
+        <div class="test-question">Вопрос 1: Что используется для сериализации данных в gRPC?</div>
+        <div class="test-options">
+            <label class="test-option">
+                <input type="radio" name="q1" value="0"> JSON
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q1" value="1"> XML
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q1" value="2"> Protocol Buffers (protobuf)
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q1" value="3"> YAML
+            </label>
+        </div>
+        <div id="feedback1" class="test-feedback" style="display: none;"></div>
+
+        <div class="test-question" style="margin-top: 30px;">Вопрос 2: Какой транспортный протокол использует gRPC?</div>
+        <div class="test-options">
+            <label class="test-option">
+                <input type="radio" name="q2" value="0"> HTTP/1.1
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q2" value="1"> WebSocket
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q2" value="2"> HTTP/2
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q2" value="3"> TCP напрямую
+            </label>
+        </div>
+        <div id="feedback2" class="test-feedback" style="display: none;"></div>
+
+        <div class="test-question" style="margin-top: 30px;">Вопрос 3: Какой из типов вызовов позволяет клиенту отправлять поток данных на сервер?</div>
+        <div class="test-options">
+            <label class="test-option">
+                <input type="radio" name="q3" value="0"> Unary
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q3" value="1"> Server Streaming
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q3" value="2"> Client Streaming
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q3" value="3"> Bidirectional Streaming
+            </label>
+        </div>
+        <div id="feedback3" class="test-feedback" style="display: none;"></div>
+
+        <button class="test-btn" onclick="checkTest()">Проверить ответы</button>
+
+        <div class="navigation-buttons" style="margin-top: 30px;">
+            <button class="nav-btn" onclick="window.location.href='#lesson6'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" id="completeBtn" style="display: none;" onclick="completeCourse(21)">Завершить курс <i class="fa-solid fa-check"></i></button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Урок 8: Практический проект -->
+    <div class="lesson-card {% if current_lesson > 7 %}completed{% elif current_lesson == 7 %}current{% endif %}" onclick="window.location.href='#lesson8'">
+        <div class="lesson-number">8</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Практический проект: Микросервис на gRPC</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-laptop-code"></i> Практика • 35 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 7 %}completed{% elif current_lesson == 7 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 7 %}✅ Пройдено{% elif current_lesson == 7 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 8 -->
+    {% if current_lesson >= 7 %}
+    <div id="lesson8" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 7 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 8: Практический проект — Микросервис на gRPC</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-code"></i> Проект: Заметки с gRPC</h3>
+            <p>Создадим простой микросервис для управления заметками с поддержкой стриминга.</p>
+
+            <div class="code-block">
+                <pre>
+# notes_service.proto
+syntax = "proto3";
+
+service NotesService {
+    rpc CreateNote (CreateNoteRequest) returns (Note);
+    rpc GetNote (GetNoteRequest) returns (Note);
+    rpc ListNotes (ListNotesRequest) returns (stream Note);
+    rpc WatchNotes (Empty) returns (stream NoteUpdate);
+}
+
+message Note {
+    int32 id = 1;
+    string title = 2;
+    string content = 3;
+    int64 created_at = 4;
+}
+
+message CreateNoteRequest {
+    string title = 1;
+    string content = 2;
+}
+
+message GetNoteRequest {
+    int32 id = 1;
+}
+
+message ListNotesRequest {
+    int32 limit = 1;
+    int32 offset = 2;
+}
+
+message NoteUpdate {
+    string action = 1;  // CREATE, UPDATE, DELETE
+    Note note = 2;
+}
+
+message Empty {}</pre>
+            </div>
+
+            <div class="code-block">
+                <pre>
+# notes_server.py
+import grpc
+import notes_service_pb2
+import notes_service_pb2_grpc
+from concurrent import futures
+import time
+import threading
+
+class NotesServiceServicer(notes_service_pb2_grpc.NotesServiceServicer):
+    def __init__(self):
+        self.notes = {}
+        self.next_id = 1
+        self.watchers = []
+        self.lock = threading.Lock()
+    
+    def CreateNote(self, request, context):
+        with self.lock:
+            note = notes_service_pb2.Note(
+                id=self.next_id,
+                title=request.title,
+                content=request.content,
+                created_at=int(time.time())
+            )
+            self.notes[self.next_id] = note
+            self.next_id += 1
+            
+            # Уведомляем watchers
+            update = notes_service_pb2.NoteUpdate(
+                action="CREATE",
+                note=note
+            )
+            for watcher in self.watchers:
+                watcher.put(update)
+            
+            return note
+    
+    def GetNote(self, request, context):
+        note = self.notes.get(request.id)
+        if note:
+            return note
+        context.set_code(grpc.StatusCode.NOT_FOUND)
+        return notes_service_pb2.Note()
+    
+    def ListNotes(self, request, context):
+        notes_list = list(self.notes.values())
+        start = request.offset
+        end = start + request.limit if request.limit > 0 else len(notes_list)
+        
+        for note in notes_list[start:end]:
+            yield note
+    
+    def WatchNotes(self, request, context):
+        queue = queue.Queue()
+        with self.lock:
+            self.watchers.append(queue)
+        
+        try:
+            while context.is_active():
+                try:
+                    update = queue.get(timeout=1)
+                    yield update
+                except queue.Empty:
+                    continue
+        finally:
+            with self.lock:
+                self.watchers.remove(queue)
+
+def serve():
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    notes_service_pb2_grpc.add_NotesServiceServicer_to_server(
+        NotesServiceServicer(), server
+    )
+    server.add_insecure_port('[::]:50051')
+    server.start()
+    print("Notes Service запущен на порту 50051")
+    server.wait_for_termination()
+
+if __name__ == '__main__':
+    serve()</pre>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Кнопка возврата -->
+    <div style="margin-top: 40px; text-align: center;">
+        <a href="{{ url_for('courses') }}" class="btn btn-outline">
+            <i class="fa-solid fa-arrow-left"></i> К списку курсов
+        </a>
+    </div>
+</div>
+
+<!-- Футер -->
+<footer class="footer">
+    <div class="container">
+        <p>© 2025 PyMaster · gRPC и микросервисы</p>
+    </div>
+</footer>
+
+<script>
+    // ID текущего курса
+    const courseId = {{ course.id }};
+    const totalLessons = {{ course.lessons }};
+    
+    // Функция перехода к уроку по клику
+    async function goToLesson(lessonIndex) {
+        try {
+            const response = await fetch('/api/save-progress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    course_id: courseId,
+                    lesson_index: lessonIndex,
+                    completed: false
+                })
+            });
+            
+            if (response.ok) {
+                const lessonElement = document.getElementById(`lesson${lessonIndex + 1}`);
+                if (lessonElement) {
+                    lessonElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    history.pushState(null, null, `#lesson${lessonIndex + 1}`);
+                    updateLessonStyles(lessonIndex);
+                } else {
+                    window.location.reload();
+                }
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+            alert('Произошла ошибка');
+        }
+    }
+    
+    function updateLessonStyles(activeLessonIndex) {
+        const lessonCards = document.querySelectorAll('.lesson-card');
+        const lessonContents = document.querySelectorAll('.theory-content, .test-block');
+        
+        lessonCards.forEach((card, index) => {
+            card.classList.remove('current');
+            if (index === activeLessonIndex) {
+                card.classList.add('current');
+            }
+            
+            const statusElement = card.querySelector('.lesson-status');
+            if (statusElement) {
+                if (index === activeLessonIndex) {
+                    statusElement.className = 'lesson-status current';
+                    statusElement.innerHTML = '📖 Текущий';
+                } else {
+                    statusElement.className = 'lesson-status';
+                    statusElement.innerHTML = '📚 Доступен';
+                }
+            }
+        });
+        
+        lessonContents.forEach((content, index) => {
+            if (index === activeLessonIndex) {
+                content.style.display = 'block';
+            } else {
+                content.style.display = 'none';
+            }
+        });
+        
+        updateProgressBar(activeLessonIndex + 1);
+    }
+    
+    function updateProgressBar(currentLesson) {
+        const progressPercent = Math.round((currentLesson / totalLessons) * 100);
+        const progressFill = document.querySelector('.progress-fill');
+        const progressPercentSpan = document.querySelector('.progress-percent:first-child');
+        const progressCounter = document.querySelectorAll('.progress-percent')[1];
+        
+        if (progressFill) progressFill.style.width = `${progressPercent}%`;
+        if (progressPercentSpan) progressPercentSpan.textContent = `${progressPercent}%`;
+        if (progressCounter) progressCounter.textContent = `${currentLesson}/${totalLessons}`;
+    }
+    
+    async function completeCourse() {
+        try {
+            const response = await fetch('/api/save-progress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    course_id: courseId,
+                    lesson_index: totalLessons - 1,
+                    completed: true
+                })
+            });
+            
+            if (response.ok) {
+                alert('🎉 Поздравляем! Вы завершили курс! +50 PYTH');
+                window.location.href = "{{ url_for('courses') }}";
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+        }
+    }
+    
+    function checkTest() {
+        const q1 = document.querySelector('input[name="q1"]:checked');
+        const q2 = document.querySelector('input[name="q2"]:checked');
+        const q3 = document.querySelector('input[name="q3"]:checked');
+        
+        let allCorrect = true;
+        
+        // Вопрос 1: Protocol Buffers
+        if (q1 && q1.value === '2') {
+            document.getElementById('feedback1').className = 'test-feedback correct';
+            document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! gRPC использует Protocol Buffers для сериализации.';
+            document.getElementById('feedback1').style.display = 'block';
+        } else {
+            document.getElementById('feedback1').className = 'test-feedback incorrect';
+            document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. gRPC использует Protocol Buffers.';
+            document.getElementById('feedback1').style.display = 'block';
+            allCorrect = false;
+        }
+        
+        // Вопрос 2: HTTP/2
+        if (q2 && q2.value === '2') {
+            document.getElementById('feedback2').className = 'test-feedback correct';
+            document.getElementById('feedback2').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! gRPC работает на HTTP/2.';
+            document.getElementById('feedback2').style.display = 'block';
+        } else {
+            document.getElementById('feedback2').className = 'test-feedback incorrect';
+            document.getElementById('feedback2').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. gRPC использует HTTP/2.';
+            document.getElementById('feedback2').style.display = 'block';
+            allCorrect = false;
+        }
+        
+        // Вопрос 3: Client Streaming
+        if (q3 && q3.value === '2') {
+            document.getElementById('feedback3').className = 'test-feedback correct';
+            document.getElementById('feedback3').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! Client Streaming позволяет клиенту отправлять поток данных.';
+            document.getElementById('feedback3').style.display = 'block';
+        } else {
+            document.getElementById('feedback3').className = 'test-feedback incorrect';
+            document.getElementById('feedback3').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. Правильный ответ: Client Streaming.';
+            document.getElementById('feedback3').style.display = 'block';
+            allCorrect = false;
+        }
+        
+        if (allCorrect) {
+            document.getElementById('completeBtn').style.display = 'flex';
+            const successMsg = document.createElement('div');
+            successMsg.className = 'test-feedback correct';
+            successMsg.innerHTML = '<i class="fa-solid fa-check"></i> 🎉 Тест пройден!';
+            successMsg.style.marginTop = '20px';
+            document.querySelector('.test-block').appendChild(successMsg);
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const lessonCards = document.querySelectorAll('.lesson-card');
+        const currentLessonIndex = parseInt('{{ current_lesson }}') || 0;
+        
+        lessonCards.forEach(card => {
+            const statusElement = card.querySelector('.lesson-status');
+            if (statusElement) statusElement.classList.remove('locked');
+        });
+        
+        updateLessonStyles(currentLessonIndex);
+        
+        lessonCards.forEach((card, index) => {
+            card.addEventListener('click', function(e) {
+                if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+                goToLesson(index);
+            });
+            card.style.cursor = 'pointer';
+        });
+        
+        if (window.location.hash) {
+            const lessonMatch = window.location.hash.match(/lesson(\d+)/);
+            if (lessonMatch) {
+                const lessonIndex = parseInt(lessonMatch[1]) - 1;
+                if (lessonIndex >= 0 && lessonIndex < totalLessons) {
+                    setTimeout(() => goToLesson(lessonIndex), 100);
+                }
+            }
+        }
+    });
+    
+    setTimeout(() => {
+        document.querySelectorAll('.flash-message').forEach(msg => {
+            msg.style.animation = 'slideOut 0.3s';
+            setTimeout(() => msg.remove(), 300);
+        });
+    }, 5000);
+</script>
+
+<style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .lesson-card {
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .lesson-card:hover {
+        transform: translateX(10px);
+        border-color: #8b5cf6;
+    }
+    
+    .lesson-card.current {
+        border-color: #8b5cf6;
+        background: rgba(139, 92, 246, 0.1);
+    }
+    
+    .lesson-status {
+        padding: 6px 15px;
+        border-radius: 40px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        background: rgba(139, 92, 246, 0.1);
+        color: #8b5cf6;
+        border: 1px solid #8b5cf6;
+    }
+    
+    .lesson-status.locked {
+        display: none;
+    }
+    
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+</style>
+
+</body>
+</html>

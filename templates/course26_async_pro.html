@@ -1,0 +1,1643 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyMaster · Асинхронность: от основ до драйверов</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Исправленные стили для правильной прокрутки */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: auto;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            background: #0a0c0f;
+            color: #e3e9f1;
+            overflow-y: auto;
+        }
+        
+        .navbar {
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            width: 100%;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            width: 100%;
+        }
+        
+        /* Стилизация скроллбара */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #8b5cf6;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #7c3aed;
+        }
+
+        .course-header {
+            background: linear-gradient(145deg, #0f172a, #1a2635);
+            border-radius: 40px;
+            padding: 40px;
+            margin-bottom: 30px;
+            border: 1px solid #2a3a55;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .course-header-icon {
+            width: 100px;
+            height: 100px;
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            color: #8b5cf6;
+        }
+        
+        .course-header-info {
+            flex: 1;
+        }
+        
+        .course-header-info h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(145deg, #ffffff, #d8b4fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .course-meta {
+            display: flex;
+            gap: 30px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        
+        .course-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #9ab3d0;
+        }
+        
+        .course-meta-item i {
+            color: #8b5cf6;
+        }
+        
+        .progress-section {
+            background: rgba(18, 26, 36, 0.7);
+            border: 1px solid #2a3a55;
+            border-radius: 32px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .progress-percent {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #8b5cf6;
+        }
+        
+        .progress-label {
+            color: #9ab3d0;
+        }
+        
+        .lesson-card {
+            background: rgba(18, 26, 36, 0.7);
+            border: 1px solid #2a3a55;
+            border-radius: 24px;
+            padding: 25px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .lesson-card:hover {
+            border-color: #8b5cf6;
+            transform: translateX(5px);
+            background: #1e2c3f;
+        }
+        
+        .lesson-card.completed {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+        }
+        
+        .lesson-card.current {
+            border-color: #8b5cf6;
+            background: rgba(139, 92, 246, 0.1);
+        }
+        
+        .lesson-number {
+            width: 50px;
+            height: 50px;
+            background: #1e293b;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: #8b5cf6;
+        }
+        
+        .lesson-card.completed .lesson-number {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+        
+        .lesson-card.current .lesson-number {
+            background: #8b5cf6;
+            color: white;
+        }
+        
+        .lesson-info {
+            flex: 1;
+        }
+        
+        .lesson-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #ffffff;
+        }
+        
+        .lesson-type {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #9ab3d0;
+            font-size: 0.85rem;
+        }
+        
+        .lesson-type i {
+            color: #8b5cf6;
+        }
+        
+        .lesson-status {
+            padding: 6px 15px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .lesson-status.completed {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid #10b981;
+        }
+        
+        .lesson-status.current {
+            background: rgba(139, 92, 246, 0.2);
+            color: #8b5cf6;
+            border: 1px solid #8b5cf6;
+        }
+        
+        .lesson-status.locked {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+        
+        .theory-content {
+            background: #1a2635;
+            border: 1px solid #2f405b;
+            border-radius: 24px;
+            padding: 30px;
+            margin: 20px 0;
+            scroll-margin-top: 100px;
+        }
+        
+        .theory-section {
+            margin-bottom: 40px;
+        }
+        
+        .theory-section h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #e9f0fa;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .theory-section h3 i {
+            color: #8b5cf6;
+        }
+        
+        .code-block {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            color: #fbbf24;
+            overflow-x: auto;
+        }
+        
+        .code-block pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .test-block {
+            background: #1a2635;
+            border: 1px solid #2f405b;
+            border-radius: 24px;
+            padding: 30px;
+            margin: 30px 0;
+            scroll-margin-top: 100px;
+        }
+        
+        .test-question {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+        
+        .test-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .test-option {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 40px;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .test-option:hover {
+            border-color: #8b5cf6;
+            background: #2d3a4f;
+        }
+        
+        .test-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #8b5cf6;
+        }
+        
+        .test-btn {
+            background: linear-gradient(145deg, #7c3aed, #6d28d9);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 20px;
+        }
+        
+        .test-btn:hover {
+            background: linear-gradient(145deg, #8b5cf6, #7c3aed);
+            transform: scale(1.02);
+        }
+        
+        .test-feedback {
+            margin-top: 15px;
+            padding: 15px 20px;
+            border-radius: 40px;
+            font-size: 0.95rem;
+            animation: fadeIn 0.3s;
+        }
+        
+        .test-feedback.correct {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid #10b981;
+            color: #10b981;
+        }
+        
+        .test-feedback.incorrect {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        .nav-btn {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-btn:hover:not(:disabled) {
+            background: #2d3a4f;
+            border-color: #8b5cf6;
+        }
+        
+        .nav-btn.next {
+            background: linear-gradient(145deg, #7c3aed, #6d28d9);
+            border: 1px solid #8b5cf6;
+        }
+        
+        .nav-btn.next:hover:not(:disabled) {
+            background: linear-gradient(145deg, #8b5cf6, #7c3aed);
+        }
+        
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .footer {
+            border-top: 1px solid #1a2635;
+            padding: 40px 0;
+            margin-top: 60px;
+            text-align: center;
+            color: #6b8bb0;
+        }
+        
+        .flash-messages {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .flash-message {
+            padding: 16px 24px;
+            border-radius: 40px;
+            margin-bottom: 10px;
+            animation: slideIn 0.3s;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-left: 4px solid #10b981;
+            background: rgba(4, 120, 87, 0.95);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0%); opacity: 1; }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
+        @media (max-width: 768px) {
+            .course-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .course-meta {
+                justify-content: center;
+            }
+            
+            .lesson-card {
+                flex-wrap: wrap;
+            }
+            
+            .lesson-status {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        .note-box {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid #8b5cf6;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .note-box i {
+            color: #8b5cf6;
+            font-size: 1.5rem;
+        }
+
+        .note-box-content {
+            color: #e9f0fa;
+        }
+
+        .note-box-content p {
+            margin: 5px 0;
+        }
+        
+        .async-comparison {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .async-comparison th {
+            text-align: left;
+            padding: 12px;
+            background: #1e293b;
+            color: #8b5cf6;
+            border: 1px solid #334155;
+        }
+        
+        .async-comparison td {
+            padding: 12px;
+            border: 1px solid #334155;
+            color: #9ab3d0;
+        }
+        
+        .async-comparison tr:hover {
+            background: #1e293b;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Flash сообщения -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <i class="fa-solid fa-circle-check"></i> {{ message }}
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<!-- Навбар -->
+<nav class="navbar">
+    <div class="container nav-wrapper">
+        <div class="logo">
+            <i class="fa-brands fa-python logo-icon"></i>
+            <span class="logo-text">PyMaster</span>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('main') }}">Главная</a>
+            <a href="{{ url_for('courses') }}" class="active">Курсы</a>
+            <a href="{{ url_for('tasks') }}">Задачи</a>
+            <a href="{{ url_for('ai_assistant') }}">GPT-4</a>
+            <a href="{{ url_for('dashboard') }}">Кабинет</a>
+            <a href="{{ url_for('about') }}">О нас</a>
+            
+            <div class="pyth-balance" onclick="window.location.href='{{ url_for('shop') }}'">
+                <i class="fa-solid fa-coins"></i>
+                <span>{{ user.balance }} PYTH</span>
+            </div>
+            
+            <a href="{{ url_for('logout') }}" class="logout-btn">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Основной контент -->
+<div class="container" style="padding: 40px 24px;">
+    <!-- Шапка курса -->
+    <div class="course-header">
+        <div class="course-header-icon">
+            <i class="fa-solid fa-bolt"></i>
+        </div>
+        <div class="course-header-info">
+            <h1>{{ course.title }}</h1>
+            <div class="course-meta">
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-clock"></i> {{ course.hours }} часов
+                </span>
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-book-open"></i> {{ course.lessons }} уроков
+                </span>
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-signal"></i> 
+                    <span class="course-level level-advanced">Экспертный уровень</span>
+                </span>
+            </div>
+            <p style="color: #9ab3d0;">Погрузитесь в глубины асинхронности: от event loop до асинхронных драйверов баз данных. Изучите asyncio, конкурентность и создание высокопроизводительных приложений.</p>
+        </div>
+    </div>
+
+    <!-- Прогресс -->
+    <div class="progress-section">
+        <div class="progress-stats">
+            <div>
+                <span class="progress-percent">{{ progress }}%</span>
+                <span class="progress-label">прогресс</span>
+            </div>
+            <div>
+                <span class="progress-percent">{{ current_lesson }}/{{ course.lessons }}</span>
+                <span class="progress-label">уроков пройдено</span>
+            </div>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {{ progress }}%"></div>
+        </div>
+    </div>
+
+    <!-- Список уроков -->
+    <h2 style="font-size: 1.8rem; margin-bottom: 20px;">Уроки курса</h2>
+
+    <!-- Урок 1: Введение в асинхронность и event loop -->
+    <div class="lesson-card {% if current_lesson > 0 %}completed{% elif current_lesson == 0 %}current{% endif %}" onclick="window.location.href='#lesson1'">
+        <div class="lesson-number">1</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Введение в асинхронность и event loop</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 0 %}completed{% elif current_lesson == 0 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 0 %}✅ Пройдено{% elif current_lesson == 0 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 1 -->
+    <div id="lesson1" class="theory-content" style="scroll-margin-top: 100px;">
+        <h2 style="margin-bottom: 20px;">Урок 1: Введение в асинхронность и event loop</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-diagram-project"></i> Что такое асинхронность?</h3>
+            <p>Асинхронное программирование позволяет выполнять несколько задач одновременно, не блокируя выполнение основной программы. В Python для этого используется модуль <code>asyncio</code>.</p>
+            
+            <h4 style="margin: 20px 0 10px;">Синхронный vs Асинхронный подход:</h4>
+            <div class="code-block">
+                <pre>
+import asyncio
+import time
+
+# Синхронный подход (блокирующий)
+def sync_sleep(seconds):
+    print(f"Синхронный сон на {seconds} сек")
+    time.sleep(seconds)
+    print("Проснулись!")
+
+# Асинхронный подход (неблокирующий)
+async def async_sleep(seconds):
+    print(f"Асинхронный сон на {seconds} сек")
+    await asyncio.sleep(seconds)
+    print("Проснулись!")
+
+# Синхронное выполнение
+start = time.time()
+sync_sleep(2)
+sync_sleep(2)
+print(f"Синхронно: {time.time() - start:.2f} сек")
+
+# Асинхронное выполнение
+async def async_main():
+    start = time.time()
+    await asyncio.gather(async_sleep(2), async_sleep(2))
+    print(f"Асинхронно: {time.time() - start:.2f} сек")
+
+# asyncio.run(async_main())</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-repeat"></i> Event Loop (цикл событий)</h3>
+            <p>Event loop — это сердце асинхронного программирования. Он управляет выполнением корутин, планирует задачи и обрабатывает события.</p>
+            
+            <div class="code-block">
+                <pre>
+import asyncio
+
+async def task(name, delay):
+    print(f"Задача {name} началась")
+    await asyncio.sleep(delay)
+    print(f"Задача {name} завершилась")
+    return f"Результат {name}"
+
+async def main():
+    # Получаем текущий event loop
+    loop = asyncio.get_running_loop()
+    print(f"Event loop: {loop}")
+    
+    # Создаем задачи
+    task1 = loop.create_task(task("A", 2))
+    task2 = loop.create_task(task("B", 1))
+    
+    # Ждем завершения
+    results = await asyncio.gather(task1, task2)
+    print(results)
+
+# Запускаем event loop
+asyncio.run(main())</pre>
+            </div>
+        </div>
+
+        <div class="note-box">
+            <i class="fa-solid fa-lightbulb"></i>
+            <div class="note-box-content">
+                <p><strong>Важно:</strong> Event loop работает в одном потоке, но может переключаться между задачами во время ожидания (await). Это позволяет эффективно использовать время при I/O операциях.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Урок 2: Корутины и задачи -->
+    <div class="lesson-card {% if current_lesson > 1 %}completed{% elif current_lesson == 1 %}current{% endif %}" onclick="window.location.href='#lesson2'">
+        <div class="lesson-number">2</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Корутины и задачи</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 1 %}completed{% elif current_lesson == 1 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 1 %}✅ Пройдено{% elif current_lesson == 1 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 2 -->
+    {% if current_lesson >= 1 %}
+    <div id="lesson2" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 1 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 2: Корутины и задачи</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-code-branch"></i> Корутины (coroutines)</h3>
+            <p>Корутина — это функция, объявленная с <code>async def</code>. Она может приостанавливать свое выполнение с помощью <code>await</code> и возвращать управление event loop.</p>
+            
+            <div class="code-block">
+                <pre>
+async def fetch_data(url):
+    """Корутина для получения данных"""
+    print(f"Загрузка {url}...")
+    await asyncio.sleep(1)  # Имитация сетевого запроса
+    return f"Данные из {url}"
+
+async def process_data(data):
+    """Корутина для обработки данных"""
+    await asyncio.sleep(0.5)  # Имитация обработки
+    return f"Обработано: {data}"
+
+async def main():
+    # Вызов корутины не запускает ее сразу
+    data_task = fetch_data("api.example.com")
+    
+    # Чтобы запустить, нужно использовать await
+    data = await data_task
+    result = await process_data(data)
+    print(result)
+
+# asyncio.run(main())</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-tasks"></i> Задачи (Tasks)</h3>
+            <p>Задача — это обертка для корутины, которая позволяет запустить ее конкурентно. Задачи планируются event loop и могут выполняться параллельно.</p>
+            
+            <div class="code-block">
+                <pre>
+async def worker(name, delay):
+    for i in range(3):
+        print(f"{name}: шаг {i}")
+        await asyncio.sleep(delay)
+    return f"{name} завершил работу"
+
+async def main():
+    # Создаем задачи (запускаем конкурентно)
+    task1 = asyncio.create_task(worker("Алиса", 0.5))
+    task2 = asyncio.create_task(worker("Боб", 0.7))
+    task3 = asyncio.create_task(worker("Чарли", 0.3))
+    
+    # Ждем завершения всех задач
+    results = await asyncio.gather(task1, task2, task3)
+    print(results)
+    
+    # Проверяем статус задач
+    for task in [task1, task2, task3]:
+        print(f"{task.get_name()}: done={task.done()}")
+
+asyncio.run(main())</pre>
+            </div>
+        </div>
+
+        <div class="note-box">
+            <i class="fa-solid fa-star"></i>
+            <div class="note-box-content">
+                <p><strong>Совет:</strong> Используйте <code>asyncio.gather()</code> для одновременного запуска нескольких задач, и <code>asyncio.wait()</code> для более гибкого управления.</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Урок 3: Асинхронные примитивы синхронизации -->
+    <div class="lesson-card {% if current_lesson > 2 %}completed{% elif current_lesson == 2 %}current{% endif %}" onclick="window.location.href='#lesson3'">
+        <div class="lesson-number">3</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Асинхронные примитивы синхронизации</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 2 %}completed{% elif current_lesson == 2 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 2 %}✅ Пройдено{% elif current_lesson == 2 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 3 -->
+    {% if current_lesson >= 2 %}
+    <div id="lesson3" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 2 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 3: Асинхронные примитивы синхронизации</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-lock"></i> Lock и Semaphore</h3>
+            <p>Для защиты общего ресурса в асинхронном коде используются специальные примитивы.</p>
+            
+            <div class="code-block">
+                <pre>
+import asyncio
+
+# Асинхронный замок (Lock)
+async def worker_lock(lock, name):
+    async with lock:
+        print(f"{name} захватил замок")
+        await asyncio.sleep(1)
+        print(f"{name} освободил замок")
+
+# Семафор (ограничивает количество одновременных задач)
+async def worker_semaphore(semaphore, name):
+    async with semaphore:
+        print(f"{name} начал работу (одновременно может быть {semaphore._value})")
+        await asyncio.sleep(1)
+        print(f"{name} закончил работу")
+
+async def main():
+    # Пример с Lock
+    lock = asyncio.Lock()
+    await asyncio.gather(
+        worker_lock(lock, "A"),
+        worker_lock(lock, "B"),
+        worker_lock(lock, "C")
+    )
+    
+    # Пример с Semaphore (максимум 2 одновременно)
+    semaphore = asyncio.Semaphore(2)
+    await asyncio.gather(
+        worker_semaphore(semaphore, "1"),
+        worker_semaphore(semaphore, "2"),
+        worker_semaphore(semaphore, "3"),
+        worker_semaphore(semaphore, "4")
+    )
+
+# asyncio.run(main())</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-message"></i> Event и Queue</h3>
+            
+            <div class="code-block">
+                <pre>
+import asyncio
+
+# Event — для уведомлений между задачами
+async def waiter(event, name):
+    print(f"{name} ждет события...")
+    await event.wait()
+    print(f"{name} получил событие!")
+
+async def setter(event):
+    await asyncio.sleep(2)
+    print("Устанавливаю событие!")
+    event.set()
+
+# Queue — очередь задач (производитель-потребитель)
+async def producer(queue, name):
+    for i in range(5):
+        item = f"Элемент {i} от {name}"
+        await asyncio.sleep(0.5)
+        await queue.put(item)
+        print(f"[{name}] Создал: {item}")
+    await queue.put(None)  # Сигнал завершения
+
+async def consumer(queue, name):
+    while True:
+        item = await queue.get()
+        if item is None:
+            break
+        await asyncio.sleep(0.2)
+        print(f"[{name}] Обработал: {item}")
+
+async def main_queue():
+    queue = asyncio.Queue(maxsize=3)
+    producers = [asyncio.create_task(producer(queue, f"P{i}")) for i in range(2)]
+    consumers = [asyncio.create_task(consumer(queue, f"C{i}")) for i in range(3)]
+    
+    await asyncio.gather(*producers)
+    await queue.join()
+    for c in consumers:
+        c.cancel()
+
+# asyncio.run(main_queue())</pre>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Урок 4: Асинхронные HTTP-запросы -->
+    <div class="lesson-card {% if current_lesson > 3 %}completed{% elif current_lesson == 3 %}current{% endif %}" onclick="window.location.href='#lesson4'">
+        <div class="lesson-number">4</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Асинхронные HTTP-запросы (aiohttp)</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 3 %}completed{% elif current_lesson == 3 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 3 %}✅ Пройдено{% elif current_lesson == 3 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 4 -->
+    {% if current_lesson >= 3 %}
+    <div id="lesson4" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 3 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 4: Асинхронные HTTP-запросы</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-globe"></i> Библиотека aiohttp</h3>
+            <p>aiohttp — основная библиотека для асинхронных HTTP-запросов в Python.</p>
+            
+            <h4 style="margin: 20px 0 10px;">Установка:</h4>
+            <div class="code-block">
+                <pre>pip install aiohttp</pre>
+            </div>
+
+            <h4 style="margin: 20px 0 10px;">Пример: параллельные запросы</h4>
+            <div class="code-block">
+                <pre>
+import asyncio
+import aiohttp
+
+urls = [
+    "https://jsonplaceholder.typicode.com/posts/1",
+    "https://jsonplaceholder.typicode.com/posts/2",
+    "https://jsonplaceholder.typicode.com/posts/3",
+]
+
+async def fetch_url(session, url):
+    async with session.get(url) as response:
+        return await response.json()
+
+async def main():
+    async with aiohttp.ClientSession() as session:
+        tasks = [fetch_url(session, url) for url in urls]
+        results = await asyncio.gather(*tasks)
+        
+        for result in results:
+            print(f"ID: {result['id']}, Заголовок: {result['title'][:50]}...")
+
+# asyncio.run(main())</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-gauge-high"></i> Ограничение параллелизма</h3>
+            
+            <div class="code-block">
+                <pre>
+import asyncio
+import aiohttp
+
+async def fetch_with_semaphore(session, url, semaphore):
+    async with semaphore:
+        async with session.get(url) as response:
+            return await response.text()
+
+async def main():
+    urls = [f"https://jsonplaceholder.typicode.com/posts/{i}" for i in range(1, 21)]
+    semaphore = asyncio.Semaphore(5)  # Максимум 5 одновременных запросов
+    
+    async with aiohttp.ClientSession() as session:
+        tasks = [fetch_with_semaphore(session, url, semaphore) for url in urls]
+        results = await asyncio.gather(*tasks)
+        print(f"Загружено {len(results)} страниц")
+
+# asyncio.run(main())</pre>
+            </div>
+        </div>
+
+        <div class="note-box">
+            <i class="fa-solid fa-clock"></i>
+            <div class="note-box-content">
+                <p><strong>Важно:</strong> Всегда используйте <code>ClientSession</code> как контекстный менеджер. Это обеспечивает правильное управление соединениями.</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Урок 5: Асинхронные драйверы баз данных -->
+    <div class="lesson-card {% if current_lesson > 4 %}completed{% elif current_lesson == 4 %}current{% endif %}" onclick="window.location.href='#lesson5'">
+        <div class="lesson-number">5</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Асинхронные драйверы БД</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 30 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 4 %}completed{% elif current_lesson == 4 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 4 %}✅ Пройдено{% elif current_lesson == 4 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 5 -->
+    {% if current_lesson >= 4 %}
+    <div id="lesson5" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 4 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 5: Асинхронные драйверы баз данных</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-database"></i> asyncpg — асинхронный PostgreSQL</h3>
+            <p>asyncpg — самый быстрый асинхронный драйвер для PostgreSQL.</p>
+            
+            <h4 style="margin: 20px 0 10px;">Установка:</h4>
+            <div class="code-block">
+                <pre>pip install asyncpg</pre>
+            </div>
+
+            <div class="code-block">
+                <pre>
+import asyncio
+import asyncpg
+
+async def main():
+    # Подключение к базе данных
+    conn = await asyncpg.connect(
+        user='user',
+        password='password',
+        database='test',
+        host='localhost'
+    )
+    
+    try:
+        # Создание таблицы
+        await conn.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                name TEXT,
+                age INTEGER
+            )
+        ''')
+        
+        # Вставка данных
+        await conn.execute(
+            'INSERT INTO users(name, age) VALUES($1, $2)',
+            'Анна', 25
+        )
+        
+        # Запрос данных
+        rows = await conn.fetch('SELECT * FROM users')
+        for row in rows:
+            print(f"ID: {row['id']}, Имя: {row['name']}, Возраст: {row['age']}")
+        
+        # Параллельные запросы
+        async with conn.transaction():
+            tasks = [
+                conn.fetchval('SELECT COUNT(*) FROM users'),
+                conn.fetchval('SELECT AVG(age) FROM users'),
+                conn.fetchval('SELECT MAX(age) FROM users')
+            ]
+            count, avg_age, max_age = await asyncio.gather(*tasks)
+            print(f"Всего: {count}, Средний возраст: {avg_age}, Максимальный: {max_age}")
+            
+    finally:
+        await conn.close()
+
+# asyncio.run(main())</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-bolt"></i> aiosqlite и aiomysql</h3>
+            
+            <div class="code-block">
+                <pre>
+import asyncio
+import aiosqlite
+
+async def sqlite_example():
+    # Подключение к SQLite
+    async with aiosqlite.connect('example.db') as db:
+        await db.execute('CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, name TEXT)')
+        await db.execute('INSERT INTO users (name) VALUES (?)', ('Алиса',))
+        await db.commit()
+        
+        async with db.execute('SELECT * FROM users') as cursor:
+            async for row in cursor:
+                print(row)
+
+# asyncio.run(sqlite_example())</pre>
+            </div>
+        </div>
+
+        <div class="note-box">
+            <i class="fa-solid fa-key"></i>
+            <div class="note-box-content">
+                <p><strong>Совет:</strong> Используйте пул соединений для production-приложений. <code>asyncpg.create_pool()</code> позволяет управлять множеством подключений.</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Урок 6: Асинхронные веб-фреймворки -->
+    <div class="lesson-card {% if current_lesson > 5 %}completed{% elif current_lesson == 5 %}current{% endif %}" onclick="window.location.href='#lesson6'">
+        <div class="lesson-number">6</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Асинхронные веб-фреймворки</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 5 %}completed{% elif current_lesson == 5 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 5 %}✅ Пройдено{% elif current_lesson == 5 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 6 -->
+    {% if current_lesson >= 5 %}
+    <div id="lesson6" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 5 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 6: Асинхронные веб-фреймворки</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-rocket"></i> FastAPI — современный фреймворк</h3>
+            <p>FastAPI построен на asyncio и предоставляет невероятную производительность.</p>
+            
+            <div class="code-block">
+                <pre>
+from fastapi import FastAPI
+import asyncio
+import asyncpg
+
+app = FastAPI()
+
+@app.get("/")
+async def root():
+    return {"message": "Hello World"}
+
+@app.get("/users/{user_id}")
+async def get_user(user_id: int):
+    # Асинхронный запрос к БД
+    conn = await asyncpg.connect('postgresql://user:pass@localhost/db')
+    user = await conn.fetchrow('SELECT * FROM users WHERE id = $1', user_id)
+    await conn.close()
+    return user
+
+# Запуск: uvicorn main:app --reload</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-bolt"></i> aiohttp сервер</h3>
+            
+            <div class="code-block">
+                <pre>
+from aiohttp import web
+import asyncio
+
+async def handle(request):
+    name = request.match_info.get('name', "Anonymous")
+    text = f"Hello, {name}"
+    return web.Response(text=text)
+
+async def main():
+    app = web.Application()
+    app.add_routes([web.get('/', handle),
+                    web.get('/{name}', handle)])
+    
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, 'localhost', 8080)
+    await site.start()
+    print("Сервер запущен на http://localhost:8080")
+    
+    # Держим сервер запущенным
+    await asyncio.Event().wait()
+
+# asyncio.run(main())</pre>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Урок 7: Тест по асинхронному программированию -->
+    <div class="lesson-card {% if current_lesson > 6 %}completed{% elif current_lesson == 6 %}current{% endif %}" onclick="window.location.href='#lesson7'">
+        <div class="lesson-number">7</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Тест: Асинхронное программирование</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-pen-to-square"></i> Тест • 15 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 6 %}completed{% elif current_lesson == 6 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 6 %}✅ Пройдено{% elif current_lesson == 6 %}📝 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 7 -->
+    {% if current_lesson >= 6 %}
+    <div id="lesson7" class="test-block" style="scroll-margin-top: 100px; {% if current_lesson != 6 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 7: Тест по асинхронному программированию</h2>
+        
+        <div class="test-question">Вопрос 1: Что делает ключевое слово await?</div>
+        <div class="test-options">
+            <label class="test-option">
+                <input type="radio" name="q1" value="0"> Завершает выполнение программы
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q1" value="1"> Приостанавливает корутину и передает управление event loop
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q1" value="2"> Создает новую корутину
+            </label>
+        </div>
+        <div id="feedback1" class="test-feedback" style="display: none;"></div>
+
+        <div class="test-question" style="margin-top: 30px;">Вопрос 2: Какой драйвер используется для асинхронной работы с PostgreSQL?</div>
+        <div class="test-options">
+            <label class="test-option">
+                <input type="radio" name="q2" value="0"> psycopg2
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q2" value="1"> asyncpg
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q2" value="2"> sqlalchemy
+            </label>
+        </div>
+        <div id="feedback2" class="test-feedback" style="display: none;"></div>
+
+        <div class="test-question" style="margin-top: 30px;">Вопрос 3: Что ограничивает Semaphore в asyncio?</div>
+        <div class="test-options">
+            <label class="test-option">
+                <input type="radio" name="q3" value="0"> Количество памяти
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q3" value="1"> Количество одновременных задач
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q3" value="2"> Время выполнения
+            </label>
+        </div>
+        <div id="feedback3" class="test-feedback" style="display: none;"></div>
+
+        <button class="test-btn" onclick="checkTest()">Проверить ответы</button>
+
+        <div class="navigation-buttons" style="margin-top: 30px;">
+            <button class="nav-btn" onclick="window.location.href='#lesson6'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" id="completeBtn" style="display: none;" onclick="completeCourse(26)">Завершить курс <i class="fa-solid fa-check"></i></button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Урок 8: Практический проект: Асинхронный парсер -->
+    <div class="lesson-card {% if current_lesson > 7 %}completed{% elif current_lesson == 7 %}current{% endif %}" onclick="window.location.href='#lesson8'">
+        <div class="lesson-number">8</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Практический проект: Асинхронный парсер</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-laptop-code"></i> Практика • 35 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 7 %}completed{% elif current_lesson == 7 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 7 %}✅ Пройдено{% elif current_lesson == 7 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 8 -->
+    {% if current_lesson >= 7 %}
+    <div id="lesson8" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 7 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 8: Практический проект: Асинхронный парсер</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-code"></i> Проект: Асинхронный парсер новостей</h3>
+            <p>Создадим полноценный асинхронный парсер, который загружает данные с нескольких сайтов, обрабатывает их и сохраняет в базу данных.</p>
+            
+            <div class="code-block">
+                <pre>
+import asyncio
+import aiohttp
+import asyncpg
+from bs4 import BeautifulSoup
+import time
+
+class AsyncNewsParser:
+    def __init__(self, db_pool, max_concurrent=5):
+        self.pool = db_pool
+        self.semaphore = asyncio.Semaphore(max_concurrent)
+        self.results = []
+    
+    async def fetch_page(self, session, url):
+        async with self.semaphore:
+            try:
+                async with session.get(url, timeout=10) as response:
+                    return url, await response.text()
+            except Exception as e:
+                print(f"Ошибка загрузки {url}: {e}")
+                return url, None
+    
+    async def parse_page(self, url, html):
+        if not html:
+            return None
+        
+        # CPU-bound парсинг в отдельном потоке
+        loop = asyncio.get_event_loop()
+        soup = await loop.run_in_executor(None, BeautifulSoup, html, 'html.parser')
+        
+        titles = []
+        for tag in soup.find_all(['h2', 'h3'])[:5]:
+            text = tag.get_text().strip()
+            if text and len(text) > 10:
+                titles.append(text[:100])
+        
+        return {
+            'url': url,
+            'titles': titles,
+            'timestamp': time.time()
+        }
+    
+    async def save_to_db(self, data):
+        if not data:
+            return
+        
+        async with self.pool.acquire() as conn:
+            await conn.execute('''
+                INSERT INTO parsed_data (url, titles, timestamp)
+                VALUES ($1, $2, $3)
+            ''', data['url'], data['titles'], data['timestamp'])
+    
+    async def process_site(self, session, url):
+        url, html = await self.fetch_page(session, url)
+        result = await self.parse_page(url, html)
+        if result:
+            await self.save_to_db(result)
+            print(f"✓ Обработан: {url} (найдено {len(result['titles'])} заголовков)")
+    
+    async def run(self, urls):
+        async with aiohttp.ClientSession() as session:
+            tasks = [self.process_site(session, url) for url in urls]
+            await asyncio.gather(*tasks)
+
+async def init_db():
+    # Создание таблицы
+    conn = await asyncpg.connect('postgresql://user:pass@localhost/news')
+    await conn.execute('''
+        CREATE TABLE IF NOT EXISTS parsed_data (
+            id SERIAL PRIMARY KEY,
+            url TEXT,
+            titles TEXT[],
+            timestamp FLOAT
+        )
+    ''')
+    await conn.close()
+    return await asyncpg.create_pool('postgresql://user:pass@localhost/news', min_size=5, max_size=20)
+
+async def main():
+    urls = [
+        'https://news.ycombinator.com',
+        'https://www.python.org/blogs/',
+        'https://realpython.com/',
+        'https://dev.to/t/python',
+        'https://habr.com/ru/hub/python/',
+    ]
+    
+    pool = await init_db()
+    parser = AsyncNewsParser(pool, max_concurrent=3)
+    
+    start = time.time()
+    await parser.run(urls)
+    elapsed = time.time() - start
+    
+    print(f"\nПарсинг завершен за {elapsed:.2f} секунд")
+    await pool.close()
+
+if __name__ == "__main__":
+    asyncio.run(main())</pre>
+            </div>
+            
+            <p>Этот проект демонстрирует:</p>
+            <ul style="color: #9ab3d0;">
+                <li>Асинхронные HTTP-запросы с aiohttp</li>
+                <li>Ограничение конкурентности через Semaphore</li>
+                <li>Работу с асинхронной базой данных (asyncpg)</li>
+                <li>Сочетание CPU-bound (парсинг) с asyncio</li>
+                <li>Пул соединений для базы данных</li>
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Кнопка возврата -->
+    <div style="margin-top: 40px; text-align: center;">
+        <a href="{{ url_for('courses') }}" class="btn btn-outline">
+            <i class="fa-solid fa-arrow-left"></i> К списку курсов
+        </a>
+    </div>
+</div>
+
+<!-- Футер -->
+<footer class="footer">
+    <div class="container">
+        <p>© 2025 PyMaster · Асинхронность: от основ до драйверов</p>
+    </div>
+</footer>
+
+<script>
+    // ID текущего курса
+    const courseId = {{ course.id }};
+    const totalLessons = {{ course.lessons }};
+    
+    // Функция перехода к уроку
+    async function goToLesson(lessonIndex) {
+        try {
+            const response = await fetch('/api/save-progress', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    course_id: courseId,
+                    lesson_index: lessonIndex,
+                    completed: false
+                })
+            });
+            
+            if (response.ok) {
+                const lessonElement = document.getElementById(`lesson${lessonIndex + 1}`);
+                if (lessonElement) {
+                    lessonElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    history.pushState(null, null, `#lesson${lessonIndex + 1}`);
+                    updateLessonStyles(lessonIndex);
+                } else {
+                    window.location.reload();
+                }
+            }
+        } catch (error) {
+            console.error('Ошибка сохранения прогресса:', error);
+        }
+    }
+    
+    function updateLessonStyles(activeLessonIndex) {
+        const lessonCards = document.querySelectorAll('.lesson-card');
+        const lessonContents = document.querySelectorAll('.theory-content, .test-block');
+        
+        lessonCards.forEach((card, index) => {
+            card.classList.remove('current');
+            if (index === activeLessonIndex) card.classList.add('current');
+            
+            const statusElement = card.querySelector('.lesson-status');
+            if (statusElement) {
+                if (index === activeLessonIndex) {
+                    statusElement.className = 'lesson-status current';
+                    statusElement.innerHTML = '📖 Текущий';
+                } else {
+                    statusElement.className = 'lesson-status';
+                    statusElement.innerHTML = '📚 Доступен';
+                }
+            }
+        });
+        
+        lessonContents.forEach((content, index) => {
+            if (index === activeLessonIndex) {
+                content.style.display = 'block';
+                content.style.animation = 'fadeIn 0.5s';
+            } else {
+                content.style.display = 'none';
+            }
+        });
+        
+        updateProgressBar(activeLessonIndex + 1);
+    }
+    
+    function updateProgressBar(currentLesson) {
+        const progressPercent = Math.round((currentLesson / totalLessons) * 100);
+        const progressFill = document.querySelector('.progress-fill');
+        const progressPercentSpan = document.querySelector('.progress-percent:first-child');
+        const progressCounter = document.querySelectorAll('.progress-percent')[1];
+        
+        if (progressFill) progressFill.style.width = `${progressPercent}%`;
+        if (progressPercentSpan) progressPercentSpan.textContent = `${progressPercent}%`;
+        if (progressCounter) progressCounter.textContent = `${currentLesson}/${totalLessons}`;
+    }
+    
+    async function completeCourse() {
+        try {
+            const response = await fetch('/api/save-progress', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    course_id: courseId,
+                    lesson_index: totalLessons - 1,
+                    completed: true
+                })
+            });
+            
+            if (response.ok) {
+                alert('🎉 Поздравляем! Вы завершили курс! +50 PYTH');
+                window.location.href = "{{ url_for('courses') }}";
+            }
+        } catch (error) {
+            console.error('Ошибка завершения курса:', error);
+        }
+    }
+    
+    function checkTest() {
+        const q1 = document.querySelector('input[name="q1"]:checked');
+        const q2 = document.querySelector('input[name="q2"]:checked');
+        const q3 = document.querySelector('input[name="q3"]:checked');
+        
+        let allCorrect = true;
+        
+        // Проверка вопроса 1
+        if (q1 && q1.value === '1') {
+            document.getElementById('feedback1').className = 'test-feedback correct';
+            document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! await приостанавливает корутину.';
+            document.getElementById('feedback1').style.display = 'block';
+        } else {
+            document.getElementById('feedback1').className = 'test-feedback incorrect';
+            document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. await приостанавливает выполнение корутины.';
+            document.getElementById('feedback1').style.display = 'block';
+            allCorrect = false;
+        }
+        
+        // Проверка вопроса 2
+        if (q2 && q2.value === '1') {
+            document.getElementById('feedback2').className = 'test-feedback correct';
+            document.getElementById('feedback2').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! asyncpg — асинхронный драйвер для PostgreSQL.';
+            document.getElementById('feedback2').style.display = 'block';
+        } else {
+            document.getElementById('feedback2').className = 'test-feedback incorrect';
+            document.getElementById('feedback2').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. asyncpg — правильный ответ.';
+            document.getElementById('feedback2').style.display = 'block';
+            allCorrect = false;
+        }
+        
+        // Проверка вопроса 3
+        if (q3 && q3.value === '1') {
+            document.getElementById('feedback3').className = 'test-feedback correct';
+            document.getElementById('feedback3').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! Semaphore ограничивает количество одновременных задач.';
+            document.getElementById('feedback3').style.display = 'block';
+        } else {
+            document.getElementById('feedback3').className = 'test-feedback incorrect';
+            document.getElementById('feedback3').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. Semaphore ограничивает количество одновременных задач.';
+            document.getElementById('feedback3').style.display = 'block';
+            allCorrect = false;
+        }
+        
+        if (allCorrect) {
+            document.getElementById('completeBtn').style.display = 'flex';
+            const successMessage = document.createElement('div');
+            successMessage.className = 'test-feedback correct';
+            successMessage.innerHTML = '<i class="fa-solid fa-check"></i> 🎉 Тест пройден успешно!';
+            successMessage.style.marginTop = '20px';
+            document.querySelector('.test-block').appendChild(successMessage);
+        }
+    }
+    
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', function() {
+        const lessonCards = document.querySelectorAll('.lesson-card');
+        const currentLessonIndex = parseInt('{{ current_lesson }}') || 0;
+        
+        lessonCards.forEach((card, index) => {
+            card.addEventListener('click', function(e) {
+                if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+                goToLesson(index);
+            });
+            card.style.cursor = 'pointer';
+        });
+        
+        updateLessonStyles(currentLessonIndex);
+        
+        if (window.location.hash) {
+            const lessonMatch = window.location.hash.match(/lesson(\d+)/);
+            if (lessonMatch) {
+                const lessonIndex = parseInt(lessonMatch[1]) - 1;
+                if (lessonIndex >= 0 && lessonIndex < totalLessons) {
+                    setTimeout(() => goToLesson(lessonIndex), 100);
+                }
+            }
+        }
+        
+        // Обработчики для радио-кнопок
+        document.querySelectorAll('input[type="radio"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.querySelectorAll('.test-feedback').forEach(fb => fb.style.display = 'none');
+            });
+        });
+    });
+    
+    // Автоматическое скрытие flash сообщений
+    setTimeout(() => {
+        document.querySelectorAll('.flash-message').forEach(msg => {
+            msg.style.animation = 'slideOut 0.3s';
+            setTimeout(() => msg.remove(), 300);
+        });
+    }, 5000);
+</script>
+
+<style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+    
+    .lesson-card {
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .lesson-card:hover {
+        transform: translateX(10px);
+        border-color: #8b5cf6;
+    }
+    
+    .lesson-card.current {
+        border-color: #8b5cf6;
+        background: rgba(139, 92, 246, 0.1);
+    }
+    
+    .lesson-status {
+        padding: 6px 15px;
+        border-radius: 40px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        background: rgba(139, 92, 246, 0.1);
+        color: #8b5cf6;
+        border: 1px solid #8b5cf6;
+    }
+    
+    .lesson-status.locked {
+        display: none;
+    }
+</style>
+
+</body>
+</html>

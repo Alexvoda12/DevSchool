@@ -10,9 +10,12 @@ import math
 import time
 import os
 import ast
+import json
+import secrets
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = 'your-secret-key-here-change-in-production'
+app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))
 app.permanent_session_lifetime = timedelta(days=30)
 
 # Инициализация G4F клиента
@@ -43,7 +46,7 @@ courses_meta = {
     3: {'title': 'Циклы и итерации', 'level': 'beginner', 'price_coins': 0, 'price_rub': 0, 'icon': 'fa-solid fa-rotate', 'lessons': 4, 'hours': 7},
     4: {'title': 'Списки и кортежи', 'level': 'beginner', 'price_coins': 0, 'price_rub': 0, 'icon': 'fa-solid fa-list', 'lessons': 4, 'hours': 5},
     5: {'title': 'Словари и множества', 'level': 'beginner', 'price_coins': 0, 'price_rub': 0, 'icon': 'fa-solid fa-book', 'lessons': 4, 'hours': 5},
-    6: {'title': 'Функции в Python', 'level': 'intermediate', 'price_coins': 299, 'price_rub': 2990, 'icon': 'fa-solid fa-function', 'lessons': 8, 'hours': 8},
+    6: {'title': 'Функции в Python', 'level': 'intermediate', 'price_coins': 299, 'price_rub': 2990, 'icon': 'fa-solid fa-code', 'lessons': 8, 'hours': 8},
     7: {'title': 'Объектно-ориентированное программирование', 'level': 'intermediate', 'price_coins': 399, 'price_rub': 3990, 'icon': 'fa-solid fa-cubes', 'lessons': 10, 'hours': 10},
     8: {'title': 'Работа с файлами', 'level': 'intermediate', 'price_coins': 249, 'price_rub': 2490, 'icon': 'fa-solid fa-file-lines', 'lessons': 6, 'hours': 6},
     9: {'title': 'Исключения и ошибки', 'level': 'intermediate', 'price_coins': 199, 'price_rub': 1990, 'icon': 'fa-solid fa-bug', 'lessons': 5, 'hours': 4},
@@ -89,7 +92,7 @@ for course_id, meta in courses_meta.items():
 # База данных пользователей
 users = {
     'test@example.com': {
-        'password': '123456', 
+        'password_hash': generate_password_hash('123456'),
         'name': 'Тестовый',
         'registered': datetime.now() - timedelta(days=120),
         'total_hours': 156,
@@ -116,7 +119,7 @@ users = {
         }
     },
     'student@pymaster.ru': {
-        'password': 'python2025', 
+        'password_hash': generate_password_hash('python2025'),
         'name': 'Алексей',
         'registered': datetime.now() - timedelta(days=45),
         'total_hours': 78,
@@ -143,7 +146,7 @@ users = {
         }
     },
     'admin@devschool.ru': {
-        'password': 'admin123', 
+        'password_hash': generate_password_hash('admin123'),
         'name': 'Админ',
         'registered': datetime.now() - timedelta(days=365),
         'total_hours': 1240,
@@ -335,32 +338,32 @@ def get_ai_response(user_message, chat_history, user_name):
 
 
 # Список разрешенных модулей
-ALLOWED_MODULES = ['math', 'time', 'os']
+ALLOWED_MODULES = ['math', 'time', 'json']
 
 # Безопасное выполнение Python кода
 @app.route('/api/run-code', methods=['POST'])
 def run_code():
     if 'user' not in session:
         return jsonify({'error': 'Не авторизован'}), 401
-    
+
     data = request.json
     code = data.get('code', '')
     task_id = data.get('task_id')
-    
+
     if not code:
         return jsonify({'error': 'Код не может быть пустым'}), 400
-    
+
     # Проверяем код на опасные операции
-    if not is_code_safe(code):
+    if not is_code_safe(code, task_id):
         return jsonify({
             'output': '',
-            'error': 'Обнаружены запрещенные операции. Разрешены только модули: math, time, os'
+            'error': 'Обнаружены запрещенные операции. Разрешены только модули: math, time, json'
         })
-    
+
     # Захватываем вывод
     output = io.StringIO()
     error_output = io.StringIO()
-    
+
     try:
         with contextlib.redirect_stdout(output), contextlib.redirect_stderr(error_output):
             # Создаем безопасное окружение
@@ -368,10 +371,10 @@ def run_code():
                 '__builtins__': __builtins__,
                 'math': math,
                 'time': time,
-                'os': os,
+                'json': json,
                 'print': print
             }
-            
+
             # Выполняем код
             exec(code, safe_globals)
         
@@ -389,9 +392,7 @@ def run_code():
             'error': f'Ошибка выполнения: {str(e)}'
         })
 
-# Проверка кода на безопасность
-# Список разрешенных модулей
-ALLOWED_MODULES = ['math', 'time']
+# Проверка кода на безопасность (функция определена выше)
 
 # Класс для эмуляции ввода данных
 class InputSimulator:
@@ -408,10 +409,10 @@ class InputSimulator:
             raise EOFError("Недостаточно входных данных")
 
 # Проверка кода на безопасность
-def is_code_safe(code):
+def is_code_safe(code, task_id=None):
     try:
         tree = ast.parse(code)
-        
+
         for node in ast.walk(tree):
             # Запрещаем импорты
             if isinstance(node, ast.Import):
@@ -421,21 +422,20 @@ def is_code_safe(code):
             if isinstance(node, ast.ImportFrom):
                 if node.module not in ALLOWED_MODULES:
                     return False
-            
+
             # Запрещаем опасные функции
             if isinstance(node, ast.Call):
                 if isinstance(node.func, ast.Name):
-                    if node.func.id in ['eval', 'exec', 'compile', 'open']:  # Убрали 'input' из запрещенных
+                    dangerous = ['eval', 'exec', 'compile', 'open', '__import__']
+                    if node.func.id in dangerous:
                         return False
-                    if node.func.id in ['__import__']:
-                        return False
-            
+
             # Запрещаем обращение к __builtins__
             if isinstance(node, ast.Attribute):
                 if node.attr.startswith('__') and node.attr.endswith('__'):
                     if node.attr not in ['__name__', '__file__']:
                         return False
-        
+
         return True
     except SyntaxError:
         return True  # Пусть exec обработает синтаксическую ошибку
@@ -455,7 +455,7 @@ def check_task_with_tests():
         return jsonify({'error': 'Код не может быть пустым'}), 400
     
     # Проверяем код на безопасность
-    if not is_code_safe(code):
+    if not is_code_safe(code, task_id):
         return jsonify({
             'passed': False,
             'results': [],
@@ -528,13 +528,16 @@ def check_task_with_tests():
             users[email][solved_tasks_key] = True
             
             # Определяем награду в зависимости от задачи
-            reward = 10  # Базовая награда
-            if task_id == 1:
-                reward = 10
-            elif task_id == 2:
-                reward = 15
-            elif task_id == 3:
-                reward = 15
+            rewards_map = {
+                1: 10, 2: 15, 3: 15, 4: 20, 5: 20,
+                6: 25, 7: 25, 8: 30, 9: 30, 10: 35,
+                11: 25, 12: 20, 13: 25, 14: 25, 15: 20,
+                16: 30, 17: 35, 18: 25, 19: 30, 20: 35,
+                21: 35, 22: 40, 23: 35, 24: 45, 25: 50,
+                26: 55, 27: 40, 28: 60, 29: 55, 30: 60,
+                31: 25, 32: 20, 33: 25, 34: 35, 35: 40
+            }
+            reward = rewards_map.get(task_id, 10)  # Базовая награда 10
             
             users[email]['balance'] = users[email].get('balance', 0) + reward
             
@@ -579,8 +582,8 @@ def run_code_with_input():
     
     if not code:
         return jsonify({'error': 'Код не может быть пустым'}), 400
-    
-    # Проверяем код на безопасность
+
+    # Проверяем код на безопасность (run_code_with_input используется без task_id)
     if not is_code_safe(code):
         return jsonify({
             'output': '',
@@ -641,7 +644,7 @@ def check_task():
         return jsonify({'error': 'Код не может быть пустым'}), 400
     
     # Проверяем код на безопасность
-    if not is_code_safe(code):
+    if not is_code_safe(code, task_id):
         return jsonify({
             'correct': False,
             'output': '',
@@ -659,7 +662,7 @@ def check_task():
                 '__builtins__': __builtins__,
                 'math': math,
                 'time': time,
-                'os': os,
+                'json': json,
                 'print': print
             }
             
@@ -682,31 +685,42 @@ def check_task():
         # Если задача решена правильно, начисляем монеты
         if is_correct and task_id:
             email = session['user']['email']
-            
+
             # Проверяем, не решал ли уже эту задачу
             solved_tasks_key = f'solved_tasks_{task_id}'
             if solved_tasks_key not in users[email]:
                 users[email][solved_tasks_key] = True
-                
-                # Начисляем монеты (10 PYTH за задачу)
-                users[email]['balance'] = users[email].get('balance', 0) + 10
-                
+
+                # Определяем награду
+                rewards_map = {
+                    1: 10, 2: 15, 3: 15, 4: 20, 5: 20,
+                    6: 25, 7: 25, 8: 30, 9: 30, 10: 35,
+                    11: 25, 12: 20, 13: 25, 14: 25, 15: 20,
+                    16: 30, 17: 35, 18: 25, 19: 30, 20: 35,
+                    21: 35, 22: 40, 23: 35, 24: 45, 25: 50,
+                    26: 55, 27: 40, 28: 60, 29: 55, 30: 60,
+                    31: 25, 32: 20, 33: 25, 34: 35, 35: 40
+                }
+                reward = rewards_map.get(task_id, 10)
+
+                users[email]['balance'] = users[email].get('balance', 0) + reward
+
                 # Записываем транзакцию
                 transaction = {
                     'id': str(uuid.uuid4())[:8],
                     'type': 'bonus',
-                    'amount': 10,
+                    'amount': reward,
                     'date': datetime.now(),
                     'description': f'Бонус за решение задачи #{task_id}'
                 }
-                
+
                 if 'transaction_history' not in users[email]:
                     users[email]['transaction_history'] = []
                 users[email]['transaction_history'].append(transaction)
-                
+
                 # Обновляем сессию
                 session['user']['balance'] = users[email]['balance']
-                
+
                 new_balance = users[email]['balance']
             else:
                 new_balance = users[email]['balance']
@@ -1020,7 +1034,366 @@ def task_page(task_id):
                     'description': 'Только число 2'
                 }
             ]
-        }
+        },
+
+    11: {
+        'title': 'Числа Фибоначчи',
+        'difficulty': 'Легкая',
+        'time': 10,
+        'reward': 25,
+        'description': 'Напишите программу, которая считывает целое число N (N > 0) и выводит первые N чисел Фибоначчи (каждое с новой строки). Последовательность Фибоначчи: F(1) = 1, F(2) = 1, F(3) = 2, F(4) = 3, …',
+        'example_code': '',
+        'hint': 'Используйте цикл и две переменные для хранения предыдущих двух чисел.',
+        'tests': [
+            {'input': ['1'], 'expected': '1', 'description': 'N=1'},
+            {'input': ['3'], 'expected': '1\n1\n2', 'description': 'N=3'},
+            {'input': ['5'], 'expected': '1\n1\n2\n3\n5', 'description': 'N=5'},
+            {'input': ['8'], 'expected': '1\n1\n2\n3\n5\n8\n13\n21', 'description': 'N=8'}
+        ]
+    },
+    12: {
+        'title': 'Обратный порядок строки',
+        'difficulty': 'Легкая',
+        'time': 8,
+        'reward': 20,
+        'description': 'Напишите программу, которая считывает строку и выводит её в обратном порядке (зеркально).',
+        'example_code': '',
+        'hint': 'Используйте срезы строки [::-1] или цикл с накоплением символов.',
+        'tests': [
+            {'input': ['hello'], 'expected': 'olleh', 'description': 'hello → olleh'},
+            {'input': ['Python'], 'expected': 'nohtyP', 'description': 'Python → nohtyP'},
+            {'input': ['12345'], 'expected': '54321', 'description': '12345 → 54321'},
+            {'input': ['a'], 'expected': 'a', 'description': 'один символ'}
+        ]
+    },
+    13: {
+        'title': 'Количество слов в строке',
+        'difficulty': 'Легкая',
+        'time': 10,
+        'reward': 25,
+        'description': 'Напишите программу, которая считывает строку, состоящую из слов, разделённых пробелами, и выводит количество слов в ней.',
+        'example_code': '',
+        'hint': 'Разделите строку методом .split() и посчитайте длину полученного списка.',
+        'tests': [
+            {'input': ['Привет мир'], 'expected': '2', 'description': 'два слова'},
+            {'input': ['один'], 'expected': '1', 'description': 'одно слово'},
+            {'input': ['это  строка  с  лишними   пробелами'], 'expected': '5', 'description': 'лишние пробелы'},
+            {'input': [''], 'expected': '0', 'description': 'пустая строка'}
+        ]
+    },
+    14: {
+        'title': 'Среднее арифметическое списка',
+        'difficulty': 'Легкая',
+        'time': 10,
+        'reward': 25,
+        'description': 'Напишите программу, которая считывает список целых чисел через пробел и выводит их среднее арифметическое (с плавающей точкой, два знака после запятой).',
+        'example_code': '',
+        'hint': 'Используйте split(), затем преобразуйте в числа, найдите сумму и разделите на количество. Для вывода с двумя знаками используйте f"{avg:.2f}".',
+        'tests': [
+            {'input': ['1 2 3 4 5'], 'expected': '3.00', 'description': '1+2+3+4+5 = 15, 15/5=3'},
+            {'input': ['10 20 30'], 'expected': '20.00', 'description': '10+20+30=60, 60/3=20'},
+            {'input': ['-5 0 5'], 'expected': '0.00', 'description': '-5+0+5=0'},
+            {'input': ['7'], 'expected': '7.00', 'description': 'одно число'}
+        ]
+    },
+    15: {
+        'title': 'Поиск максимального элемента',
+        'difficulty': 'Легкая',
+        'time': 8,
+        'reward': 20,
+        'description': 'Напишите программу, которая считывает список целых чисел через пробел и выводит максимальное число из списка.',
+        'example_code': '',
+        'hint': 'Воспользуйтесь встроенной функцией max().',
+        'tests': [
+            {'input': ['1 2 3 4 5'], 'expected': '5', 'description': 'максимум 5'},
+            {'input': ['10 20 30'], 'expected': '30', 'description': 'максимум 30'},
+            {'input': ['-5 -2 -10'], 'expected': '-2', 'description': 'максимум -2'},
+            {'input': ['42'], 'expected': '42', 'description': 'один элемент'}
+        ]
+    },
+    16: {
+        'title': 'Сумма цифр числа',
+        'difficulty': 'Легкая',
+        'time': 12,
+        'reward': 30,
+        'description': 'Напишите программу, которая считывает целое неотрицательное число и выводит сумму его цифр.',
+        'example_code': '',
+        'hint': 'Преобразуйте число в строку и перебирайте символы, либо используйте цикл с остатком от деления на 10.',
+        'tests': [
+            {'input': ['123'], 'expected': '6', 'description': '1+2+3=6'},
+            {'input': ['0'], 'expected': '0', 'description': 'ноль'},
+            {'input': ['9999'], 'expected': '36', 'description': '9+9+9+9=36'},
+            {'input': ['1001'], 'expected': '2', 'description': '1+0+0+1=2'}
+        ]
+    },
+    17: {
+        'title': 'Проверка на простое число',
+        'difficulty': 'Средняя',
+        'time': 15,
+        'reward': 35,
+        'description': 'Напишите программу, которая считывает целое число N (N ≥ 2) и выводит "Да", если число простое, и "Нет" в противном случае.',
+        'example_code': '',
+        'hint': 'Простое число делится только на 1 и на себя. Проверьте делители от 2 до корня из N.',
+        'tests': [
+            {'input': ['2'], 'expected': 'Да', 'description': '2 – простое'},
+            {'input': ['13'], 'expected': 'Да', 'description': '13 – простое'},
+            {'input': ['15'], 'expected': 'Нет', 'description': '15 – составное'},
+            {'input': ['100'], 'expected': 'Нет', 'description': '100 – составное'}
+        ]
+    },
+    18: {
+        'title': 'Подсчёт гласных в строке',
+        'difficulty': 'Легкая',
+        'time': 10,
+        'reward': 25,
+        'description': 'Напишите программу, которая считывает строку и выводит количество гласных букв (а, е, ё, и, о, у, ы, э, ю, я) в ней (без учёта регистра).',
+        'example_code': '',
+        'hint': 'Приведите строку к нижнему регистру и посчитайте количество символов, входящих в строку гласных.',
+        'tests': [
+            {'input': ['Привет'], 'expected': '2', 'description': 'и, е'},
+            {'input': ['Абракадабра'], 'expected': '5', 'description': '5 гласных'},
+            {'input': ['Python'], 'expected': '1', 'description': 'o'},
+            {'input': ['Тьфу'], 'expected': '0', 'description': 'нет гласных'}
+        ]
+    },
+    19: {
+        'title': 'Удаление дубликатов из списка',
+        'difficulty': 'Средняя',
+        'time': 12,
+        'reward': 30,
+        'description': 'Напишите программу, которая считывает список целых чисел через пробел и выводит тот же список, но без повторяющихся элементов, сохраняя порядок первого вхождения.',
+        'example_code': '',
+        'hint': 'Создайте новый список, добавляя элементы, которых в нём ещё нет.',
+        'tests': [
+            {'input': ['1 2 2 3 4 4 5'], 'expected': '1 2 3 4 5', 'description': 'удалить дубликаты'},
+            {'input': ['7 7 7'], 'expected': '7', 'description': 'все одинаковые'},
+            {'input': ['1 2 3'], 'expected': '1 2 3', 'description': 'уже уникальные'},
+            {'input': ['-1 0 -1 0 5'], 'expected': '-1 0 5', 'description': 'смешанные'}
+        ]
+    },
+    20: {
+        'title': 'Пересечение списков',
+        'difficulty': 'Средняя',
+        'time': 15,
+        'reward': 35,
+        'description': 'Напишите программу, которая считывает два списка целых чисел через пробел (каждый на отдельной строке) и выводит их пересечение – общие элементы (без повторений), отсортированные по возрастанию.',
+        'example_code': '',
+        'hint': 'Используйте множества (set) для нахождения пересечения, затем отсортируйте.',
+        'tests': [
+            {'input': ['1 2 3 4', '3 4 5 6'], 'expected': '3 4', 'description': 'пересечение [3,4]'},
+            {'input': ['10 20 30', '20 30 40'], 'expected': '20 30', 'description': 'пересечение [20,30]'},
+            {'input': ['1 2 3', '4 5 6'], 'expected': '', 'description': 'нет общих'},
+            {'input': ['5 5 6 7', '5 6 6 8'], 'expected': '5 6', 'description': 'учитываем только уникальные'}
+        ]
+    },
+    21: {
+        'title': 'Анаграммы',
+        'difficulty': 'Средняя',
+        'time': 15,
+        'reward': 35,
+        'description': 'Напишите программу, которая считывает две строки и определяет, являются ли они анаграммами (состоят из одних и тех же букв в разном порядке). Регистр не учитывается.',
+        'example_code': '',
+        'hint': 'Приведите строки к нижнему регистру, отсортируйте символы и сравните.',
+        'tests': [
+            {'input': ['listen', 'silent'], 'expected': 'Да', 'description': 'анаграммы'},
+            {'input': ['Hello', 'hello'], 'expected': 'Да', 'description': 'регистр не важен'},
+            {'input': ['python', 'java'], 'expected': 'Нет', 'description': 'не анаграммы'},
+            {'input': ['abcd', 'abcde'], 'expected': 'Нет', 'description': 'разная длина'}
+        ]
+    },
+    22: {
+        'title': 'Частотный словарь',
+        'difficulty': 'Средняя',
+        'time': 18,
+        'reward': 40,
+        'description': 'Напишите программу, которая считывает список слов через пробел и выводит частотный словарь: каждое слово и количество его вхождений, отсортированные по убыванию частоты.',
+        'example_code': '',
+        'hint': 'Используйте словарь для подсчёта, затем сортируйте items() по значению.',
+        'tests': [
+            {'input': ['apple banana apple orange banana apple'], 'expected': 'apple: 3\nbanana: 2\norange: 1', 'description': 'подсчёт фруктов'},
+            {'input': ['a b c a b a'], 'expected': 'a: 3\nb: 2\nc: 1', 'description': 'буквы'},
+            {'input': ['unique'], 'expected': 'unique: 1', 'description': 'одно слово'}
+        ]
+    },
+    23: {
+        'title': 'Объединение словарей',
+        'difficulty': 'Средняя',
+        'time': 15,
+        'reward': 35,
+        'description': 'Напишите программу, которая считывает два словаря (в формате JSON-строк) и объединяет их. Если ключи совпадают, значения суммируются (предполагаем, что значения - числа).',
+        'example_code': '',
+        'hint': 'Используйте json.loads() для преобразования строк в словари, затем обновляйте значения.',
+        'tests': [
+            {'input': ['{"a": 1, "b": 2}', '{"b": 3, "c": 4}'], 'expected': '{"a": 1, "b": 5, "c": 4}', 'description': 'объединение с суммированием'},
+            {'input': ['{"x": 10}', '{"y": 20}'], 'expected': '{"x": 10, "y": 20}', 'description': 'нет пересечений'},
+            {'input': ['{}', '{"a": 5}'], 'expected': '{"a": 5}', 'description': 'пустой словарь'}
+        ]
+    },
+    24: {
+        'title': 'Квадратная матрица',
+        'difficulty': 'Средняя',
+        'time': 20,
+        'reward': 45,
+        'description': 'Напишите программу, которая считывает размер N и выводит квадратную матрицу N×N, заполненную числами от 1 до N² по спирали (по часовой стрелке, начиная с верхнего левого угла).',
+        'example_code': '',
+        'hint': 'Используйте 2D-список и заполняйте границы, двигаясь по спирали.',
+        'tests': [
+            {'input': ['3'], 'expected': '1 2 3\n8 9 4\n7 6 5', 'description': 'матрица 3×3'},
+            {'input': ['2'], 'expected': '1 2\n4 3', 'description': 'матрица 2×2'},
+            {'input': ['1'], 'expected': '1', 'description': 'матрица 1×1'}
+        ]
+    },
+    25: {
+        'title': 'Проверка скобок',
+        'difficulty': 'Сложная',
+        'time': 20,
+        'reward': 50,
+        'description': 'Напишите программу, которая считывает строку, содержащую только скобки (), {} и [], и проверяет, правильно ли они расставлены.',
+        'example_code': '',
+        'hint': 'Используйте стек: открывающие скобки кладёте в стек, закрывающие - проверяете соответствие.',
+        'tests': [
+            {'input': ['()'], 'expected': 'Да', 'description': 'простые скобки'},
+            {'input': ['({[]})'], 'expected': 'Да', 'description': 'вложенные скобки'},
+            {'input': ['([)]'], 'expected': 'Нет', 'description': 'неправильный порядок'},
+            {'input': ['((('], 'expected': 'Нет', 'description': 'не хватает закрывающих'},
+            {'input': [''], 'expected': 'Да', 'description': 'пустая строка - корректно'}
+        ]
+    },
+    26: {
+        'title': 'Сортировка слиянием',
+        'difficulty': 'Сложная',
+        'time': 25,
+        'reward': 55,
+        'description': 'Напишите программу, которая считывает список чисел и сортирует его методом слияния (merge sort).',
+        'example_code': '',
+        'hint': 'Разделите список пополам, рекурсивно отсортируйте каждую половину, затем слейте.',
+        'tests': [
+            {'input': ['5 2 8 1 9'], 'expected': '1 2 5 8 9', 'description': 'обычный случай'},
+            {'input': ['3 3 3'], 'expected': '3 3 3', 'description': 'все одинаковые'},
+            {'input': ['1'], 'expected': '1', 'description': 'один элемент'},
+            {'input': [''], 'expected': '', 'description': 'пустой список'}
+        ]
+    },
+    27: {
+        'title': 'Бинарный поиск',
+        'difficulty': 'Средняя',
+        'time': 18,
+        'reward': 40,
+        'description': 'Напишите функцию бинарного поиска. Программа считывает отсортированный список чисел, затем число для поиска, и выводит индекс этого числа в списке (или -1, если не найдено).',
+        'example_code': '',
+        'hint': 'Используйте деление пополам: сравните с серединой и ищите в соответствующей половине.',
+        'tests': [
+            {'input': ['1 3 5 7 9 11', '5'], 'expected': '2', 'description': 'найдено в середине'},
+            {'input': ['1 3 5 7 9', '9'], 'expected': '4', 'description': 'найдено в конце'},
+            {'input': ['2 4 6 8', '5'], 'expected': '-1', 'description': 'не найдено'},
+            {'input': ['10', '10'], 'expected': '0', 'description': 'один элемент'}
+        ]
+    },
+    28: {
+        'title': 'Калькулятор выражений',
+        'difficulty': 'Сложная',
+        'time': 30,
+        'reward': 60,
+        'description': 'Напишите программу, которая вычисляет значение арифметического выражения с +, -, *, / и скобками. Учитывайте приоритет операций.',
+        'example_code': '',
+        'hint': 'Используйте алгоритм обратной польской записи или рекурсивный спуск.',
+        'tests': [
+            {'input': ['2+3*4'], 'expected': '14', 'description': 'приоритет умножения'},
+            {'input': ['(2+3)*4'], 'expected': '20', 'description': 'скобки'},
+            {'input': ['10/2+3*2'], 'expected': '11', 'description': 'сложное выражение'},
+            {'input': ['5'], 'expected': '5', 'description': 'одно число'}
+        ]
+    },
+    29: {
+        'title': 'Поиск подстроки (KMP)',
+        'difficulty': 'Сложная',
+        'time': 25,
+        'reward': 55,
+        'description': 'Напишите программу, которая ищет все вхождения подстроки (pattern) в строку (text) и выводит индексы начала каждого вхождения. Используйте алгоритм Кнута-Морриса-Пратта (KMP).',
+        'example_code': '',
+        'hint': 'Сначала постройте префикс-функцию для pattern, затем ищите совпадения.',
+        'tests': [
+            {'input': ['abcabc', 'abc'], 'expected': '0 3', 'description': 'два вхождения'},
+            {'input': ['aaaa', 'aa'], 'expected': '0 1 2', 'description': 'пересекающиеся'},
+            {'input': ['hello', 'world'], 'expected': '', 'description': 'нет вхождений'},
+            {'input': ['test', 'test'], 'expected': '0', 'description': 'полное совпадение'}
+        ]
+    },
+    30: {
+        'title': 'Минимум в окне',
+        'difficulty': 'Сложная',
+        'time': 25,
+        'reward': 60,
+        'description': 'Напишите программу, которая находит минимум в каждом окне размера K скользящего по массиву. На вход: список чисел через пробел, затем K.',
+        'example_code': '',
+        'hint': 'Используйте дек (deque) для поддержания минимума в текущем окне за O(N).',
+        'tests': [
+            {'input': ['1 3 -1 -3 5 3 6 7', '3'], 'expected': '-1 -3 -3 -3 3 3', 'description': 'скользящее окно'},
+            {'input': ['1 2 3 4 5', '2'], 'expected': '1 2 3 4', 'description': 'возрастающий массив'},
+            {'input': ['5 4 3 2 1', '3'], 'expected': '3 2 1', 'description': 'убывающий массив'},
+            {'input': ['7', '1'], 'expected': '7', 'description': 'окно размером 1'}
+        ]
+    },
+    31: {
+        'title': 'Степень числа',
+        'difficulty': 'Легкая',
+        'time': 10,
+        'reward': 25,
+        'description': 'Напишите программу, которая считывает два целых числа A и B и выводит A в степени B. Не используйте оператор ** или функцию pow().',
+        'example_code': '',
+        'hint': 'Используйте цикл для многократного умножения. Учтите случай, когда степень равна 0.',
+        'tests': [
+            {'input': ['2', '3'], 'expected': '8', 'description': '2^3 = 8'},
+            {'input': ['5', '0'], 'expected': '1', 'description': '5^0 = 1'},
+            {'input': ['3', '4'], 'expected': '81', 'description': '3^4 = 81'},
+            {'input': ['10', '1'], 'expected': '10', 'description': '10^1 = 10'}
+        ]
+    },
+    32: {
+        'title': 'Реверс списка',
+        'difficulty': 'Легкая',
+        'time': 8,
+        'reward': 20,
+        'description': 'Напишите программу, которая считывает список чисел через пробел и выводит его в обратном порядке. Не используйте срез [::-1] или reverse().',
+        'example_code': '',
+        'hint': 'Создайте новый список и добавляйте элементы с конца в начало.',
+        'tests': [
+            {'input': ['1 2 3 4 5'], 'expected': '5 4 3 2 1', 'description': 'обычный список'},
+            {'input': ['10'], 'expected': '10', 'description': 'один элемент'},
+            {'input': ['1 1 1'], 'expected': '1 1 1', 'description': 'одинаковые элементы'},
+            {'input': [''], 'expected': '', 'description': 'пустой список'}
+        ]
+    },
+    33: {
+        'title': 'Количество вхождений',
+        'difficulty': 'Легкая',
+        'time': 10,
+        'reward': 25,
+        'description': 'Напишите программу, которая считывает строку и символ, и выводит количество вхождений этого символа в строку (без учёта регистра).',
+        'example_code': '',
+        'hint': 'Приведите строку к нижнему регистру и используйте метод count().',
+        'tests': [
+            {'input': ['Hello World', 'l'], 'expected': '3', 'description': 'l встречается 3 раза'},
+            {'input': ['Python', 'p'], 'expected': '1', 'description': 'p встречается 1 раз'},
+            {'input': ['aaa', 'a'], 'expected': '3', 'description': 'все символы одинаковые'},
+            {'input': ['test', 'z'], 'expected': '0', 'description': 'символ не найден'}
+        ]
+    },
+    34: {
+        'title': 'Наибольший общий делитель',
+        'difficulty': 'Средняя',
+        'time': 15,
+        'reward': 35,
+        'description': 'Напишите программу, которая считывает два целых положительных числа и выводит их наибольший общий делитель (НОД). Используйте алгоритм Евклида.',
+        'example_code': '',
+        'hint': 'Алгоритм Евклида: НОД(a, b) = НОД(b, a % b), пока b не станет 0.',
+        'tests': [
+            {'input': ['12', '18'], 'expected': '6', 'description': 'НОД(12, 18) = 6'},
+            {'input': ['15', '25'], 'expected': '5', 'description': 'НОД(15, 25) = 5'},
+            {'input': ['7', '13'], 'expected': '1', 'description': 'взаимно простые'},
+            {'input': ['100', '10'], 'expected': '10', 'description': 'одно делится на другое'}
+        ]
+    }
     }
     
     task_info = tasks_info.get(task_id)
@@ -1055,7 +1428,7 @@ def tasks():
             'title': 'Привет, мир!',
             'difficulty': 'Легкая',
             'time': 5,
-            'reward': 1,
+            'reward': 10,
             'description': 'Вывод текста на экран',
             'icon': 'fa-solid fa-code',
             'color': '#10b981',
@@ -1066,7 +1439,7 @@ def tasks():
             'title': 'Сумма двух чисел',
             'difficulty': 'Легкая',
             'time': 7,
-            'reward': 1,
+            'reward': 15,
             'description': 'Ввод чисел и вывод суммы',
             'icon': 'fa-solid fa-calculator',
             'color': '#3b82f6',
@@ -1077,7 +1450,7 @@ def tasks():
             'title': 'Приветствие',
             'difficulty': 'Легкая',
             'time': 7,
-            'reward': 1,
+            'reward': 15,
             'description': 'Ввод имени и вывод приветствия',
             'icon': 'fa-solid fa-user',
             'color': '#8b5cf6',
@@ -1088,7 +1461,7 @@ def tasks():
             'title': 'Максимум из двух',
             'difficulty': 'Легкая',
             'time': 10,
-            'reward': 1,
+            'reward': 20,
             'description': 'Поиск максимального числа',
             'icon': 'fa-solid fa-chart-line',
             'color': '#f59e0b',
@@ -1098,7 +1471,7 @@ def tasks():
             'id': 5,
             'title': 'Четное или нечетное',
             'difficulty': 'Легкая',
-            'time': 1,
+            'time': 10,
             'reward': 20,
             'description': 'Проверка числа на четность',
             'icon': 'fa-solid fa-divide',
@@ -1159,6 +1532,270 @@ def tasks():
             'icon': 'fa-solid fa-star',
             'color': '#a855f7',
             'category': 'Алгоритмы'
+        },
+        {
+            'id': 11,
+            'title': 'Числа Фибоначчи',
+            'difficulty': 'Легкая',
+            'time': 10,
+            'reward': 25,
+            'description': 'Вывод первых N чисел Фибоначчи',
+            'icon': 'fa-solid fa-chart-line',
+            'color': '#14b8a6',
+            'category': 'Алгоритмы'
+        },
+        {
+            'id': 12,
+            'title': 'Обратный порядок строки',
+            'difficulty': 'Легкая',
+            'time': 8,
+            'reward': 20,
+            'description': 'Переворот строки',
+            'icon': 'fa-solid fa-arrow-right-arrow-left',
+            'color': '#ec4899',
+            'category': 'Строки'
+        },
+        {
+            'id': 13,
+            'title': 'Количество слов в строке',
+            'difficulty': 'Легкая',
+            'time': 10,
+            'reward': 25,
+            'description': 'Подсчёт слов, разделённых пробелами',
+            'icon': 'fa-solid fa-calculator',
+            'color': '#f97316',
+            'category': 'Строки'
+        },
+        {
+            'id': 14,
+            'title': 'Среднее арифметическое списка',
+            'difficulty': 'Легкая',
+            'time': 10,
+            'reward': 25,
+            'description': 'Вычисление среднего арифметического',
+            'icon': 'fa-solid fa-chart-simple',
+            'color': '#6b7280',
+            'category': 'Списки'
+        },
+        {
+            'id': 15,
+            'title': 'Поиск максимального элемента',
+            'difficulty': 'Легкая',
+            'time': 8,
+            'reward': 20,
+            'description': 'Поиск максимума в списке',
+            'icon': 'fa-solid fa-chart-line',
+            'color': '#a855f7',
+            'category': 'Списки'
+        },
+        {
+            'id': 16,
+            'title': 'Сумма цифр числа',
+            'difficulty': 'Легкая',
+            'time': 12,
+            'reward': 30,
+            'description': 'Сложение цифр целого числа',
+            'icon': 'fa-solid fa-calculator',
+            'color': '#10b981',
+            'category': 'Алгоритмы'
+        },
+        {
+            'id': 17,
+            'title': 'Проверка на простое число',
+            'difficulty': 'Средняя',
+            'time': 15,
+            'reward': 35,
+            'description': 'Определение, является ли число простым',
+            'icon': 'fa-solid fa-crown',
+            'color': '#f59e0b',
+            'category': 'Алгоритмы'
+        },
+        {
+            'id': 18,
+            'title': 'Подсчёт гласных в строке',
+            'difficulty': 'Легкая',
+            'time': 10,
+            'reward': 25,
+            'description': 'Подсчёт количества гласных букв',
+            'icon': 'fa-solid fa-language',
+            'color': '#ef4444',
+            'category': 'Строки'
+        },
+        {
+            'id': 19,
+            'title': 'Удаление дубликатов из списка',
+            'difficulty': 'Средняя',
+            'time': 12,
+            'reward': 30,
+            'description': 'Удаление повторяющихся элементов с сохранением порядка',
+            'icon': 'fa-solid fa-copy',
+            'color': '#3b82f6',
+            'category': 'Списки'
+        },
+        {
+            'id': 20,
+            'title': 'Пересечение списков',
+            'difficulty': 'Средняя',
+            'time': 15,
+            'reward': 35,
+            'description': 'Нахождение общих элементов двух списков',
+            'icon': 'fa-solid fa-circle-nodes',
+            'color': '#8b5cf6',
+            'category': 'Множества'
+        },
+        {
+            'id': 21,
+            'title': 'Анаграммы',
+            'difficulty': 'Средняя',
+            'time': 15,
+            'reward': 35,
+            'description': 'Проверка, являются ли две строки анаграммами',
+            'icon': 'fa-solid fa-shuffle',
+            'color': '#ec4899',
+            'category': 'Строки'
+        },
+        {
+            'id': 22,
+            'title': 'Частотный словарь',
+            'difficulty': 'Средняя',
+            'time': 18,
+            'reward': 40,
+            'description': 'Подсчёт частоты слов в списке',
+            'icon': 'fa-solid fa-chart-bar',
+            'color': '#10b981',
+            'category': 'Словари'
+        },
+        {
+            'id': 23,
+            'title': 'Объединение словарей',
+            'difficulty': 'Средняя',
+            'time': 15,
+            'reward': 35,
+            'description': 'Объединение двух словарей с суммированием значений',
+            'icon': 'fa-solid fa-object-group',
+            'color': '#3b82f6',
+            'category': 'Словари'
+        },
+        {
+            'id': 24,
+            'title': 'Квадратная матрица',
+            'difficulty': 'Средняя',
+            'time': 20,
+            'reward': 45,
+            'description': 'Заполнение матрицы по спирали',
+            'icon': 'fa-solid fa-table-cells',
+            'color': '#f59e0b',
+            'category': 'Матрицы'
+        },
+        {
+            'id': 25,
+            'title': 'Проверка скобок',
+            'difficulty': 'Сложная',
+            'time': 20,
+            'reward': 50,
+            'description': 'Проверка правильности расстановки скобок',
+            'icon': 'fa-solid fa-code-branch',
+            'color': '#ef4444',
+            'category': 'Структуры данных'
+        },
+        {
+            'id': 26,
+            'title': 'Сортировка слиянием',
+            'difficulty': 'Сложная',
+            'time': 25,
+            'reward': 55,
+            'description': 'Реализация алгоритма merge sort',
+            'icon': 'fa-solid fa-arrow-down-wide-short',
+            'color': '#a855f7',
+            'category': 'Сортировки'
+        },
+        {
+            'id': 27,
+            'title': 'Бинарный поиск',
+            'difficulty': 'Средняя',
+            'time': 18,
+            'reward': 40,
+            'description': 'Поиск элемента в отсортированном массиве',
+            'icon': 'fa-solid fa-magnifying-glass-location',
+            'color': '#14b8a6',
+            'category': 'Алгоритмы'
+        },
+        {
+            'id': 28,
+            'title': 'Калькулятор выражений',
+            'difficulty': 'Сложная',
+            'time': 30,
+            'reward': 60,
+            'description': 'Вычисление арифметических выражений с приоритетом',
+            'icon': 'fa-solid fa-calculator',
+            'color': '#f97316',
+            'category': 'Алгоритмы'
+        },
+        {
+            'id': 29,
+            'title': 'Поиск подстроки (KMP)',
+            'difficulty': 'Сложная',
+            'time': 25,
+            'reward': 55,
+            'description': 'Алгоритм Кнута-Морриса-Пратта',
+            'icon': 'fa-solid fa-magnifying-glass',
+            'color': '#6366f1',
+            'category': 'Строки'
+        },
+        {
+            'id': 30,
+            'title': 'Минимум в окне',
+            'difficulty': 'Сложная',
+            'time': 25,
+            'reward': 60,
+            'description': 'Минимум в скользящем окне (deque)',
+            'icon': 'fa-solid fa-window-minimize',
+            'color': '#8b5cf6',
+            'category': 'Алгоритмы'
+        },
+        {
+            'id': 31,
+            'title': 'Степень числа',
+            'difficulty': 'Легкая',
+            'time': 10,
+            'reward': 25,
+            'description': 'Возведение числа в степень без ** и pow()',
+            'icon': 'fa-solid fa-superscript',
+            'color': '#10b981',
+            'category': 'Основы'
+        },
+        {
+            'id': 32,
+            'title': 'Реверс списка',
+            'difficulty': 'Легкая',
+            'time': 8,
+            'reward': 20,
+            'description': 'Переворот списка без reverse()',
+            'icon': 'fa-solid fa-backward',
+            'color': '#3b82f6',
+            'category': 'Списки'
+        },
+        {
+            'id': 33,
+            'title': 'Количество вхождений',
+            'difficulty': 'Легкая',
+            'time': 10,
+            'reward': 25,
+            'description': 'Подсчёт вхождений символа в строку',
+            'icon': 'fa-solid fa-magnifying-glass',
+            'color': '#f59e0b',
+            'category': 'Строки'
+        },
+        {
+            'id': 34,
+            'title': 'Наибольший общий делитель',
+            'difficulty': 'Средняя',
+            'time': 15,
+            'reward': 35,
+            'description': 'Алгоритм Евклида для НОД',
+            'icon': 'fa-solid fa-divide',
+            'color': '#ec4899',
+            'category': 'Алгоритмы'
         }
     ]
     
@@ -1190,25 +1827,25 @@ def login():
         email = request.form.get('email')
         password = request.form.get('password')
         remember = request.form.get('remember') == 'on'
-        
-        if email in users and users[email]['password'] == password:
+
+        if email in users and check_password_hash(users[email]['password_hash'], password):
             user_data = users[email].copy()
             user_data['email'] = email
             user_data['logged_in'] = True
-            
+
             users[email]['last_active'] = datetime.now()
             user_data['tag'] = get_user_tag(user_data['total_hours'])
-            
+
             session['user'] = user_data
             if remember:
                 session.permanent = True
-            
+
             flash(f'Добро пожаловать, {user_data["name"]}!', 'success')
             return redirect(url_for('dashboard'))
         else:
             flash('Неверный email или пароль', 'error')
             return redirect(url_for('login'))
-    
+
     return render_template('login.html')
 
 # Страница регистрации
@@ -1218,13 +1855,18 @@ def register():
         email = request.form.get('email')
         password = request.form.get('password')
         name = request.form.get('name', email.split('@')[0])
-        
+
+        # Валидация пароля
+        if len(password) < 6:
+            flash('Пароль должен содержать минимум 6 символов', 'error')
+            return redirect(url_for('register'))
+
         if email in users:
             flash('Пользователь с таким email уже существует', 'error')
             return redirect(url_for('register'))
-        
+
         users[email] = {
-            'password': password,
+            'password_hash': generate_password_hash(password),
             'name': name,
             'registered': datetime.now(),
             'total_hours': 0,
@@ -1236,7 +1878,7 @@ def register():
             'balance': 500,
             'purchased_courses': [1, 2, 3, 4, 5],
             'transaction_history': [
-                {'id': str(uuid.uuid4())[:8], 'type': 'bonus', 'amount': 500, 
+                {'id': str(uuid.uuid4())[:8], 'type': 'bonus', 'amount': 500,
                  'date': datetime.now(), 'description': 'Приветственный бонус'}
             ],
             'chat_history': [
@@ -1250,10 +1892,10 @@ def register():
                 5: {'current_lesson': 0, 'completed': False}
             }
         }
-        
+
         flash('Регистрация успешна! Вы получили 500 PYTH в подарок!', 'success')
         return redirect(url_for('login'))
-    
+
     return render_template('register.html')
 
 # Личный кабинет
@@ -1405,9 +2047,8 @@ def course_page(course_id):
     }
     
     template = template_map.get(course_id, 'course_template.html')
-    
-    return render_template(template, 
-                          course=course_meta, 
+    return render_template(template,
+                          course=course_meta,
                           user=user_data,
                           progress=progress,
                           current_lesson=user_data.get('course_progress_data', {}).get(course_id, {}).get('current_lesson', 0))

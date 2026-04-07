@@ -1,0 +1,1855 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyMaster · Безопасность Python-приложений</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Базовые стили */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: auto;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            background: #0a0c0f;
+            color: #e3e9f1;
+            overflow-y: auto;
+        }
+        
+        .navbar {
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            width: 100%;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            width: 100%;
+        }
+        
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #ef4444;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #dc2626;
+        }
+
+        .course-header {
+            background: linear-gradient(145deg, #0f172a, #1a2635);
+            border-radius: 40px;
+            padding: 40px;
+            margin-bottom: 30px;
+            border: 1px solid #2a3a55;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .course-header-icon {
+            width: 100px;
+            height: 100px;
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            color: #ef4444;
+        }
+        
+        .course-header-info {
+            flex: 1;
+        }
+        
+        .course-header-info h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(145deg, #ffffff, #ffb3b3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .course-meta {
+            display: flex;
+            gap: 30px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        
+        .course-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #9ab3d0;
+        }
+        
+        .course-meta-item i {
+            color: #ef4444;
+        }
+        
+        .progress-section {
+            background: rgba(18, 26, 36, 0.7);
+            border: 1px solid #2a3a55;
+            border-radius: 32px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .progress-percent {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #ef4444;
+        }
+        
+        .progress-label {
+            color: #9ab3d0;
+        }
+        
+        .lesson-card {
+            background: rgba(18, 26, 36, 0.7);
+            border: 1px solid #2a3a55;
+            border-radius: 24px;
+            padding: 25px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .lesson-card:hover {
+            border-color: #ef4444;
+            transform: translateX(5px);
+            background: #1e2c3f;
+        }
+        
+        .lesson-card.completed {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+        }
+        
+        .lesson-card.current {
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+        
+        .lesson-number {
+            width: 50px;
+            height: 50px;
+            background: #1e293b;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: #ef4444;
+        }
+        
+        .lesson-card.completed .lesson-number {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+        
+        .lesson-card.current .lesson-number {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .lesson-info {
+            flex: 1;
+        }
+        
+        .lesson-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #ffffff;
+        }
+        
+        .lesson-type {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #9ab3d0;
+            font-size: 0.85rem;
+        }
+        
+        .lesson-type i {
+            color: #ef4444;
+        }
+        
+        .lesson-status {
+            padding: 6px 15px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .lesson-status.completed {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid #10b981;
+        }
+        
+        .lesson-status.current {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+        
+        .lesson-status.locked {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+        
+        .theory-content {
+            background: #1a2635;
+            border: 1px solid #2f405b;
+            border-radius: 24px;
+            padding: 30px;
+            margin: 20px 0;
+            scroll-margin-top: 100px;
+        }
+        
+        .theory-section {
+            margin-bottom: 40px;
+        }
+        
+        .theory-section h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #e9f0fa;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .theory-section h3 i {
+            color: #ef4444;
+        }
+        
+        .code-block {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            color: #fbbf24;
+            overflow-x: auto;
+        }
+        
+        .code-block pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .test-block {
+            background: #1a2635;
+            border: 1px solid #2f405b;
+            border-radius: 24px;
+            padding: 30px;
+            margin: 30px 0;
+            scroll-margin-top: 100px;
+        }
+        
+        .test-question {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+        
+        .test-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .test-option {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 40px;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .test-option:hover {
+            border-color: #ef4444;
+            background: #2d3a4f;
+        }
+        
+        .test-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #ef4444;
+        }
+        
+        .test-btn {
+            background: linear-gradient(145deg, #dc2626, #b91c1c);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 20px;
+        }
+        
+        .test-btn:hover {
+            background: linear-gradient(145deg, #ef4444, #dc2626);
+            transform: scale(1.02);
+        }
+        
+        .test-feedback {
+            margin-top: 15px;
+            padding: 15px 20px;
+            border-radius: 40px;
+            font-size: 0.95rem;
+            animation: fadeIn 0.3s;
+        }
+        
+        .test-feedback.correct {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid #10b981;
+            color: #10b981;
+        }
+        
+        .test-feedback.incorrect {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        .nav-btn {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-btn:hover:not(:disabled) {
+            background: #2d3a4f;
+            border-color: #ef4444;
+        }
+        
+        .nav-btn.next {
+            background: linear-gradient(145deg, #dc2626, #b91c1c);
+            border: 1px solid #ef4444;
+        }
+        
+        .nav-btn.next:hover:not(:disabled) {
+            background: linear-gradient(145deg, #ef4444, #dc2626);
+        }
+        
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .footer {
+            border-top: 1px solid #1a2635;
+            padding: 40px 0;
+            margin-top: 60px;
+            text-align: center;
+            color: #6b8bb0;
+        }
+        
+        .flash-messages {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .flash-message {
+            padding: 16px 24px;
+            border-radius: 40px;
+            margin-bottom: 10px;
+            animation: slideIn 0.3s;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-left: 4px solid #10b981;
+            background: rgba(4, 120, 87, 0.95);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0%); opacity: 1; }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
+        @media (max-width: 768px) {
+            .course-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .course-meta {
+                justify-content: center;
+            }
+            
+            .lesson-card {
+                flex-wrap: wrap;
+            }
+            
+            .lesson-status {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        .note-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid #ef4444;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .note-box i {
+            color: #ef4444;
+            font-size: 1.5rem;
+        }
+
+        .note-box-content {
+            color: #e9f0fa;
+        }
+
+        .note-box-content p {
+            margin: 5px 0;
+        }
+
+        .vulnerability-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .vulnerability-table th {
+            text-align: left;
+            padding: 12px;
+            background: #1e293b;
+            color: #ef4444;
+            border: 1px solid #334155;
+        }
+
+        .vulnerability-table td {
+            padding: 12px;
+            border: 1px solid #334155;
+            color: #9ab3d0;
+        }
+
+        .vulnerability-table tr:hover {
+            background: #1e293b;
+        }
+
+        .warning-box {
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 4px solid #f59e0b;
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin: 15px 0;
+        }
+
+        .warning-box i {
+            color: #f59e0b;
+            margin-right: 10px;
+        }
+
+        .secure-badge {
+            display: inline-block;
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid #10b981;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .insecure-badge {
+            display: inline-block;
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Flash сообщения -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <i class="fa-solid fa-circle-check"></i> {{ message }}
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<!-- Навбар -->
+<nav class="navbar">
+    <div class="container nav-wrapper">
+        <div class="logo">
+            <i class="fa-brands fa-python logo-icon"></i>
+            <span class="logo-text">PyMaster</span>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('main') }}">Главная</a>
+            <a href="{{ url_for('courses') }}" class="active">Курсы</a>
+            <a href="{{ url_for('tasks') }}">Задачи</a>
+            <a href="{{ url_for('ai_assistant') }}">GPT-4</a>
+            <a href="{{ url_for('dashboard') }}">Кабинет</a>
+            <a href="{{ url_for('about') }}" class="{% if request.endpoint == 'about' %}active{% endif %}">О нас</a>
+            
+            <div class="pyth-balance" onclick="window.location.href='{{ url_for('shop') }}'">
+                <i class="fa-solid fa-coins"></i>
+                <span>{{ user.balance }} PYTH</span>
+            </div>
+            
+            <a href="{{ url_for('logout') }}" class="logout-btn">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Основной контент -->
+<div class="container" style="padding: 40px 24px;">
+    <!-- Шапка курса -->
+    <div class="course-header">
+        <div class="course-header-icon">
+            <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <div class="course-header-info">
+            <h1>{{ course.title }}</h1>
+            <div class="course-meta">
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-clock"></i> {{ course.hours }} часов
+                </span>
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-book-open"></i> {{ course.lessons }} уроков
+                </span>
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-signal"></i> 
+                    <span class="course-level level-advanced">Продвинутый уровень</span>
+                </span>
+            </div>
+            <p style="color: #9ab3d0;">Научитесь защищать свои приложения от распространенных атак. OWASP Top 10, SQL-инъекции, XSS, CSRF и другие уязвимости.</p>
+        </div>
+    </div>
+
+    <!-- Прогресс -->
+    <div class="progress-section">
+        <div class="progress-stats">
+            <div>
+                <span class="progress-percent">{{ progress }}%</span>
+                <span class="progress-label">прогресс</span>
+            </div>
+            <div>
+                <span class="progress-percent">{{ current_lesson }}/{{ course.lessons }}</span>
+                <span class="progress-label">уроков пройдено</span>
+            </div>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {{ progress }}%"></div>
+        </div>
+    </div>
+
+    <!-- Список уроков -->
+    <h2 style="font-size: 1.8rem; margin-bottom: 20px;">Уроки курса</h2>
+
+    <!-- Урок 1: Введение в безопасность Python -->
+    <div class="lesson-card {% if current_lesson > 0 %}completed{% elif current_lesson == 0 %}current{% endif %}" onclick="window.location.href='#lesson1'">
+        <div class="lesson-number">1</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Введение в безопасность Python</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 15 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 0 %}completed{% elif current_lesson == 0 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 0 %}✅ Пройдено{% elif current_lesson == 0 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 1 -->
+    <div id="lesson1" class="theory-content" style="scroll-margin-top: 100px;">
+        <h2 style="margin-bottom: 20px;">Урок 1: Введение в безопасность Python</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-shield-halved"></i> Почему безопасность важна?</h3>
+            <p>Безопасность — это не функция, а свойство системы. Уязвимости могут привести к:</p>
+            <ul style="color: #9ab3d0; margin-left: 20px;">
+                <li>Утечке конфиденциальных данных пользователей</li>
+                <li>Финансовым потерям</li>
+                <li>Потере репутации и доверия</li>
+                <li>Юридическим последствиям (GDPR, 152-ФЗ)</li>
+                <li>Полной компрометации системы</li>
+            </ul>
+
+            <div class="warning-box">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <strong>Важно:</strong> 84% кибератак используют уязвимости на уровне приложений. Безопасность нужно встраивать на всех этапах разработки.
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-list"></i> OWASP Top 10 для Python-разработчиков</h3>
+            <p>OWASP (Open Web Application Security Project) публикует список 10 наиболее критических уязвимостей веб-приложений.</p>
+
+            <table class="vulnerability-table">
+                <tr>
+                    <th>#</th>
+                    <th>Уязвимость</th>
+                    <th>Описание</th>
+                </tr>
+                <tr>
+                    <td>A01</td>
+                    <td>Нарушение контроля доступа</td>
+                    <td>Пользователи получают доступ к данным, которые им не принадлежат</td>
+                </tr>
+                <tr>
+                    <td>A02</td>
+                    <td>Криптографические сбои</td>
+                    <td>Плохое шифрование, хранение паролей в открытом виде</td>
+                </tr>
+                <tr>
+                    <td>A03</td>
+                    <td>Инъекции (SQL, NoSQL, OS)</td>
+                    <td>Внедрение вредоносного кода в запросы</td>
+                </tr>
+                <tr>
+                    <td>A04</td>
+                    <td>Небезопасный дизайн</td>
+                    <td>Ошибки в архитектуре безопасности</td>
+                </tr>
+                <tr>
+                    <td>A05</td>
+                    <td>Неправильная конфигурация безопасности</td>
+                    <td>Стандартные пароли, открытые порты, debug-режим в продакшне</td>
+                </tr>
+                <tr>
+                    <td>A06</td>
+                    <td>Уязвимые и устаревшие компоненты</td>
+                    <td>Использование старых версий библиотек с известными CVE</td>
+                </tr>
+                <tr>
+                    <td>A07</td>
+                    <td>Сбои идентификации и аутентификации</td>
+                    <td>Слабые пароли, отсутствие 2FA, утечка токенов</td>
+                </tr>
+                <tr>
+                    <td>A08</td>
+                    <td>Ошибки программного обеспечения и целостности данных</td>
+                    <td>Небезопасная десериализация, инъекции в зависимости</td>
+                </tr>
+                <tr>
+                    <td>A09</td>
+                    <td>Сбои регистрации и мониторинга безопасности</td>
+                    <td>Отсутствие логирования атак</td>
+                </tr>
+                <tr>
+                    <td>A10</td>
+                    <td>Подделка запросов на сервере (SSRF)</td>
+                    <td>Использование сервера для атак на внутренние ресурсы</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="note-box">
+            <i class="fa-solid fa-star"></i>
+            <div class="note-box-content">
+                <p><strong>Принципы безопасной разработки:</strong></p>
+                <ul style="margin-left: 20px;">
+                    <li>Никогда не доверяй пользовательскому вводу</li>
+                    <li>Используй принцип наименьших привилегий</li>
+                    <li>Защищай данные при передаче и хранении</li>
+                    <li>Валидируй всё на серверной стороне</li>
+                    <li>Веди логи и мониторинг</li>
+                </ul>
+            </div>
+        </div>
+
+        
+    </div>
+
+    <!-- Урок 2: SQL-инъекции -->
+    <div class="lesson-card {% if current_lesson > 1 %}completed{% elif current_lesson == 1 %}current{% endif %}" onclick="window.location.href='#lesson2'">
+        <div class="lesson-number">2</div>
+        <div class="lesson-info">
+            <div class="lesson-title">SQL-инъекции</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 1 %}completed{% elif current_lesson == 1 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 1 %}✅ Пройдено{% elif current_lesson == 1 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 2 -->
+    {% if current_lesson >= 1 %}
+    <div id="lesson2" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 1 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 2: SQL-инъекции</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-database"></i> Что такое SQL-инъекция?</h3>
+            <p>SQL-инъекция (SQLi) — это атака, при которой злоумышленник внедряет вредоносный SQL-код в запрос, чтобы получить несанкционированный доступ к базе данных.</p>
+
+            <h4 style="margin: 20px 0 10px;">❌ Уязвимый код:</h4>
+            <div class="code-block">
+                <pre>
+# НИКОГДА ТАК НЕ ДЕЛАЙТЕ!
+import sqlite3
+
+def get_user(username, password):
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    
+    # Прямая подстановка в запрос — опасно!
+    query = f"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'"
+    cursor.execute(query)
+    return cursor.fetchone()
+
+# Пример атаки:
+# username = "admin' --"
+# password = "anything"
+# Запрос станет: SELECT * FROM users WHERE username = 'admin' --' AND password = 'anything'
+# -- это комментарий, условие на пароль игнорируется!</pre>
+            </div>
+
+            <h4 style="margin: 20px 0 10px;">✅ Безопасный код с параметризацией:</h4>
+            <div class="code-block">
+                <pre>
+import sqlite3
+
+def get_user_safe(username, password):
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    
+    # Параметризованный запрос
+    query = "SELECT * FROM users WHERE username = ? AND password = ?"
+    cursor.execute(query, (username, password))
+    return cursor.fetchone()
+
+# С параметризацией SQL-инъекция невозможна!</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-shield"></i> Защита от SQL-инъекций</h3>
+
+            <p><strong>1. Использование ORM (SQLAlchemy, Django ORM):</strong></p>
+            <div class="code-block">
+                <pre>
+# SQLAlchemy
+from sqlalchemy import text
+
+def get_user_orm(session, username):
+    # ORM автоматически экранирует параметры
+    user = session.query(User).filter(User.username == username).first()
+    return user
+
+# Или с сырым SQL через text()
+result = session.execute(
+    text("SELECT * FROM users WHERE username = :username"),
+    {"username": username}
+)</pre>
+            </div>
+
+            <p><strong>2. Экранирование вручную (если нет ORM):</strong></p>
+            <div class="code-block">
+                <pre>
+import mysql.connector
+
+def get_user_escaped(username):
+    conn = mysql.connector.connect(...)
+    cursor = conn.cursor(prepared=True)  # Подготовленные запросы
+    
+    cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
+    return cursor.fetchone()</pre>
+            </div>
+
+            <p><strong>3. Ограничение привилегий БД:</strong></p>
+            <div class="code-block">
+                <pre>
+# Создаем отдельного пользователя для приложения с минимальными правами
+GRANT SELECT, INSERT, UPDATE ON app_db.* TO 'app_user'@'localhost';
+# Без DROP, ALTER, DELETE (если не нужны)</pre>
+            </div>
+        </div>
+
+        <div class="note-box">
+            <i class="fa-solid fa-lightbulb"></i>
+            <div class="note-box-content">
+                <p><strong>Практический совет:</strong> Используйте ORM (SQLAlchemy) или подготовленные запросы. Никогда не конкатенируйте строки при построении SQL-запросов. Даже если кажется, что данные безопасны.</p>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 3: XSS и CSRF -->
+    <div class="lesson-card {% if current_lesson > 2 %}completed{% elif current_lesson == 2 %}current{% endif %}" onclick="window.location.href='#lesson3'">
+        <div class="lesson-number">3</div>
+        <div class="lesson-info">
+            <div class="lesson-title">XSS и CSRF атаки</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 2 %}completed{% elif current_lesson == 2 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 2 %}✅ Пройдено{% elif current_lesson == 2 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 3 -->
+    {% if current_lesson >= 2 %}
+    <div id="lesson3" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 2 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 3: XSS и CSRF атаки</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-code"></i> XSS (Cross-Site Scripting)</h3>
+            <p>XSS — атака, при которой злоумышленник внедряет вредоносный JavaScript-код на страницу, который выполняется в браузере жертвы.</p>
+
+            <h4 style="margin: 20px 0 10px;">❌ Уязвимый код (Flask без экранирования):</h4>
+            <div class="code-block">
+                <pre>
+from flask import Flask, request, render_template_string
+
+app = Flask(__name__)
+
+@app.route('/comment')
+def comment():
+    # Пользовательский ввод выводится без экранирования
+    user_comment = request.args.get('text', '')
+    return render_template_string(f"<div>{user_comment}</div>")
+
+# Пример атаки:
+# /comment?text=<script>alert('XSS');</script></pre>
+            </div>
+
+            <h4 style="margin: 20px 0 10px;">✅ Безопасный код с экранированием:</h4>
+            <div class="code-block">
+                <pre>
+from flask import Flask, request, render_template_string
+from markupsafe import escape
+
+@app.route('/comment')
+def comment_safe():
+    user_comment = request.args.get('text', '')
+    # escape() экранирует HTML-теги
+    safe_comment = escape(user_comment)
+    return render_template_string(f"<div>{safe_comment}</div>")
+
+# Или в Jinja2 шаблонах по умолчанию всё экранируется:
+# {{ user_comment }} — автоматическое экранирование
+# {{ user_comment|safe }} — отключает экранирование (используйте осторожно!)</pre>
+            </div>
+
+            <p><strong>Типы XSS:</strong></p>
+            <ul style="color: #9ab3d0; margin-left: 20px;">
+                <li><strong>Reflected XSS:</strong> Код отражается в ответе (через GET параметры)</li>
+                <li><strong>Stored XSS:</strong> Код сохраняется в БД и выполняется при просмотре</li>
+                <li><strong>DOM-based XSS:</strong> Уязвимость в клиентском JavaScript</li>
+            </ul>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-arrow-right-arrow-left"></i> CSRF (Cross-Site Request Forgery)</h3>
+            <p>CSRF — атака, при которой злоумышленник заставляет жертву выполнить нежелательное действие на сайте, где она аутентифицирована.</p>
+
+            <div class="code-block">
+                <pre>
+# Пример CSRF атаки
+# Злоумышленник размещает на своем сайте:
+# <img src="https://bank.com/transfer?to=attacker&amount=1000">
+
+# Если пользователь авторизован в банке, произойдет перевод
+
+# Защита: CSRF-токены
+from flask_wtf.csrf import CSRFProtect
+
+app = Flask(__name__)
+csrf = CSRFProtect(app)
+
+# В формах автоматически добавляется токен
+# В AJAX запросах нужно передавать токен в заголовках
+# X-CSRFToken: token-value</pre>
+            </div>
+
+            <p><strong>Защита от CSRF:</strong></p>
+            <ul style="color: #9ab3d0; margin-left: 20px;">
+                <li>CSRF-токены в формах</li>
+                <li>Проверка заголовка Referer / Origin</li>
+                <li>SameSite cookies (SameSite=Lax или Strict)</li>
+                <li>Использование CAPTCHA для критических действий</li>
+            </ul>
+
+            <div class="code-block">
+                <pre>
+# Настройка SameSite cookies в Flask
+app.config.update(
+    SESSION_COOKIE_SAMESITE='Lax',
+    SESSION_COOKIE_SECURE=True,  # только HTTPS
+    SESSION_COOKIE_HTTPONLY=True  # недоступны из JS
+)</pre>
+            </div>
+        </div>
+
+        <div class="note-box">
+            <i class="fa-solid fa-shield-halved"></i>
+            <div class="note-box-content">
+                <p><strong>Правила защиты:</strong></p>
+                <ul>
+                    <li>Всегда экранируйте вывод пользовательских данных</li>
+                    <li>Используйте Content-Security-Policy (CSP) заголовки</li>
+                    <li>Включайте CSRF-защиту для всех изменяющих запросов</li>
+                    <li>Устанавливайте Secure и HttpOnly флаги для cookies</li>
+                </ul>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 4: Небезопасная десериализация -->
+    <div class="lesson-card {% if current_lesson > 3 %}completed{% elif current_lesson == 3 %}current{% endif %}" onclick="window.location.href='#lesson4'">
+        <div class="lesson-number">4</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Небезопасная десериализация</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 3 %}completed{% elif current_lesson == 3 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 3 %}✅ Пройдено{% elif current_lesson == 3 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 4 -->
+    {% if current_lesson >= 3 %}
+    <div id="lesson4" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 3 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 4: Небезопасная десериализация</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-box-open"></i> Что такое десериализация?</h3>
+            <p>Десериализация — это процесс восстановления объекта из его сериализованного представления (JSON, pickle, XML). Небезопасная десериализация может привести к выполнению произвольного кода.</p>
+
+            <div class="warning-box">
+                <i class="fa-solid fa-skull"></i>
+                <strong>Критическая опасность!</strong> Десериализация из ненадежных источников может привести к RCE (Remote Code Execution).
+            </div>
+
+            <h4 style="margin: 20px 0 10px;">❌ Опасный код с pickle:</h4>
+            <div class="code-block">
+                <pre>
+import pickle
+
+def load_user_data(data):
+    # НИКОГДА так не делайте!
+    user_data = pickle.loads(data)  # Злоумышленник может выполнить произвольный код
+    return user_data
+
+# Злоумышленник может отправить:
+# __import__('os').system('rm -rf /')
+# Это уничтожит систему при десериализации!</pre>
+            </div>
+
+            <h4 style="margin: 20px 0 10px;">✅ Безопасные альтернативы:</h4>
+            <div class="code-block">
+                <pre>
+import json
+import ast
+
+# Используйте JSON для обмена данными
+def load_user_data_safe(data):
+    try:
+        user_data = json.loads(data)  # JSON безопасен для десериализации
+        return user_data
+    except json.JSONDecodeError:
+        return None
+
+# Или ast.literal_eval для Python-литералов
+def safe_eval(data):
+    # ast.literal_eval работает только с литералами (строки, числа, списки, словари)
+    return ast.literal_eval(data)</pre>
+            </div>
+
+            <p><strong>Сравнение форматов:</strong></p>
+            <table class="vulnerability-table">
+                <tr>
+                    <th>Формат</th>
+                    <th>Безопасность</th>
+                    <th>Когда использовать</th>
+                </tr>
+                 <tr>
+                    <td>JSON</td>
+                    <td><span class="secure-badge">Безопасен</span></td>
+                    <td>API, обмен данными, конфиги</td>
+                </tr>
+                <tr>
+                    <td>pickle</td>
+                    <td><span class="insecure-badge">ОПАСЕН</span></td>
+                    <td>Только для доверенных данных (внутри приложения)</td>
+                </tr>
+                <tr>
+                    <td>yaml</td>
+                    <td><span class="insecure-badge">Опасен</span></td>
+                    <td>Используйте yaml.safe_load()</td>
+                </tr>
+                <tr>
+                    <td>xml</td>
+                    <td><span class="insecure-badge">Опасен</span></td>
+                    <td>Используйте defusedxml</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-code-branch"></i> Безопасная десериализация в реальных проектах</h3>
+
+            <div class="code-block">
+                <pre>
+# Использование defusedxml для защиты от XML-атак (XXE, Billion Laughs)
+import defusedxml.ElementTree as ET
+
+def parse_xml_safe(xml_data):
+    # defusedxml защищает от XML-бомб и внешних сущностей
+    tree = ET.fromstring(xml_data)
+    return tree
+
+# Безопасный YAML
+import yaml
+
+def load_yaml_safe(yaml_data):
+    # Всегда используйте safe_load!
+    return yaml.safe_load(yaml_data)  # Не позволяет создавать произвольные объекты</pre>
+            </div>
+        </div>
+
+        <div class="note-box">
+            <i class="fa-solid fa-key"></i>
+            <div class="note-box-content">
+                <p><strong>Золотое правило:</strong> Никогда не десериализуйте данные из ненадежных источников. Если это необходимо, используйте безопасные форматы (JSON) и валидацию схемы.</p>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 5: Безопасная аутентификация -->
+    <div class="lesson-card {% if current_lesson > 4 %}completed{% elif current_lesson == 4 %}current{% endif %}" onclick="window.location.href='#lesson5'">
+        <div class="lesson-number">5</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Безопасная аутентификация</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 4 %}completed{% elif current_lesson == 4 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 4 %}✅ Пройдено{% elif current_lesson == 4 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 5 -->
+    {% if current_lesson >= 4 %}
+    <div id="lesson5" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 4 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 5: Безопасная аутентификация</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-lock"></i> Хранение паролей</h3>
+            <p>Никогда не храните пароли в открытом виде! Используйте современные алгоритмы хеширования.</p>
+
+            <div class="code-block">
+                <pre>
+import bcrypt
+import hashlib
+
+# ❌ НИКОГДА ТАК НЕ ДЕЛАЙТЕ!
+def store_password_insecure(password):
+    hashed = hashlib.md5(password.encode()).hexdigest()  # MD5 небезопасен!
+    return hashed
+
+# ✅ Правильное хранение паролей с bcrypt
+import bcrypt
+
+def hash_password(password):
+    # Генерируем соль и хеш
+    salt = bcrypt.gensalt(rounds=12)  # 12 раундов — достаточно
+    hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
+    return hashed
+
+def verify_password(password, hashed):
+    return bcrypt.checkpw(password.encode('utf-8'), hashed)
+
+# ✅ Альтернатива — argon2 (более современный)
+from argon2 import PasswordHasher
+
+ph = PasswordHasher()
+
+def hash_password_argon2(password):
+    return ph.hash(password)
+
+def verify_password_argon2(password, hashed):
+    try:
+        ph.verify(hashed, password)
+        return True
+    except:
+        return False</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-id-card"></i> JWT (JSON Web Tokens)</h3>
+            <p>JWT — популярный формат для аутентификации. Но важно использовать его правильно!</p>
+
+            <div class="code-block">
+                <pre>
+import jwt
+from datetime import datetime, timedelta
+
+SECRET_KEY = "your-secret-key-here"  # Должен быть в переменных окружения!
+
+def create_token(user_id):
+    payload = {
+        'user_id': user_id,
+        'exp': datetime.utcnow() + timedelta(hours=24),  # Время жизни токена
+        'iat': datetime.utcnow(),  # Время выдачи
+        'iss': 'pymaster.com'  # Издатель
+    }
+    token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+    return token
+
+def verify_token(token):
+    try:
+        # Проверяем подпись и срок действия
+        payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+        return payload
+    except jwt.ExpiredSignatureError:
+        return None  # Токен истек
+    except jwt.InvalidTokenError:
+        return None  # Невалидный токен
+
+# ⚠️ Важно! Не используйте algorithm='none' и не проверяйте подпись!</pre>
+            </div>
+
+            <p><strong>Безопасность JWT:</strong></p>
+            <ul style="color: #9ab3d0; margin-left: 20px;">
+                <li>Используйте короткое время жизни (15-60 минут) + refresh tokens</li>
+                <li>Храните секретный ключ в переменных окружения</li>
+                <li>Используйте только HS256 или RS256 алгоритмы</li>
+                <li>Не храните чувствительные данные в payload</li>
+                <li>Храните токены в httpOnly cookies, а не в localStorage</li>
+            </ul>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-shield"></i> Защита от атак на аутентификацию</h3>
+
+            <div class="code-block">
+                <pre>
+from flask import Flask, request, session
+from werkzeug.security import safe_str_cmp
+import time
+
+app = Flask(__name__)
+
+# Rate limiting для защиты от brute-force
+login_attempts = {}  # IP: попытки
+
+def check_rate_limit(ip):
+    attempts = login_attempts.get(ip, 0)
+    if attempts >= 5:
+        return False
+    
+    # Обновляем счетчик
+    login_attempts[ip] = attempts + 1
+    # Сбрасываем через 15 минут
+    time.sleep(0.1)
+    return True
+
+@app.route('/login', methods=['POST'])
+def login():
+    ip = request.remote_addr
+    if not check_rate_limit(ip):
+        return "Слишком много попыток. Подождите 15 минут.", 429
+    
+    username = request.form.get('username')
+    password = request.form.get('password')
+    
+    # Проверка credentials
+    # ...
+
+# Дополнительные меры защиты:
+# - CAPTCHA после нескольких неудачных попыток
+# - Уведомления о входе с нового устройства
+# - Двухфакторная аутентификация (2FA)
+# - Мониторинг подозрительной активности</pre>
+            </div>
+        </div>
+
+        <div class="note-box">
+            <i class="fa-solid fa-star"></i>
+            <div class="note-box-content">
+                <p><strong>Чек-лист безопасной аутентификации:</strong></p>
+                <ul>
+                    <li>✅ Использовать bcrypt/argon2 для паролей</li>
+                    <li>✅ Включить HTTPS для передачи данных</li>
+                    <li>✅ Ограничить количество попыток входа</li>
+                    <li>✅ Использовать защищенные httpOnly, Secure cookies</li>
+                    <li>✅ Внедрить двухфакторную аутентификацию</li>
+                    <li>✅ Реализовать выход из всех устройств при смене пароля</li>
+                </ul>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 6: Тест по безопасности -->
+    <div class="lesson-card {% if current_lesson > 5 %}completed{% elif current_lesson == 5 %}current{% endif %}" onclick="window.location.href='#lesson6'">
+        <div class="lesson-number">6</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Тест: Безопасность приложений</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-pen-to-square"></i> Тест • 15 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 5 %}completed{% elif current_lesson == 5 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 5 %}✅ Пройдено{% elif current_lesson == 5 %}📝 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 6 -->
+    {% if current_lesson >= 5 %}
+    <div id="lesson6" class="test-block" style="scroll-margin-top: 100px; {% if current_lesson != 5 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 6: Тест по безопасности приложений</h2>
+        
+        <div class="test-question">Вопрос 1: Какой метод лучше всего защищает от SQL-инъекций?</div>
+        <div class="test-options">
+            <label class="test-option">
+                <input type="radio" name="q1" value="0"> Экранирование кавычек вручную
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q1" value="1"> Использование параметризованных запросов (prepared statements)
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q1" value="2"> Проверка ввода на стороне клиента
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q1" value="3"> Использование хранимых процедур
+            </label>
+        </div>
+        <div id="feedback1" class="test-feedback" style="display: none;"></div>
+
+        <div class="test-question" style="margin-top: 30px;">Вопрос 2: Что такое XSS-атака?</div>
+        <div class="test-options">
+            <label class="test-option">
+                <input type="radio" name="q2" value="0"> Внедрение вредоносного SQL-кода
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q2" value="1"> Внедрение вредоносного JavaScript-кода на страницу
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q2" value="2"> Перехват сессии пользователя
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q2" value="3"> Атака на сервер через десериализацию
+            </label>
+        </div>
+        <div id="feedback2" class="test-feedback" style="display: none;"></div>
+
+        <div class="test-question" style="margin-top: 30px;">Вопрос 3: Почему pickle небезопасен для десериализации из ненадежных источников?</div>
+        <div class="test-options">
+            <label class="test-option">
+                <input type="radio" name="q3" value="0"> Он слишком медленный
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q3" value="1"> Он может выполнять произвольный код при десериализации
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q3" value="2"> Он не поддерживает сложные объекты
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q3" value="3"> Он работает только с простыми типами данных
+            </label>
+        </div>
+        <div id="feedback3" class="test-feedback" style="display: none;"></div>
+
+        <div class="test-question" style="margin-top: 30px;">Вопрос 4: Какой алгоритм хеширования паролей является современным и безопасным?</div>
+        <div class="test-options">
+            <label class="test-option">
+                <input type="radio" name="q4" value="0"> MD5
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q4" value="1"> SHA-1
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q4" value="2"> bcrypt или argon2
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q4" value="3"> base64
+            </label>
+        </div>
+        <div id="feedback4" class="test-feedback" style="display: none;"></div>
+
+        <button class="test-btn" onclick="checkTest()">Проверить ответы</button>
+
+        <div class="navigation-buttons" style="margin-top: 30px;">
+            <button class="nav-btn" onclick="window.location.href='#lesson5'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" id="completeBtn" style="display: none;" onclick="completeCourse(27)">Завершить курс <i class="fa-solid fa-check"></i></button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Урок 7: Практика: сканер уязвимостей -->
+    <div class="lesson-card {% if current_lesson > 6 %}completed{% elif current_lesson == 6 %}current{% endif %}" onclick="window.location.href='#lesson7'">
+        <div class="lesson-number">7</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Практика: сканер уязвимостей</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-laptop-code"></i> Практика • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 6 %}completed{% elif current_lesson == 6 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 6 %}✅ Пройдено{% elif current_lesson == 6 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 7 -->
+    {% if current_lesson >= 6 %}
+    <div id="lesson7" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 6 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 7: Практика — сканер уязвимостей</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-code"></i> Проект: Простой сканер SQL-инъекций</h3>
+            <p>Создадим простой сканер для обнаружения SQL-инъекций в веб-приложениях (для тестирования собственных проектов!).</p>
+
+            <div class="code-block">
+                <pre>
+import requests
+import time
+from urllib.parse import urljoin
+
+class SQLInjectionScanner:
+    def __init__(self, base_url):
+        self.base_url = base_url
+        self.payloads = [
+            "' OR '1'='1",
+            "' OR 1=1--",
+            "' UNION SELECT NULL--",
+            "'; DROP TABLE users--",
+            "' AND SLEEP(5)--",
+        ]
+        self.timeout = 5
+        
+    def test_sql_injection(self, url, param):
+        """Тестирует параметр на наличие SQL-инъекции"""
+        results = []
+        
+        for payload in self.payloads:
+            # Формируем тестовый запрос
+            test_params = {param: payload}
+            try:
+                start_time = time.time()
+                response = requests.get(url, params=test_params, timeout=self.timeout)
+                response_time = time.time() - start_time
+                
+                # Проверка на задержку (time-based injection)
+                if response_time > 4.5:  # Если ответ пришел через 4.5+ секунд
+                    results.append({
+                        'payload': payload,
+                        'vulnerable': True,
+                        'type': 'Time-based SQL injection',
+                        'response_time': response_time
+                    })
+                # Проверка на ошибки БД
+                elif 'sql' in response.text.lower() or 'mysql' in response.text.lower():
+                    results.append({
+                        'payload': payload,
+                        'vulnerable': True,
+                        'type': 'Error-based SQL injection',
+                        'response_length': len(response.text)
+                    })
+                else:
+                    results.append({
+                        'payload': payload,
+                        'vulnerable': False
+                    })
+                    
+            except requests.exceptions.RequestException as e:
+                results.append({
+                    'payload': payload,
+                    'vulnerable': False,
+                    'error': str(e)
+                })
+                
+        return results
+    
+    def scan_parameters(self, url, params):
+        """Сканирует все параметры URL"""
+        all_results = {}
+        
+        for param in params:
+            print(f"Тестируем параметр: {param}")
+            results = self.test_sql_injection(url, param)
+            all_results[param] = results
+            
+            # Выводим результаты
+            for result in results:
+                if result.get('vulnerable'):
+                    print(f"  🔴 НАЙДЕНО! {param} = {result['payload']}")
+                    print(f"     Тип: {result.get('type')}")
+                else:
+                    print(f"  🟢 Безопасно: {result['payload']}")
+                    
+        return all_results
+
+# Пример использования
+if __name__ == "__main__":
+    # Только для тестирования своих приложений!
+    scanner = SQLInjectionScanner("http://localhost:5000")
+    
+    # URL и параметры для тестирования
+    test_url = "http://localhost:5000/search"
+    test_params = ['q', 'page', 'id']
+    
+    results = scanner.scan_parameters(test_url, test_params)</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-shield"></i> Практические рекомендации</h3>
+            <p>После завершения курса, вот основные меры безопасности, которые стоит внедрить:</p>
+
+            <div class="code-block">
+                <pre>
+# 1. Используйте безопасные зависимости
+# В requirements.txt фиксируйте версии:
+requests==2.31.0  # Безопасная версия
+
+# Проверяйте уязвимости:
+# pip install safety
+# safety check
+
+# 2. Настройка заголовков безопасности в Flask
+from flask import Flask
+from flask_talisman import Talisman
+
+app = Flask(__name__)
+talisman = Talisman(app, 
+    content_security_policy={
+        'default-src': "'self'",
+        'script-src': ["'self'", "'unsafe-inline'"],
+    },
+    force_https=True,
+    session_cookie_secure=True,
+    session_cookie_http_only=True
+)
+
+# 3. Используйте переменные окружения для секретов
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+SECRET_KEY = os.getenv('SECRET_KEY')
+DB_PASSWORD = os.getenv('DB_PASSWORD')
+
+# 4. Регулярно обновляйте зависимости
+# pip list --outdated
+# pip install --upgrade package_name
+
+# 5. Ведите логи безопасности
+import logging
+logging.basicConfig(level=logging.INFO)
+
+def log_security_event(event_type, details):
+    logging.warning(f"SECURITY: {event_type} - {details}")
+
+# При подозрительной активности
+log_security_event("failed_login_attempt", f"IP: {request.remote_addr}")</pre>
+            </div>
+        </div>
+
+        <div class="note-box">
+            <i class="fa-solid fa-trophy"></i>
+            <div class="note-box-content">
+                <p><strong>Поздравляем с завершением курса!</strong> Вы научились:</p>
+                <ul>
+                    <li>Идентифицировать основные типы уязвимостей (SQLi, XSS, CSRF)</li>
+                    <li>Защищать аутентификацию и хранение паролей</li>
+                    <li>Проводить безопасную десериализацию</li>
+                    <li>Применять лучшие практики безопасности в Python</li>
+                </ul>
+                <p>Помните: безопасность — это не разовое действие, а непрерывный процесс!</p>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Кнопка возврата -->
+    <div style="margin-top: 40px; text-align: center;">
+        <a href="{{ url_for('courses') }}" class="btn btn-outline">
+            <i class="fa-solid fa-arrow-left"></i> К списку курсов
+        </a>
+    </div>
+</div>
+
+<!-- Футер -->
+<footer class="footer">
+    <div class="container">
+        <p>© 2025 PyMaster · Безопасность Python-приложений</p>
+    </div>
+</footer>
+
+<script>
+    // ID текущего курса
+    const courseId = {{ course.id }};
+    const totalLessons = {{ course.lessons }};
+    
+    // Функция перехода к уроку по клику
+    async function goToLesson(lessonIndex) {
+        try {
+            const response = await fetch('/api/save-progress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    course_id: courseId,
+                    lesson_index: lessonIndex,
+                    completed: false
+                })
+            });
+            
+            if (response.ok) {
+                const lessonElement = document.getElementById(`lesson${lessonIndex + 1}`);
+                if (lessonElement) {
+                    lessonElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    history.pushState(null, null, `#lesson${lessonIndex + 1}`);
+                    updateLessonStyles(lessonIndex);
+                } else {
+                    window.location.reload();
+                }
+            }
+        } catch (error) {
+            console.error('Ошибка сохранения прогресса:', error);
+        }
+    }
+    
+    function updateLessonStyles(activeLessonIndex) {
+        const lessonCards = document.querySelectorAll('.lesson-card');
+        const lessonContents = document.querySelectorAll('.theory-content, .test-block');
+        
+        lessonCards.forEach((card, index) => {
+            card.classList.remove('current');
+            if (index === activeLessonIndex) {
+                card.classList.add('current');
+            }
+            
+            const statusElement = card.querySelector('.lesson-status');
+            if (statusElement) {
+                if (index === activeLessonIndex) {
+                    statusElement.className = 'lesson-status current';
+                    const lessonType = card.querySelector('.lesson-type i');
+                    statusElement.innerHTML = lessonType && lessonType.classList.contains('fa-pen-to-square') ? '📝 Текущий' : '📖 Текущий';
+                } else {
+                    statusElement.className = 'lesson-status';
+                    statusElement.innerHTML = '📚 Доступен';
+                }
+            }
+        });
+        
+        lessonContents.forEach((content, index) => {
+            if (index === activeLessonIndex) {
+                content.style.display = 'block';
+                content.style.animation = 'fadeIn 0.5s';
+            } else {
+                content.style.display = 'none';
+            }
+        });
+        
+        updateProgressBar(activeLessonIndex + 1);
+    }
+    
+    function updateProgressBar(currentLesson) {
+        const progressPercent = Math.round((currentLesson / totalLessons) * 100);
+        
+        const progressFill = document.querySelector('.progress-fill');
+        const progressPercentSpan = document.querySelector('.progress-percent:first-child');
+        const progressCounter = document.querySelectorAll('.progress-percent')[1];
+        
+        if (progressFill) progressFill.style.width = `${progressPercent}%`;
+        if (progressPercentSpan) progressPercentSpan.textContent = `${progressPercent}%`;
+        if (progressCounter) progressCounter.textContent = `${currentLesson}/${totalLessons}`;
+    }
+    
+    async function completeCourse() {
+        try {
+            const response = await fetch('/api/save-progress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    course_id: courseId,
+                    lesson_index: totalLessons - 1,
+                    completed: true
+                })
+            });
+            
+            if (response.ok) {
+                alert('🎉 Поздравляем! Вы завершили курс! +50 PYTH');
+                window.location.href = "{{ url_for('courses') }}";
+            }
+        } catch (error) {
+            console.error('Ошибка завершения курса:', error);
+        }
+    }
+    
+    function checkTest() {
+        const q1 = document.querySelector('input[name="q1"]:checked');
+        const q2 = document.querySelector('input[name="q2"]:checked');
+        const q3 = document.querySelector('input[name="q3"]:checked');
+        const q4 = document.querySelector('input[name="q4"]:checked');
+        
+        let allCorrect = true;
+        
+        // Проверка вопроса 1
+        if (q1 && q1.value === '1') {
+            document.getElementById('feedback1').className = 'test-feedback correct';
+            document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! Параметризованные запросы — лучшая защита от SQL-инъекций.';
+            document.getElementById('feedback1').style.display = 'block';
+        } else {
+            document.getElementById('feedback1').className = 'test-feedback incorrect';
+            document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. Правильный ответ: использование параметризованных запросов.';
+            document.getElementById('feedback1').style.display = 'block';
+            allCorrect = false;
+        }
+        
+        // Проверка вопроса 2
+        if (q2 && q2.value === '1') {
+            document.getElementById('feedback2').className = 'test-feedback correct';
+            document.getElementById('feedback2').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! XSS — это внедрение JavaScript-кода.';
+            document.getElementById('feedback2').style.display = 'block';
+        } else {
+            document.getElementById('feedback2').className = 'test-feedback incorrect';
+            document.getElementById('feedback2').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. XSS — это внедрение вредоносного JavaScript.';
+            document.getElementById('feedback2').style.display = 'block';
+            allCorrect = false;
+        }
+        
+        // Проверка вопроса 3
+        if (q3 && q3.value === '1') {
+            document.getElementById('feedback3').className = 'test-feedback correct';
+            document.getElementById('feedback3').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! pickle может выполнить произвольный код при десериализации.';
+            document.getElementById('feedback3').style.display = 'block';
+        } else {
+            document.getElementById('feedback3').className = 'test-feedback incorrect';
+            document.getElementById('feedback3').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. pickle опасен, так как может выполнять произвольный код.';
+            document.getElementById('feedback3').style.display = 'block';
+            allCorrect = false;
+        }
+        
+        // Проверка вопроса 4
+        if (q4 && q4.value === '2') {
+            document.getElementById('feedback4').className = 'test-feedback correct';
+            document.getElementById('feedback4').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! bcrypt и argon2 — современные безопасные алгоритмы.';
+            document.getElementById('feedback4').style.display = 'block';
+        } else {
+            document.getElementById('feedback4').className = 'test-feedback incorrect';
+            document.getElementById('feedback4').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. bcrypt и argon2 — безопасные алгоритмы для паролей.';
+            document.getElementById('feedback4').style.display = 'block';
+            allCorrect = false;
+        }
+        
+        if (allCorrect) {
+            document.getElementById('completeBtn').style.display = 'flex';
+            const successMsg = document.createElement('div');
+            successMsg.className = 'test-feedback correct';
+            successMsg.innerHTML = '<i class="fa-solid fa-check"></i> 🎉 Отлично! Все ответы правильные. Завершите курс, чтобы получить +50 PYTH!';
+            successMsg.style.marginTop = '20px';
+            document.querySelector('.test-block').appendChild(successMsg);
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const lessonCards = document.querySelectorAll('.lesson-card');
+        const currentLessonIndex = parseInt('{{ current_lesson }}') || 0;
+        
+        lessonCards.forEach(card => {
+            const statusElement = card.querySelector('.lesson-status');
+            if (statusElement) statusElement.classList.remove('locked');
+        });
+        
+        updateLessonStyles(currentLessonIndex);
+        
+        lessonCards.forEach((card, index) => {
+            card.addEventListener('click', function(e) {
+                if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+                goToLesson(index);
+            });
+            card.style.cursor = 'pointer';
+        });
+        
+        if (window.location.hash) {
+            const lessonMatch = window.location.hash.match(/lesson(\d+)/);
+            if (lessonMatch) {
+                const lessonIndex = parseInt(lessonMatch[1]) - 1;
+                if (lessonIndex >= 0 && lessonIndex < totalLessons) {
+                    setTimeout(() => goToLesson(lessonIndex), 100);
+                }
+            }
+        }
+        
+        const radioButtons = document.querySelectorAll('input[type="radio"]');
+        radioButtons.forEach(radio => {
+            radio.addEventListener('change', function() {
+                const feedbackId = this.name === 'q1' ? 'feedback1' : 
+                                  (this.name === 'q2' ? 'feedback2' :
+                                  (this.name === 'q3' ? 'feedback3' : 'feedback4'));
+                const feedback = document.getElementById(feedbackId);
+                if (feedback) feedback.style.display = 'none';
+            });
+        });
+    });
+    
+    setTimeout(() => {
+        document.querySelectorAll('.flash-message').forEach(msg => {
+            msg.style.animation = 'slideOut 0.3s';
+            setTimeout(() => msg.remove(), 300);
+        });
+    }, 5000);
+</script>
+
+<style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .lesson-card {
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .lesson-card:hover {
+        transform: translateX(10px);
+        border-color: #ef4444;
+    }
+    
+    .lesson-card.current {
+        border-color: #ef4444;
+        background: rgba(239, 68, 68, 0.1);
+    }
+    
+    .lesson-status {
+        padding: 6px 15px;
+        border-radius: 40px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+        border: 1px solid #3b82f6;
+    }
+    
+    .lesson-status.locked {
+        display: none;
+    }
+    
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+</style>
+
+</body>
+</html>

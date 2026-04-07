@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyMaster · CI/CD для Python-проектов</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Базовые стили (аналогично другим курсам) */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: auto;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            background: #0a0c0f;
+            color: #e3e9f1;
+            overflow-y: auto;
+        }
+        
+        .navbar {
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            width: 100%;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            width: 100%;
+        }
+        
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2563eb;
+        }
+
+        .course-header {
+            background: linear-gradient(145deg, #0f172a, #1a2635);
+            border-radius: 40px;
+            padding: 40px;
+            margin-bottom: 30px;
+            border: 1px solid #2a3a55;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .course-header-icon {
+            width: 100px;
+            height: 100px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            color: #3b82f6;
+        }
+        
+        .course-header-info {
+            flex: 1;
+        }
+        
+        .course-header-info h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(145deg, #ffffff, #a5c9ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .course-meta {
+            display: flex;
+            gap: 30px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        
+        .course-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #9ab3d0;
+        }
+        
+        .course-meta-item i {
+            color: #3b82f6;
+        }
+        
+        .progress-section {
+            background: rgba(18, 26, 36, 0.7);
+            border: 1px solid #2a3a55;
+            border-radius: 32px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .progress-percent {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #3b82f6;
+        }
+        
+        .progress-label {
+            color: #9ab3d0;
+        }
+        
+        .lesson-card {
+            background: rgba(18, 26, 36, 0.7);
+            border: 1px solid #2a3a55;
+            border-radius: 24px;
+            padding: 25px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .lesson-card:hover {
+            border-color: #3b82f6;
+            transform: translateX(5px);
+            background: #1e2c3f;
+        }
+        
+        .lesson-card.completed {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+        }
+        
+        .lesson-card.current {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        .lesson-number {
+            width: 50px;
+            height: 50px;
+            background: #1e293b;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: #3b82f6;
+        }
+        
+        .lesson-card.completed .lesson-number {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+        
+        .lesson-card.current .lesson-number {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .lesson-info {
+            flex: 1;
+        }
+        
+        .lesson-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #ffffff;
+        }
+        
+        .lesson-type {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #9ab3d0;
+            font-size: 0.85rem;
+        }
+        
+        .lesson-type i {
+            color: #3b82f6;
+        }
+        
+        .lesson-status {
+            padding: 6px 15px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .lesson-status.completed {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid #10b981;
+        }
+        
+        .lesson-status.current {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+            border: 1px solid #3b82f6;
+        }
+        
+        .lesson-status.locked {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+        
+        .theory-content {
+            background: #1a2635;
+            border: 1px solid #2f405b;
+            border-radius: 24px;
+            padding: 30px;
+            margin: 20px 0;
+            scroll-margin-top: 100px;
+        }
+        
+        .theory-section {
+            margin-bottom: 40px;
+        }
+        
+        .theory-section h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #e9f0fa;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .theory-section h3 i {
+            color: #3b82f6;
+        }
+        
+        .code-block {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            color: #fbbf24;
+            overflow-x: auto;
+        }
+        
+        .code-block pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .test-block {
+            background: #1a2635;
+            border: 1px solid #2f405b;
+            border-radius: 24px;
+            padding: 30px;
+            margin: 30px 0;
+            scroll-margin-top: 100px;
+        }
+        
+        .test-question {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+        
+        .test-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .test-option {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 40px;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .test-option:hover {
+            border-color: #3b82f6;
+            background: #2d3a4f;
+        }
+        
+        .test-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #3b82f6;
+        }
+        
+        .test-btn {
+            background: linear-gradient(145deg, #2563eb, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 20px;
+        }
+        
+        .test-btn:hover {
+            background: linear-gradient(145deg, #3b82f6, #2563eb);
+            transform: scale(1.02);
+        }
+        
+        .test-feedback {
+            margin-top: 15px;
+            padding: 15px 20px;
+            border-radius: 40px;
+            font-size: 0.95rem;
+            animation: fadeIn 0.3s;
+        }
+        
+        .test-feedback.correct {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid #10b981;
+            color: #10b981;
+        }
+        
+        .test-feedback.incorrect {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        .nav-btn {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-btn:hover:not(:disabled) {
+            background: #2d3a4f;
+            border-color: #3b82f6;
+        }
+        
+        .nav-btn.next {
+            background: linear-gradient(145deg, #2563eb, #1d4ed8);
+            border: 1px solid #3b82f6;
+        }
+        
+        .nav-btn.next:hover:not(:disabled) {
+            background: linear-gradient(145deg, #3b82f6, #2563eb);
+        }
+        
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .footer {
+            border-top: 1px solid #1a2635;
+            padding: 40px 0;
+            margin-top: 60px;
+            text-align: center;
+            color: #6b8bb0;
+        }
+        
+        .flash-messages {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .flash-message {
+            padding: 16px 24px;
+            border-radius: 40px;
+            margin-bottom: 10px;
+            animation: slideIn 0.3s;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-left: 4px solid #10b981;
+            background: rgba(4, 120, 87, 0.95);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0%); opacity: 1; }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
+        @media (max-width: 768px) {
+            .course-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .course-meta {
+                justify-content: center;
+            }
+            
+            .lesson-card {
+                flex-wrap: wrap;
+            }
+            
+            .lesson-status {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        .note-box {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid #f59e0b;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .note-box i {
+            color: #f59e0b;
+            font-size: 1.5rem;
+        }
+
+        .note-box-content {
+            color: #e9f0fa;
+        }
+
+        .note-box-content p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Flash сообщения -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <i class="fa-solid fa-circle-check"></i> {{ message }}
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<!-- Навбар -->
+<nav class="navbar">
+    <div class="container nav-wrapper">
+        <div class="logo">
+            <i class="fa-brands fa-python logo-icon"></i>
+            <span class="logo-text">PyMaster</span>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('main') }}">Главная</a>
+            <a href="{{ url_for('courses') }}" class="active">Курсы</a>
+            <a href="{{ url_for('tasks') }}">Задачи</a>
+            <a href="{{ url_for('ai_assistant') }}">GPT-4</a>
+            <a href="{{ url_for('dashboard') }}">Кабинет</a>
+            <a href="{{ url_for('about') }}" class="{% if request.endpoint == 'about' %}active{% endif %}">О нас</a>
+            
+            <div class="pyth-balance" onclick="window.location.href='{{ url_for('shop') }}'">
+                <i class="fa-solid fa-coins"></i>
+                <span>{{ user.balance }} PYTH</span>
+            </div>
+            
+            <a href="{{ url_for('logout') }}" class="logout-btn">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Основной контент -->
+<div class="container" style="padding: 40px 24px;">
+    <!-- Шапка курса -->
+    <div class="course-header">
+        <div class="course-header-icon">
+            <i class="fa-solid fa-gears"></i>
+        </div>
+        <div class="course-header-info">
+            <h1>{{ course.title }}</h1>
+            <div class="course-meta">
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-clock"></i> {{ course.hours }} часов
+                </span>
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-book-open"></i> {{ course.lessons }} уроков
+                </span>
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-signal"></i> 
+                    <span class="course-level level-advanced">Продвинутый уровень</span>
+                </span>
+            </div>
+            <p style="color: #9ab3d0;">Автоматизируйте тестирование и деплой ваших проектов. GitHub Actions, GitLab CI, автоматический линтинг и развертывание на сервер.</p>
+        </div>
+    </div>
+
+    <!-- Прогресс -->
+    <div class="progress-section">
+        <div class="progress-stats">
+            <div>
+                <span class="progress-percent">{{ progress }}%</span>
+                <span class="progress-label">прогресс</span>
+            </div>
+            <div>
+                <span class="progress-percent">{{ current_lesson }}/{{ course.lessons }}</span>
+                <span class="progress-label">уроков пройдено</span>
+            </div>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {{ progress }}%"></div>
+        </div>
+    </div>
+
+    <!-- Список уроков -->
+    <h2 style="font-size: 1.8rem; margin-bottom: 20px;">Уроки курса</h2>
+
+    <!-- Урок 1: Что такое CI/CD? -->
+    <div class="lesson-card {% if current_lesson > 0 %}completed{% elif current_lesson == 0 %}current{% endif %}" onclick="window.location.href='#lesson1'">
+        <div class="lesson-number">1</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Что такое CI/CD?</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 15 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 0 %}completed{% elif current_lesson == 0 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 0 %}✅ Пройдено{% elif current_lesson == 0 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 1 -->
+    <div id="lesson1" class="theory-content" style="scroll-margin-top: 100px;">
+        <h2 style="margin-bottom: 20px;">Урок 1: Что такое CI/CD?</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-chart-line"></i> Определение CI/CD</h3>
+            <p><strong>CI/CD</strong> — это методология автоматизации процессов разработки, тестирования и развертывания программного обеспечения.</p>
+            
+            <ul style="color: #9ab3d0; margin-left: 20px;">
+                <li><strong>CI (Continuous Integration — непрерывная интеграция):</strong> автоматическое объединение изменений кода от разных разработчиков с последующим запуском тестов.</li>
+                <li><strong>CD (Continuous Delivery/Deployment — непрерывная доставка/развертывание):</strong> автоматическая подготовка релиза и его развертывание на серверах.</li>
+            </ul>
+            
+            <div class="code-block">
+                <pre>
+# Традиционный подход:
+Разработка → Ручное тестирование → Ручной деплой → Релиз
+
+# CI/CD подход:
+Разработка → Push в репозиторий → Автоматические тесты → Автоматический деплой → Релиз</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-trophy"></i> Преимущества CI/CD</h3>
+            <ul style="color: #9ab3d0;">
+                <li>✅ <strong>Быстрая обратная связь:</strong> ошибки обнаруживаются сразу после коммита</li>
+                <li>✅ <strong>Меньше ручных ошибок:</strong> автоматизация исключает человеческий фактор</li>
+                <li>✅ <strong>Уверенность в коде:</strong> тесты проходят перед каждым деплоем</li>
+                <li>✅ <strong>Быстрый релиз:</strong> можно выпускать обновления несколько раз в день</li>
+                <li>✅ <strong>Единый процесс:</strong> вся команда использует одинаковые проверки</li>
+            </ul>
+        </div>
+
+        
+    </div>
+
+    <!-- Урок 2: GitHub Actions — основы -->
+    <div class="lesson-card {% if current_lesson > 1 %}completed{% elif current_lesson == 1 %}current{% endif %}" onclick="window.location.href='#lesson2'">
+        <div class="lesson-number">2</div>
+        <div class="lesson-info">
+            <div class="lesson-title">GitHub Actions — основы</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 1 %}completed{% elif current_lesson == 1 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 1 %}✅ Пройдено{% elif current_lesson == 1 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 2 -->
+    {% if current_lesson >= 1 %}
+    <div id="lesson2" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 1 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 2: GitHub Actions — основы</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-brands fa-github"></i> Структура workflow</h3>
+            <p>Workflow — это автоматизированный процесс, который запускается при определенных событиях (push, pull request и т.д.).</p>
+            
+            <div class="code-block">
+                <pre>
+# .github/workflows/ci.yml
+name: CI Pipeline  # Название workflow
+
+on:  # Триггеры запуска
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:  # Задачи
+  test:
+    runs-on: ubuntu-latest  # Операционная система
+    steps:  # Шаги выполнения
+      - uses: actions/checkout@v3  # Клонирование репозитория
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest
+      - name: Run tests
+        run: pytest tests/</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-cog"></i> Ключевые концепции</h3>
+            <ul style="color: #9ab3d0;">
+                <li><strong>Event (событие):</strong> push, pull_request, schedule, workflow_dispatch</li>
+                <li><strong>Job (задача):</strong> набор шагов, выполняемых на одном раннере</li>
+                <li><strong>Step (шаг):</strong> отдельное действие (команда shell или action)</li>
+                <li><strong>Action (действие):</strong> готовый блок кода (checkout, setup-python)</li>
+                <li><strong>Runner (раннер):</strong> сервер, где выполняется код (ubuntu, windows, macos)</li>
+            </ul>
+        </div>
+
+        <div class="note-box">
+            <i class="fa-solid fa-folder-tree"></i>
+            <div class="note-box-content">
+                <p><strong>Важно!</strong> Workflow файлы хранятся в <code>.github/workflows/</code> в корне репозитория. GitHub автоматически обнаруживает и запускает их.</p>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 3: Тестирование в CI -->
+    <div class="lesson-card {% if current_lesson > 2 %}completed{% elif current_lesson == 2 %}current{% endif %}" onclick="window.location.href='#lesson3'">
+        <div class="lesson-number">3</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Тестирование в CI</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 2 %}completed{% elif current_lesson == 2 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 2 %}✅ Пройдено{% elif current_lesson == 2 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 3 -->
+    {% if current_lesson >= 2 %}
+    <div id="lesson3" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 2 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 3: Тестирование в CI</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-flask"></i> Запуск pytest в CI</h3>
+            <div class="code-block">
+                <pre>
+name: Python Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11']  # Тестируем на нескольких версиях
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-cov
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Test with pytest
+      run: |
+        pytest tests/ --cov=myproject --cov-report=xml
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-magnifying-glass"></i> Линтинг и форматирование</h3>
+            <div class="code-block">
+                <pre>
+# .github/workflows/lint.yml
+name: Linting
+
+on: [push, pull_request]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install linters
+        run: |
+          pip install flake8 black isort
+      - name: Check formatting with black
+        run: black --check .
+      - name: Check imports with isort
+        run: isort --check-only .
+      - name: Lint with flake8
+        run: flake8 . --count --max-complexity=10 --max-line-length=88 --statistics</pre>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 4: Автоматический деплой -->
+    <div class="lesson-card {% if current_lesson > 3 %}completed{% elif current_lesson == 3 %}current{% endif %}" onclick="window.location.href='#lesson4'">
+        <div class="lesson-number">4</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Автоматический деплой</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 3 %}completed{% elif current_lesson == 3 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 3 %}✅ Пройдено{% elif current_lesson == 3 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 4 -->
+    {% if current_lesson >= 3 %}
+    <div id="lesson4" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 3 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 4: Автоматический деплой</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-cloud-upload-alt"></i> Деплой на сервер через SSH</h3>
+            <div class="code-block">
+                <pre>
+# .github/workflows/deploy.yml
+name: Deploy to Server
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /var/www/myproject
+            git pull origin main
+            source venv/bin/activate
+            pip install -r requirements.txt
+            python manage.py migrate
+            sudo systemctl restart myproject</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-docker"></i> Деплой через Docker Hub</h3>
+            <div class="code-block">
+                <pre>
+# .github/workflows/docker-deploy.yml
+name: Build and Push Docker Image
+
+on:
+  push:
+    tags:
+      - 'v*'  # Запуск при создании тега v1.0.0, v2.1.0 и т.д.
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+      
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/myproject:latest
+            ${{ secrets.DOCKER_USERNAME }}/myproject:${{ github.ref_name }}</pre>
+            </div>
+        </div>
+
+        <div class="note-box">
+            <i class="fa-solid fa-key"></i>
+            <div class="note-box-content">
+                <p><strong>Безопасность:</strong> Все секреты (пароли, ключи) хранятся в GitHub Secrets. Никогда не вшивайте их в код!</p>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 5: GitLab CI -->
+    <div class="lesson-card {% if current_lesson > 4 %}completed{% elif current_lesson == 4 %}current{% endif %}" onclick="window.location.href='#lesson5'">
+        <div class="lesson-number">5</div>
+        <div class="lesson-info">
+            <div class="lesson-title">GitLab CI</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 15 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 4 %}completed{% elif current_lesson == 4 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 4 %}✅ Пройдено{% elif current_lesson == 4 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 5 -->
+    {% if current_lesson >= 4 %}
+    <div id="lesson5" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 4 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 5: GitLab CI</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-brands fa-gitlab"></i> Конфигурация .gitlab-ci.yml</h3>
+            <div class="code-block">
+                <pre>
+# .gitlab-ci.yml
+image: python:3.11
+
+stages:
+  - test
+  - build
+  - deploy
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+cache:
+  paths:
+    - .cache/pip
+    - venv/
+
+before_script:
+  - python -V
+  - pip install virtualenv
+  - virtualenv venv
+  - source venv/bin/activate
+  - pip install -r requirements.txt
+
+# Этап тестирования
+test:
+  stage: test
+  script:
+    - pip install pytest pytest-cov
+    - pytest tests/ --cov=myproject
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+
+# Этап сборки (Docker)
+build:
+  stage: build
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+  only:
+    - main
+
+# Этап деплоя
+deploy:
+  stage: deploy
+  script:
+    - ssh user@server "cd /app && docker-compose pull && docker-compose up -d"
+  only:
+    - main</pre>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 6: Тест по CI/CD -->
+    <div class="lesson-card {% if current_lesson > 5 %}completed{% elif current_lesson == 5 %}current{% endif %}" onclick="window.location.href='#lesson6'">
+        <div class="lesson-number">6</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Тест: CI/CD</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-pen-to-square"></i> Тест • 10 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 5 %}completed{% elif current_lesson == 5 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 5 %}✅ Пройдено{% elif current_lesson == 5 %}📝 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 6 -->
+    {% if current_lesson >= 5 %}
+    <div id="lesson6" class="test-block" style="scroll-margin-top: 100px; {% if current_lesson != 5 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 6: Тест по CI/CD</h2>
+        
+        <div class="test-question">Вопрос: Что означает аббревиатура CI в контексте CI/CD?</div>
+        <div class="test-options">
+            <label class="test-option">
+                <input type="radio" name="q1" value="0"> Code Integration
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q1" value="1"> Continuous Integration
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q1" value="2"> Common Interface
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q1" value="3"> Code Improvement
+            </label>
+        </div>
+        <div id="feedback1" class="test-feedback" style="display: none;"></div>
+
+        <div class="test-question" style="margin-top: 30px;">Вопрос: Где в репозитории GitHub хранятся workflow файлы?</div>
+        <div class="test-options">
+            <label class="test-option">
+                <input type="radio" name="q2" value="0"> .github/workflows/
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q2" value="1"> .ci/
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q2" value="2"> workflows/
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q2" value="3"> .gitlab-ci.yml
+            </label>
+        </div>
+        <div id="feedback2" class="test-feedback" style="display: none;"></div>
+
+        <div class="test-question" style="margin-top: 30px;">Вопрос: Для чего нужны GitHub Secrets?</div>
+        <div class="test-options">
+            <label class="test-option">
+                <input type="radio" name="q3" value="0"> Для хранения конфиденциальных данных (пароли, ключи)
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q3" value="1"> Для шифрования кода
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q3" value="2"> Для скрытия workflow файлов
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q3" value="3"> Для создания приватных репозиториев
+            </label>
+        </div>
+        <div id="feedback3" class="test-feedback" style="display: none;"></div>
+
+        <button class="test-btn" onclick="checkTest()">Проверить ответы</button>
+
+        <div class="navigation-buttons" style="margin-top: 30px;">
+            <button class="nav-btn" onclick="window.location.href='#lesson5'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" id="completeBtn" style="display: none;" onclick="completeCourse(25)">Завершить курс <i class="fa-solid fa-check"></i></button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Кнопка возврата -->
+    <div style="margin-top: 40px; text-align: center;">
+        <a href="{{ url_for('courses') }}" class="btn btn-outline">
+            <i class="fa-solid fa-arrow-left"></i> К списку курсов
+        </a>
+    </div>
+</div>
+
+<!-- Футер -->
+<footer class="footer">
+    <div class="container">
+        <p>© 2025 PyMaster · CI/CD для Python-проектов</p>
+    </div>
+</footer>
+
+<script>
+    // ID текущего курса
+    const courseId = {{ course.id }};
+    const totalLessons = {{ course.lessons }};
+    
+    // Функция перехода к уроку по клику
+    async function goToLesson(lessonIndex) {
+        try {
+            const response = await fetch('/api/save-progress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    course_id: courseId,
+                    lesson_index: lessonIndex,
+                    completed: false
+                })
+            });
+            
+            if (response.ok) {
+                const lessonElement = document.getElementById(`lesson${lessonIndex + 1}`);
+                if (lessonElement) {
+                    lessonElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    history.pushState(null, null, `#lesson${lessonIndex + 1}`);
+                    updateLessonStyles(lessonIndex);
+                } else {
+                    window.location.reload();
+                }
+            }
+        } catch (error) {
+            console.error('Ошибка сохранения прогресса:', error);
+            alert('Произошла ошибка при переходе к уроку.');
+        }
+    }
+    
+    function updateLessonStyles(activeLessonIndex) {
+        const lessonCards = document.querySelectorAll('.lesson-card');
+        const lessonContents = document.querySelectorAll('.theory-content, .test-block');
+        
+        lessonCards.forEach((card, index) => {
+            card.classList.remove('current');
+            if (index === activeLessonIndex) {
+                card.classList.add('current');
+            }
+            
+            const statusElement = card.querySelector('.lesson-status');
+            if (statusElement) {
+                if (index === activeLessonIndex) {
+                    statusElement.className = 'lesson-status current';
+                    const lessonType = card.querySelector('.lesson-type i');
+                    if (lessonType && lessonType.classList.contains('fa-pen-to-square')) {
+                        statusElement.innerHTML = '📝 Текущий';
+                    } else {
+                        statusElement.innerHTML = '📖 Текущий';
+                    }
+                } else {
+                    statusElement.className = 'lesson-status';
+                    statusElement.innerHTML = '📚 Доступен';
+                }
+            }
+        });
+        
+        lessonContents.forEach((content, index) => {
+            if (index === activeLessonIndex) {
+                content.style.display = 'block';
+                content.style.animation = 'fadeIn 0.5s';
+            } else {
+                content.style.display = 'none';
+            }
+        });
+        
+        updateProgressBar(activeLessonIndex + 1);
+    }
+    
+    function updateProgressBar(currentLesson) {
+        const progressPercent = Math.round((currentLesson / totalLessons) * 100);
+        
+        const progressFill = document.querySelector('.progress-fill');
+        const progressPercentSpan = document.querySelector('.progress-percent:first-child');
+        const progressCounter = document.querySelectorAll('.progress-percent')[1];
+        
+        if (progressFill) progressFill.style.width = `${progressPercent}%`;
+        if (progressPercentSpan) progressPercentSpan.textContent = `${progressPercent}%`;
+        if (progressCounter) progressCounter.textContent = `${currentLesson}/${totalLessons}`;
+    }
+    
+    async function completeCourse() {
+        try {
+            const response = await fetch('/api/save-progress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    course_id: courseId,
+                    lesson_index: totalLessons - 1,
+                    completed: true
+                })
+            });
+            
+            if (response.ok) {
+                alert('🎉 Поздравляем! Вы завершили курс! +50 PYTH');
+                window.location.href = "{{ url_for('courses') }}";
+            }
+        } catch (error) {
+            console.error('Ошибка завершения курса:', error);
+        }
+    }
+    
+    function checkTest() {
+        const q1 = document.querySelector('input[name="q1"]:checked');
+        const q2 = document.querySelector('input[name="q2"]:checked');
+        const q3 = document.querySelector('input[name="q3"]:checked');
+        
+        let allCorrect = true;
+        
+        // Вопрос 1
+        if (q1 && q1.value === '1') {
+            document.getElementById('feedback1').className = 'test-feedback correct';
+            document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! CI = Continuous Integration.';
+            document.getElementById('feedback1').style.display = 'block';
+        } else {
+            document.getElementById('feedback1').className = 'test-feedback incorrect';
+            document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. CI = Continuous Integration (непрерывная интеграция).';
+            document.getElementById('feedback1').style.display = 'block';
+            allCorrect = false;
+        }
+        
+        // Вопрос 2
+        if (q2 && q2.value === '0') {
+            document.getElementById('feedback2').className = 'test-feedback correct';
+            document.getElementById('feedback2').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! Workflow файлы хранятся в .github/workflows/';
+            document.getElementById('feedback2').style.display = 'block';
+        } else {
+            document.getElementById('feedback2').className = 'test-feedback incorrect';
+            document.getElementById('feedback2').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. Workflow файлы должны быть в папке .github/workflows/';
+            document.getElementById('feedback2').style.display = 'block';
+            allCorrect = false;
+        }
+        
+        // Вопрос 3
+        if (q3 && q3.value === '0') {
+            document.getElementById('feedback3').className = 'test-feedback correct';
+            document.getElementById('feedback3').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! Secrets используются для хранения паролей, ключей и токенов.';
+            document.getElementById('feedback3').style.display = 'block';
+        } else {
+            document.getElementById('feedback3').className = 'test-feedback incorrect';
+            document.getElementById('feedback3').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. Secrets нужны для безопасного хранения конфиденциальных данных.';
+            document.getElementById('feedback3').style.display = 'block';
+            allCorrect = false;
+        }
+        
+        if (allCorrect) {
+            document.getElementById('completeBtn').style.display = 'flex';
+            const successMessage = document.createElement('div');
+            successMessage.className = 'test-feedback correct';
+            successMessage.innerHTML = '<i class="fa-solid fa-check"></i> 🎉 Отлично! Все ответы верны!';
+            successMessage.style.marginTop = '20px';
+            const testBlock = document.querySelector('.test-block');
+            if (testBlock && !testBlock.querySelector('.final-success')) {
+                successMessage.classList.add('final-success');
+                testBlock.appendChild(successMessage);
+            }
+        }
+    }
+    
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', function() {
+        const lessonCards = document.querySelectorAll('.lesson-card');
+        const currentLessonIndex = parseInt('{{ current_lesson }}') || 0;
+        
+        lessonCards.forEach((card) => {
+            const statusElement = card.querySelector('.lesson-status');
+            if (statusElement) statusElement.classList.remove('locked');
+        });
+        
+        updateLessonStyles(currentLessonIndex);
+        
+        lessonCards.forEach((card, index) => {
+            card.addEventListener('click', function(e) {
+                if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+                goToLesson(index);
+            });
+            card.style.cursor = 'pointer';
+        });
+        
+        if (window.location.hash) {
+            const hash = window.location.hash;
+            const lessonMatch = hash.match(/lesson(\d+)/);
+            if (lessonMatch) {
+                const lessonIndex = parseInt(lessonMatch[1]) - 1;
+                if (lessonIndex >= 0 && lessonIndex < totalLessons) {
+                    setTimeout(() => goToLesson(lessonIndex), 100);
+                }
+            }
+        }
+    });
+    
+    setTimeout(() => {
+        document.querySelectorAll('.flash-message').forEach(msg => {
+            msg.style.animation = 'slideOut 0.3s';
+            setTimeout(() => msg.remove(), 300);
+        });
+    }, 5000);
+</script>
+
+<style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .lesson-card {
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .lesson-card:hover {
+        transform: translateX(10px);
+        border-color: #3b82f6;
+    }
+    
+    .lesson-card.current {
+        border-color: #3b82f6;
+        background: rgba(59, 130, 246, 0.1);
+    }
+    
+    .lesson-status {
+        padding: 6px 15px;
+        border-radius: 40px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+        border: 1px solid #3b82f6;
+    }
+    
+    .lesson-status.locked {
+        display: none;
+    }
+    
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+</style>
+
+</body>
+</html>

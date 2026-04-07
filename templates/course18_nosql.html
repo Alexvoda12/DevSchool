@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyMaster · NoSQL для Python-разработчика</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: auto;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            background: #0a0c0f;
+            color: #e3e9f1;
+            overflow-y: auto;
+        }
+        
+        .navbar {
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            width: 100%;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            width: 100%;
+        }
+        
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2563eb;
+        }
+
+        .course-header {
+            background: linear-gradient(145deg, #0f172a, #1a2635);
+            border-radius: 40px;
+            padding: 40px;
+            margin-bottom: 30px;
+            border: 1px solid #2a3a55;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .course-header-icon {
+            width: 100px;
+            height: 100px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            color: #3b82f6;
+        }
+        
+        .course-header-info {
+            flex: 1;
+        }
+        
+        .course-header-info h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(145deg, #ffffff, #a5c9ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .course-meta {
+            display: flex;
+            gap: 30px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        
+        .course-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #9ab3d0;
+        }
+        
+        .course-meta-item i {
+            color: #3b82f6;
+        }
+        
+        .progress-section {
+            background: rgba(18, 26, 36, 0.7);
+            border: 1px solid #2a3a55;
+            border-radius: 32px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .progress-percent {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #3b82f6;
+        }
+        
+        .progress-label {
+            color: #9ab3d0;
+        }
+        
+        .lesson-card {
+            background: rgba(18, 26, 36, 0.7);
+            border: 1px solid #2a3a55;
+            border-radius: 24px;
+            padding: 25px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .lesson-card:hover {
+            border-color: #3b82f6;
+            transform: translateX(5px);
+            background: #1e2c3f;
+        }
+        
+        .lesson-card.completed {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+        }
+        
+        .lesson-card.current {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        .lesson-number {
+            width: 50px;
+            height: 50px;
+            background: #1e293b;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: #3b82f6;
+        }
+        
+        .lesson-card.completed .lesson-number {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+        
+        .lesson-card.current .lesson-number {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .lesson-info {
+            flex: 1;
+        }
+        
+        .lesson-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #ffffff;
+        }
+        
+        .lesson-type {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #9ab3d0;
+            font-size: 0.85rem;
+        }
+        
+        .lesson-type i {
+            color: #3b82f6;
+        }
+        
+        .lesson-status {
+            padding: 6px 15px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .lesson-status.completed {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid #10b981;
+        }
+        
+        .lesson-status.current {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+            border: 1px solid #3b82f6;
+        }
+        
+        .lesson-status.locked {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+        
+        .theory-content {
+            background: #1a2635;
+            border: 1px solid #2f405b;
+            border-radius: 24px;
+            padding: 30px;
+            margin: 20px 0;
+            scroll-margin-top: 100px;
+        }
+        
+        .theory-section {
+            margin-bottom: 40px;
+        }
+        
+        .theory-section h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #e9f0fa;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .theory-section h3 i {
+            color: #3b82f6;
+        }
+        
+        .code-block {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            color: #fbbf24;
+            overflow-x: auto;
+        }
+        
+        .code-block pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .test-block {
+            background: #1a2635;
+            border: 1px solid #2f405b;
+            border-radius: 24px;
+            padding: 30px;
+            margin: 30px 0;
+            scroll-margin-top: 100px;
+        }
+        
+        .test-question {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+        
+        .test-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .test-option {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 40px;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .test-option:hover {
+            border-color: #3b82f6;
+            background: #2d3a4f;
+        }
+        
+        .test-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #3b82f6;
+        }
+        
+        .test-btn {
+            background: linear-gradient(145deg, #2563eb, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 20px;
+        }
+        
+        .test-btn:hover {
+            background: linear-gradient(145deg, #3b82f6, #2563eb);
+            transform: scale(1.02);
+        }
+        
+        .test-feedback {
+            margin-top: 15px;
+            padding: 15px 20px;
+            border-radius: 40px;
+            font-size: 0.95rem;
+            animation: fadeIn 0.3s;
+        }
+        
+        .test-feedback.correct {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid #10b981;
+            color: #10b981;
+        }
+        
+        .test-feedback.incorrect {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        .nav-btn {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-btn:hover:not(:disabled) {
+            background: #2d3a4f;
+            border-color: #3b82f6;
+        }
+        
+        .nav-btn.next {
+            background: linear-gradient(145deg, #2563eb, #1d4ed8);
+            border: 1px solid #3b82f6;
+        }
+        
+        .nav-btn.next:hover:not(:disabled) {
+            background: linear-gradient(145deg, #3b82f6, #2563eb);
+        }
+        
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .footer {
+            border-top: 1px solid #1a2635;
+            padding: 40px 0;
+            margin-top: 60px;
+            text-align: center;
+            color: #6b8bb0;
+        }
+        
+        .flash-messages {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .flash-message {
+            padding: 16px 24px;
+            border-radius: 40px;
+            margin-bottom: 10px;
+            animation: slideIn 0.3s;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-left: 4px solid #10b981;
+            background: rgba(4, 120, 87, 0.95);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0%); opacity: 1; }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
+        @media (max-width: 768px) {
+            .course-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            .course-meta {
+                justify-content: center;
+            }
+            .lesson-card {
+                flex-wrap: wrap;
+            }
+            .lesson-status {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        .note-box {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid #f59e0b;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .note-box i {
+            color: #f59e0b;
+            font-size: 1.5rem;
+        }
+
+        .note-box-content {
+            color: #e9f0fa;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .comparison-table th {
+            text-align: left;
+            padding: 12px;
+            background: #1e293b;
+            color: #3b82f6;
+            border: 1px solid #334155;
+        }
+
+        .comparison-table td {
+            padding: 12px;
+            border: 1px solid #334155;
+            color: #9ab3d0;
+        }
+
+        .comparison-table tr:hover {
+            background: #1e293b;
+        }
+    </style>
+</head>
+<body>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <i class="fa-solid fa-circle-check"></i> {{ message }}
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<nav class="navbar">
+    <div class="container nav-wrapper">
+        <div class="logo">
+            <i class="fa-brands fa-python logo-icon"></i>
+            <span class="logo-text">PyMaster</span>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('main') }}">Главная</a>
+            <a href="{{ url_for('courses') }}" class="active">Курсы</a>
+            <a href="{{ url_for('tasks') }}">Задачи</a>
+            <a href="{{ url_for('ai_assistant') }}">GPT-4</a>
+            <a href="{{ url_for('dashboard') }}">Кабинет</a>
+            <a href="{{ url_for('about') }}">О нас</a>
+            
+            <div class="pyth-balance" onclick="window.location.href='{{ url_for('shop') }}'">
+                <i class="fa-solid fa-coins"></i>
+                <span>{{ user.balance }} PYTH</span>
+            </div>
+            
+            <a href="{{ url_for('logout') }}" class="logout-btn">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="container" style="padding: 40px 24px;">
+    <div class="course-header">
+        <div class="course-header-icon">
+            <i class="fa-solid fa-database"></i>
+        </div>
+        <div class="course-header-info">
+            <h1>{{ course.title }}</h1>
+            <div class="course-meta">
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-clock"></i> {{ course.hours }} часов
+                </span>
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-book-open"></i> {{ course.lessons }} уроков
+                </span>
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-signal"></i> 
+                    <span class="course-level level-advanced">Продвинутый уровень</span>
+                </span>
+            </div>
+            <p style="color: #9ab3d0;">{{ course.description }}</p>
+        </div>
+    </div>
+
+    <div class="progress-section">
+        <div class="progress-stats">
+            <div>
+                <span class="progress-percent">{{ progress }}%</span>
+                <span class="progress-label">прогресс</span>
+            </div>
+            <div>
+                <span class="progress-percent">{{ current_lesson }}/{{ course.lessons }}</span>
+                <span class="progress-label">уроков пройдено</span>
+            </div>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {{ progress }}%"></div>
+        </div>
+    </div>
+
+    <h2 style="font-size: 1.8rem; margin-bottom: 20px;">Уроки курса</h2>
+
+    <!-- Урок 1: Введение в NoSQL -->
+    <div class="lesson-card {% if current_lesson > 0 %}completed{% elif current_lesson == 0 %}current{% endif %}" onclick="window.location.href='#lesson1'">
+        <div class="lesson-number">1</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Введение в NoSQL</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 0 %}completed{% elif current_lesson == 0 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 0 %}✅ Пройдено{% elif current_lesson == 0 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <div id="lesson1" class="theory-content" style="scroll-margin-top: 100px;">
+        <h2 style="margin-bottom: 20px;">Урок 1: Введение в NoSQL</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-question-circle"></i> Что такое NoSQL?</h3>
+            <p>NoSQL (Not Only SQL) — это подход к хранению данных, отличный от традиционных реляционных баз данных. NoSQL базы данных не используют таблицы, строки и столбцы как основную структуру.</p>
+            
+            <h4 style="margin: 20px 0 10px;">Когда использовать NoSQL:</h4>
+            <ul style="color: #9ab3d0; margin-left: 20px;">
+                <li>Большие объемы данных (Big Data)</li>
+                <li>Гибкая структура данных (схема не фиксирована)</li>
+                <li>Высокая масштабируемость и производительность</li>
+                <li>Работа с неструктурированными данными</li>
+                <li>Быстрая разработка (agile)</li>
+            </ul>
+
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Характеристика</th>
+                        <th>SQL (реляционные)</th>
+                        <th>NoSQL</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Структура</td><td>Таблицы, строки, столбцы</td><td>Документы, ключ-значение, графы, колонки</td></tr>
+                    <tr><td>Схема</td><td>Фиксированная (строгая)</td><td>Гибкая (schema-less)</td></tr>
+                    <tr><td>Масштабирование</td><td>Вертикальное</td><td>Горизонтальное</td></tr>
+                    <tr><td>Транзакции</td><td>ACID</td><td>BASE (eventual consistency)</td></tr>
+                    <tr><td>Примеры</td><td>PostgreSQL, MySQL</td><td>MongoDB, Redis, Cassandra</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-diagram-project"></i> Типы NoSQL баз данных</h3>
+            <ul style="color: #9ab3d0; margin-left: 20px;">
+                <li><strong>Документо-ориентированные (MongoDB, CouchDB)</strong> — хранят данные в формате JSON/BSON</li>
+                <li><strong>Ключ-значение (Redis, DynamoDB)</strong> — простые и быстрые хранилища</li>
+                <li><strong>Колоночные (Cassandra, HBase)</strong> — оптимизированы для аналитики</li>
+                <li><strong>Графовые (Neo4j, ArangoDB)</strong> — для работы со связями между данными</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Урок 2: MongoDB — документо-ориентированная БД -->
+    <div class="lesson-card {% if current_lesson > 1 %}completed{% elif current_lesson == 1 %}current{% endif %}" onclick="window.location.href='#lesson2'">
+        <div class="lesson-number">2</div>
+        <div class="lesson-info">
+            <div class="lesson-title">MongoDB — документо-ориентированная БД</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 1 %}completed{% elif current_lesson == 1 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 1 %}✅ Пройдено{% elif current_lesson == 1 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    {% if current_lesson >= 1 %}
+    <div id="lesson2" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 1 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 2: MongoDB — документо-ориентированная БД</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-leaf"></i> Установка и подключение</h3>
+            <div class="code-block">
+                <pre>
+# Установка драйвера
+pip install pymongo
+
+# Подключение к MongoDB
+from pymongo import MongoClient
+
+client = MongoClient('mongodb://localhost:27017/')
+db = client['mydatabase']
+collection = db['users']</pre>
+            </div>
+
+            <h3><i class="fa-solid fa-plus-circle"></i> CRUD операции в MongoDB</h3>
+            <div class="code-block">
+                <pre>
+# CREATE (вставка)
+user = {"name": "Анна", "age": 25, "city": "Москва"}
+result = collection.insert_one(user)
+print(result.inserted_id)
+
+# Множественная вставка
+users = [
+    {"name": "Иван", "age": 30},
+    {"name": "Мария", "age": 28}
+]
+collection.insert_many(users)
+
+# READ (чтение)
+one = collection.find_one({"name": "Анна"})
+all_users = collection.find()
+for u in all_users:
+    print(u)
+
+# Фильтрация
+adults = collection.find({"age": {"$gte": 18}})
+
+# UPDATE
+collection.update_one(
+    {"name": "Анна"},
+    {"$set": {"age": 26, "city": "СПб"}}
+)
+
+# DELETE
+collection.delete_one({"name": "Анна"})
+collection.delete_many({"age": {"$lt": 18}})</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-magnifying-glass"></i> Сложные запросы и агрегации</h3>
+            <div class="code-block">
+                <pre>
+# Агрегация — группировка и подсчет
+pipeline = [
+    {"$match": {"age": {"$gte": 18}}},
+    {"$group": {"_id": "$city", "count": {"$sum": 1}, "avg_age": {"$avg": "$age"}}},
+    {"$sort": {"count": -1}}
+]
+results = collection.aggregate(pipeline)
+
+# Индексы для ускорения запросов
+collection.create_index("name")
+collection.create_index([("age", -1)])  # сортировка по убыванию</pre>
+            </div>
+        </div>
+
+        <div class="note-box">
+            <i class="fa-solid fa-star"></i>
+            <div class="note-box-content">
+                <p><strong>Совет:</strong> Используйте <code>find().limit(10)</code> для ограничения количества документов, особенно в production.</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Урок 3: Redis — хранилище ключ-значение -->
+    <div class="lesson-card {% if current_lesson > 2 %}completed{% elif current_lesson == 2 %}current{% endif %}" onclick="window.location.href='#lesson3'">
+        <div class="lesson-number">3</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Redis — хранилище ключ-значение</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 2 %}completed{% elif current_lesson == 2 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 2 %}✅ Пройдено{% elif current_lesson == 2 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    {% if current_lesson >= 2 %}
+    <div id="lesson3" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 2 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 3: Redis — хранилище ключ-значение</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-bolt"></i> Быстрое кэширование и сессии</h3>
+            <div class="code-block">
+                <pre>
+# Установка
+pip install redis
+
+import redis
+
+# Подключение
+r = redis.Redis(host='localhost', port=6379, decode_responses=True)
+
+# Базовые операции
+r.set('user:100', '{"name": "Анна", "age": 25}')
+user_data = r.get('user:100')
+print(user_data)
+
+# Установка с таймаутом (TTL)
+r.setex('session:abc123', 3600, 'user_id=100')
+
+# Инкремент (счетчики)
+r.incr('page_views')
+r.incrby('page_views', 5)
+
+# Работа с хэшами (структуры)
+r.hset('user:101', mapping={'name': 'Иван', 'age': '30'})
+r.hset('user:101', 'city', 'Москва')
+user = r.hgetall('user:101')
+
+# Списки (очереди)
+r.lpush('notifications', 'message1', 'message2')
+r.rpush('notifications', 'message3')
+latest = r.lpop('notifications')
+
+# Множества (уникальные элементы)
+r.sadd('tags:python', 'web', 'data', 'ml')
+r.sadd('tags:python', 'web')  # дубль не добавится
+tags = r.smembers('tags:python')</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-chart-line"></i> Практические сценарии</h3>
+            <div class="code-block">
+                <pre>
+# 1. Кэширование результатов API
+def get_user(user_id):
+    cache_key = f"user:{user_id}"
+    cached = r.get(cache_key)
+    if cached:
+        return eval(cached)
+    # Симуляция запроса к БД
+    user = {"id": user_id, "name": f"User {user_id}"}
+    r.setex(cache_key, 300, str(user))  # кэш на 5 минут
+    return user
+
+# 2. Rate limiting (ограничение запросов)
+def rate_limit(user_id, limit=10, period=60):
+    key = f"rate:{user_id}"
+    current = r.incr(key)
+    if current == 1:
+        r.expire(key, period)
+    return current <= limit
+
+# 3. Сессии пользователей
+def create_session(user_id):
+    session_id = str(uuid.uuid4())
+    r.hset(f"session:{session_id}", mapping={"user_id": user_id, "created": str(datetime.now())})
+    r.expire(f"session:{session_id}", 86400)  # 1 день
+    return session_id</pre>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Урок 4: Cassandra — колоночная БД -->
+    <div class="lesson-card {% if current_lesson > 3 %}completed{% elif current_lesson == 3 %}current{% endif %}" onclick="window.location.href='#lesson4'">
+        <div class="lesson-number">4</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Cassandra — колоночная БД</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 3 %}completed{% elif current_lesson == 3 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 3 %}✅ Пройдено{% elif current_lesson == 3 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    {% if current_lesson >= 3 %}
+    <div id="lesson4" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 3 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 4: Cassandra — колоночная БД</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-table-cells-large"></i> Особенности и работа с Cassandra</h3>
+            <div class="code-block">
+                <pre>
+# Установка драйвера
+pip install cassandra-driver
+
+from cassandra.cluster import Cluster
+
+cluster = Cluster(['127.0.0.1'])
+session = cluster.connect()
+
+# Создание keyspace и таблицы
+session.execute("""
+    CREATE KEYSPACE IF NOT EXISTS myapp
+    WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}
+""")
+session.set_keyspace('myapp')
+
+session.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        user_id UUID PRIMARY KEY,
+        name text,
+        email text,
+        created_at timestamp
+    )
+""")
+
+# Вставка данных
+from uuid import uuid4
+session.execute("""
+    INSERT INTO users (user_id, name, email, created_at)
+    VALUES (%s, %s, %s, %s)
+""", (uuid4(), "Анна", "anna@example.com", datetime.now()))
+
+# Чтение данных
+rows = session.execute("SELECT * FROM users")
+for row in rows:
+    print(row.user_id, row.name, row.email)</pre>
+            </div>
+
+            <div class="note-box">
+                <i class="fa-solid fa-warning"></i>
+                <div class="note-box-content">
+                    <p><strong>Важно:</strong> Cassandra оптимизирована для записи и чтения по ключу. Избегайте запросов без WHERE с partition key.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Урок 5: Выбор NoSQL решения -->
+    <div class="lesson-card {% if current_lesson > 4 %}completed{% elif current_lesson == 4 %}current{% endif %}" onclick="window.location.href='#lesson5'">
+        <div class="lesson-number">5</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Выбор NoSQL решения</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 15 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 4 %}completed{% elif current_lesson == 4 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 4 %}✅ Пройдено{% elif current_lesson == 4 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    {% if current_lesson >= 4 %}
+    <div id="lesson5" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 4 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 5: Выбор NoSQL решения</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-chart-simple"></i> Критерии выбора</h3>
+            <table class="comparison-table">
+                <tr><th>Сценарий</th><th>Рекомендуемая БД</th></tr>
+                <tr><td>Гибкая структура, JSON-документы, быстрая разработка</td><td>MongoDB</td> </tr>
+                <tr><td>Кэширование, сессии, счетчики, очереди</td><td>Redis</td> </tr>
+                <tr><td>Большие объемы логов, временных рядов</td><td>Cassandra</td> </tr>
+                <tr><td>Сложные связи (соцсети, рекомендации)</td><td>Neo4j</td> </tr>
+                <tr><td>Поиск и аналитика (Elasticsearch)</td><td>Elasticsearch</td> </tr>
+            </table>
+
+            <div class="code-block">
+                <pre>
+# Схема проектирования для MongoDB
+class User:
+    def __init__(self, name, email, preferences=None):
+        self.name = name
+        self.email = email
+        self.preferences = preferences or {}
+
+# Вложенные документы (denormalization)
+order = {
+    "order_id": "ORD-001",
+    "user": {"name": "Анна", "email": "anna@example.com"},
+    "items": [
+        {"product": "Курс Python", "price": 2990},
+        {"product": "Книга", "price": 800}
+    ],
+    "total": 3790
+}</pre>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Урок 6: Тест по NoSQL -->
+    <div class="lesson-card {% if current_lesson > 5 %}completed{% elif current_lesson == 5 %}current{% endif %}" onclick="window.location.href='#lesson6'">
+        <div class="lesson-number">6</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Тест: NoSQL для Python-разработчика</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-pen-to-square"></i> Тест • 10 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 5 %}completed{% elif current_lesson == 5 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 5 %}✅ Пройдено{% elif current_lesson == 5 %}📝 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    {% if current_lesson >= 5 %}
+    <div id="lesson6" class="test-block" style="scroll-margin-top: 100px; {% if current_lesson != 5 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 6: Тест по NoSQL</h2>
+        
+        <div class="test-question">Вопрос: Какой тип NoSQL базы данных лучше всего подходит для кэширования и управления сессиями пользователей?</div>
+        <div class="test-options">
+            <label class="test-option"><input type="radio" name="q1" value="0"> MongoDB (документо-ориентированная)</label>
+            <label class="test-option"><input type="radio" name="q1" value="1"> Redis (ключ-значение)</label>
+            <label class="test-option"><input type="radio" name="q1" value="2"> Cassandra (колоночная)</label>
+            <label class="test-option"><input type="radio" name="q1" value="3"> Neo4j (графовая)</label>
+        </div>
+        <div id="feedback1" class="test-feedback" style="display: none;"></div>
+
+        <button class="test-btn" onclick="checkTest()">Проверить ответ</button>
+
+        <div class="navigation-buttons" style="margin-top: 30px;">
+            <button class="nav-btn" onclick="window.location.href='#lesson5'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" id="completeBtn" style="display: none;" onclick="completeCourse()">Завершить курс <i class="fa-solid fa-check"></i></button>
+        </div>
+    </div>
+    {% endif %}
+
+    <div style="margin-top: 40px; text-align: center;">
+        <a href="{{ url_for('courses') }}" class="btn btn-outline">
+            <i class="fa-solid fa-arrow-left"></i> К списку курсов
+        </a>
+    </div>
+</div>
+
+<footer class="footer">
+    <div class="container">
+        <p>© 2025 PyMaster · NoSQL для Python-разработчика</p>
+    </div>
+</footer>
+
+<script>
+    const courseId = {{ course.id }};
+    const totalLessons = {{ course.lessons }};
+    
+    async function goToLesson(lessonIndex) {
+        try {
+            const response = await fetch('/api/save-progress', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({course_id: courseId, lesson_index: lessonIndex, completed: false})
+            });
+            if (response.ok) {
+                const lessonElement = document.getElementById(`lesson${lessonIndex + 1}`);
+                if (lessonElement) {
+                    lessonElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    history.pushState(null, null, `#lesson${lessonIndex + 1}`);
+                    updateLessonStyles(lessonIndex);
+                } else {
+                    window.location.reload();
+                }
+            }
+        } catch (error) {
+            console.error('Ошибка сохранения прогресса:', error);
+        }
+    }
+    
+    function updateLessonStyles(activeLessonIndex) {
+        const lessonCards = document.querySelectorAll('.lesson-card');
+        const lessonContents = document.querySelectorAll('.theory-content, .test-block');
+        lessonCards.forEach((card, index) => {
+            card.classList.remove('current');
+            if (index === activeLessonIndex) card.classList.add('current');
+            const statusElement = card.querySelector('.lesson-status');
+            if (statusElement) {
+                if (index === activeLessonIndex) {
+                    statusElement.className = 'lesson-status current';
+                    const lessonType = card.querySelector('.lesson-type i');
+                    statusElement.innerHTML = (lessonType && lessonType.classList.contains('fa-pen-to-square')) ? '📝 Текущий' : '📖 Текущий';
+                } else {
+                    statusElement.className = 'lesson-status';
+                    statusElement.innerHTML = '📚 Доступен';
+                }
+            }
+        });
+        lessonContents.forEach((content, index) => {
+            if (index === activeLessonIndex) {
+                content.style.display = 'block';
+                content.style.animation = 'fadeIn 0.5s';
+            } else {
+                content.style.display = 'none';
+            }
+        });
+        updateProgressBar(activeLessonIndex + 1);
+    }
+    
+    function updateProgressBar(currentLesson) {
+        const progressPercent = Math.round((currentLesson / totalLessons) * 100);
+        const progressFill = document.querySelector('.progress-fill');
+        const progressPercentSpan = document.querySelector('.progress-percent:first-child');
+        const progressCounter = document.querySelectorAll('.progress-percent')[1];
+        if (progressFill) progressFill.style.width = `${progressPercent}%`;
+        if (progressPercentSpan) progressPercentSpan.textContent = `${progressPercent}%`;
+        if (progressCounter) progressCounter.textContent = `${currentLesson}/${totalLessons}`;
+    }
+    
+    async function completeCourse() {
+        try {
+            const response = await fetch('/api/save-progress', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({course_id: courseId, lesson_index: totalLessons - 1, completed: true})
+            });
+            if (response.ok) {
+                alert('🎉 Поздравляем! Вы завершили курс! +50 PYTH');
+                window.location.href = "{{ url_for('courses') }}";
+            } else {
+                alert('Ошибка завершения курса');
+            }
+        } catch (error) {
+            console.error('Ошибка завершения курса:', error);
+        }
+    }
+    
+    function checkTest() {
+        const selected = document.querySelector('input[name="q1"]:checked');
+        if (!selected) {
+            document.getElementById('feedback1').className = 'test-feedback incorrect';
+            document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-xmark"></i> Выберите ответ';
+            document.getElementById('feedback1').style.display = 'block';
+            return;
+        }
+        if (selected.value === '1') {
+            document.getElementById('feedback1').className = 'test-feedback correct';
+            document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! Redis идеально подходит для кэширования и сессий.';
+            document.getElementById('feedback1').style.display = 'block';
+            document.getElementById('completeBtn').style.display = 'flex';
+        } else {
+            document.getElementById('feedback1').className = 'test-feedback incorrect';
+            document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. Для кэширования лучше всего подходит Redis.';
+            document.getElementById('feedback1').style.display = 'block';
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const lessonCards = document.querySelectorAll('.lesson-card');
+        const currentLessonIndex = parseInt('{{ current_lesson }}') || 0;
+        lessonCards.forEach(card => {
+            const statusElement = card.querySelector('.lesson-status');
+            if (statusElement) statusElement.classList.remove('locked');
+        });
+        updateLessonStyles(currentLessonIndex);
+        lessonCards.forEach((card, index) => {
+            card.addEventListener('click', function(e) {
+                if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+                goToLesson(index);
+            });
+            card.style.cursor = 'pointer';
+        });
+        if (window.location.hash) {
+            const lessonMatch = window.location.hash.match(/lesson(\d+)/);
+            if (lessonMatch) {
+                const lessonIndex = parseInt(lessonMatch[1]) - 1;
+                if (lessonIndex >= 0 && lessonIndex < totalLessons) {
+                    setTimeout(() => goToLesson(lessonIndex), 100);
+                }
+            }
+        }
+        const radioButtons = document.querySelectorAll('input[name="q1"]');
+        radioButtons.forEach(radio => {
+            radio.addEventListener('change', () => {
+                document.getElementById('feedback1').style.display = 'none';
+            });
+        });
+    });
+    
+    setTimeout(() => {
+        document.querySelectorAll('.flash-message').forEach(msg => {
+            msg.style.animation = 'slideOut 0.3s';
+            setTimeout(() => msg.remove(), 300);
+        });
+    }, 5000);
+</script>
+
+<style>
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .lesson-card { cursor: pointer; transition: all 0.3s; }
+    .lesson-card:hover { transform: translateX(10px); border-color: #3b82f6; }
+    .lesson-card.current { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
+    .lesson-status { padding: 6px 15px; border-radius: 40px; font-size: 0.85rem; font-weight: 500; background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid #3b82f6; }
+    .lesson-status.locked { display: none; }
+    @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+</style>
+</body>
+</html>

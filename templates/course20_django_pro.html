@@ -1,0 +1,1534 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyMaster · Django: Pro-уровень</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Исправленные стили для правильной прокрутки */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: auto;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            background: #0a0c0f;
+            color: #e3e9f1;
+            overflow-y: auto;
+        }
+        
+        .navbar {
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            width: 100%;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            width: 100%;
+        }
+        
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2563eb;
+        }
+
+        .course-header {
+            background: linear-gradient(145deg, #0f172a, #1a2635);
+            border-radius: 40px;
+            padding: 40px;
+            margin-bottom: 30px;
+            border: 1px solid #2a3a55;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .course-header-icon {
+            width: 100px;
+            height: 100px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            color: #3b82f6;
+        }
+        
+        .course-header-info {
+            flex: 1;
+        }
+        
+        .course-header-info h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(145deg, #ffffff, #a5c9ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .course-meta {
+            display: flex;
+            gap: 30px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        
+        .course-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #9ab3d0;
+        }
+        
+        .course-meta-item i {
+            color: #3b82f6;
+        }
+        
+        .progress-section {
+            background: rgba(18, 26, 36, 0.7);
+            border: 1px solid #2a3a55;
+            border-radius: 32px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .progress-percent {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #3b82f6;
+        }
+        
+        .progress-label {
+            color: #9ab3d0;
+        }
+        
+        .lesson-card {
+            background: rgba(18, 26, 36, 0.7);
+            border: 1px solid #2a3a55;
+            border-radius: 24px;
+            padding: 25px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .lesson-card:hover {
+            border-color: #3b82f6;
+            transform: translateX(5px);
+            background: #1e2c3f;
+        }
+        
+        .lesson-card.completed {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+        }
+        
+        .lesson-card.current {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        .lesson-number {
+            width: 50px;
+            height: 50px;
+            background: #1e293b;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: #3b82f6;
+        }
+        
+        .lesson-card.completed .lesson-number {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+        
+        .lesson-card.current .lesson-number {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .lesson-info {
+            flex: 1;
+        }
+        
+        .lesson-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #ffffff;
+        }
+        
+        .lesson-type {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #9ab3d0;
+            font-size: 0.85rem;
+        }
+        
+        .lesson-type i {
+            color: #3b82f6;
+        }
+        
+        .lesson-status {
+            padding: 6px 15px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .lesson-status.completed {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid #10b981;
+        }
+        
+        .lesson-status.current {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+            border: 1px solid #3b82f6;
+        }
+        
+        .lesson-status.locked {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+        
+        .theory-content {
+            background: #1a2635;
+            border: 1px solid #2f405b;
+            border-radius: 24px;
+            padding: 30px;
+            margin: 20px 0;
+            scroll-margin-top: 100px;
+        }
+        
+        .theory-section {
+            margin-bottom: 40px;
+        }
+        
+        .theory-section h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #e9f0fa;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .theory-section h3 i {
+            color: #3b82f6;
+        }
+        
+        .code-block {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            color: #fbbf24;
+            overflow-x: auto;
+        }
+        
+        .code-block pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .test-block {
+            background: #1a2635;
+            border: 1px solid #2f405b;
+            border-radius: 24px;
+            padding: 30px;
+            margin: 30px 0;
+            scroll-margin-top: 100px;
+        }
+        
+        .test-question {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+        
+        .test-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .test-option {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 40px;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .test-option:hover {
+            border-color: #3b82f6;
+            background: #2d3a4f;
+        }
+        
+        .test-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #3b82f6;
+        }
+        
+        .test-btn {
+            background: linear-gradient(145deg, #2563eb, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 20px;
+        }
+        
+        .test-btn:hover {
+            background: linear-gradient(145deg, #3b82f6, #2563eb);
+            transform: scale(1.02);
+        }
+        
+        .test-feedback {
+            margin-top: 15px;
+            padding: 15px 20px;
+            border-radius: 40px;
+            font-size: 0.95rem;
+            animation: fadeIn 0.3s;
+        }
+        
+        .test-feedback.correct {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid #10b981;
+            color: #10b981;
+        }
+        
+        .test-feedback.incorrect {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        .nav-btn {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-btn:hover:not(:disabled) {
+            background: #2d3a4f;
+            border-color: #3b82f6;
+        }
+        
+        .nav-btn.next {
+            background: linear-gradient(145deg, #2563eb, #1d4ed8);
+            border: 1px solid #3b82f6;
+        }
+        
+        .nav-btn.next:hover:not(:disabled) {
+            background: linear-gradient(145deg, #3b82f6, #2563eb);
+        }
+        
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .footer {
+            border-top: 1px solid #1a2635;
+            padding: 40px 0;
+            margin-top: 60px;
+            text-align: center;
+            color: #6b8bb0;
+        }
+        
+        .flash-messages {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .flash-message {
+            padding: 16px 24px;
+            border-radius: 40px;
+            margin-bottom: 10px;
+            animation: slideIn 0.3s;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-left: 4px solid #10b981;
+            background: rgba(4, 120, 87, 0.95);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0%); opacity: 1; }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
+        @media (max-width: 768px) {
+            .course-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .course-meta {
+                justify-content: center;
+            }
+            
+            .lesson-card {
+                flex-wrap: wrap;
+            }
+            
+            .lesson-status {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        .note-box {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid #3b82f6;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .note-box i {
+            color: #3b82f6;
+            font-size: 1.5rem;
+        }
+
+        .note-box-content {
+            color: #e9f0fa;
+        }
+
+        .note-box-content p {
+            margin: 5px 0;
+        }
+
+        .django-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .django-table th {
+            text-align: left;
+            padding: 12px;
+            background: #1e293b;
+            color: #3b82f6;
+            border: 1px solid #334155;
+        }
+
+        .django-table td {
+            padding: 12px;
+            border: 1px solid #334155;
+            color: #9ab3d0;
+        }
+
+        .django-table tr:hover {
+            background: #1e293b;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Flash сообщения -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <i class="fa-solid fa-circle-check"></i> {{ message }}
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<!-- Навбар -->
+<nav class="navbar">
+    <div class="container nav-wrapper">
+        <div class="logo">
+            <i class="fa-brands fa-python logo-icon"></i>
+            <span class="logo-text">PyMaster</span>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('main') }}">Главная</a>
+            <a href="{{ url_for('courses') }}" class="active">Курсы</a>
+            <a href="{{ url_for('tasks') }}" class="{% if request.endpoint == 'tasks' %}active{% endif %}">Задачи</a>
+            <a href="{{ url_for('ai_assistant') }}">GPT-4</a>
+            <a href="{{ url_for('dashboard') }}">Кабинет</a>
+            <a href="{{ url_for('about') }}" class="{% if request.endpoint == 'about' %}active{% endif %}">О нас</a>
+            
+            <div class="pyth-balance" onclick="window.location.href='{{ url_for('shop') }}'">
+                <i class="fa-solid fa-coins"></i>
+                <span>{{ user.balance }} PYTH</span>
+            </div>
+            
+            <a href="{{ url_for('logout') }}" class="logout-btn">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Основной контент -->
+<div class="container" style="padding: 40px 24px;">
+    <!-- Шапка курса -->
+    <div class="course-header">
+        <div class="course-header-icon">
+            <i class="fa-brands fa-python"></i>
+        </div>
+        <div class="course-header-info">
+            <h1>{{ course.title }}</h1>
+            <div class="course-meta">
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-clock"></i> {{ course.hours }} часов
+                </span>
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-book-open"></i> {{ course.lessons }} уроков
+                </span>
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-signal"></i> 
+                    <span class="course-level level-advanced">Эксперт</span>
+                </span>
+            </div>
+            <p style="color: #9ab3d0;">Оптимизация запросов, кастомные middleware, сигналы, Django REST Framework (DRF), деплой. Погрузитесь в профессиональную разработку на Django.</p>
+        </div>
+    </div>
+
+    <!-- Прогресс -->
+    <div class="progress-section">
+        <div class="progress-stats">
+            <div>
+                <span class="progress-percent">{{ progress }}%</span>
+                <span class="progress-label">прогресс</span>
+            </div>
+            <div>
+                <span class="progress-percent">{{ current_lesson }}/{{ course.lessons }}</span>
+                <span class="progress-label">уроков пройдено</span>
+            </div>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {{ progress }}%"></div>
+        </div>
+    </div>
+
+    <!-- Список уроков -->
+    <h2 style="font-size: 1.8rem; margin-bottom: 20px;">Уроки курса</h2>
+
+    <!-- Урок 1: Оптимизация запросов -->
+    <div class="lesson-card {% if current_lesson > 0 %}completed{% elif current_lesson == 0 %}current{% endif %}" onclick="window.location.href='#lesson1'">
+        <div class="lesson-number">1</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Оптимизация запросов: select_related, prefetch_related</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 0 %}completed{% elif current_lesson == 0 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 0 %}✅ Пройдено{% elif current_lesson == 0 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 1 -->
+    <div id="lesson1" class="theory-content" style="scroll-margin-top: 100px;">
+        <h2 style="margin-bottom: 20px;">Урок 1: Оптимизация запросов</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-database"></i> Проблема N+1 запросов</h3>
+            <p>Одна из самых частых проблем в Django — выполнение лишних запросов к базе данных. Рассмотрим пример:</p>
+            
+            <div class="code-block">
+                <pre>
+# Модели
+class Author(models.Model):
+    name = models.CharField(max_length=100)
+
+class Book(models.Model):
+    title = models.CharField(max_length=200)
+    author = models.ForeignKey(Author, on_delete=models.CASCADE)
+
+# Плохо: N+1 запросов
+books = Book.objects.all()
+for book in books:
+    print(book.author.name)  # Каждый раз новый запрос к БД!</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-bolt"></i> select_related и prefetch_related</h3>
+            
+            <p><strong>select_related()</strong> — для ForeignKey и OneToOneField (JOIN запрос)</p>
+            <div class="code-block">
+                <pre>
+# Хорошо: один запрос с JOIN
+books = Book.objects.select_related('author').all()
+for book in books:
+    print(book.author.name)  # Нет дополнительных запросов</pre>
+            </div>
+            
+            <p><strong>prefetch_related()</strong> — для ManyToManyField и обратных связей</p>
+            <div class="code-block">
+                <pre>
+class Book(models.Model):
+    title = models.CharField(max_length=200)
+    authors = models.ManyToManyField(Author)
+
+# prefetch_related делает отдельный запрос, но кэширует результаты
+books = Book.objects.prefetch_related('authors').all()
+for book in books:
+    for author in book.authors.all():
+        print(author.name)</pre>
+            </div>
+            
+            <div class="note-box">
+                <i class="fa-solid fa-chart-line"></i>
+                <div class="note-box-content">
+                    <p><strong>Совет:</strong> Используйте Django Debug Toolbar для отслеживания количества запросов. Это незаменимый инструмент для оптимизации.</p>
+                </div>
+            </div>
+        </div>
+
+        
+    </div>
+
+    <!-- Урок 2: Кастомные менеджеры и QuerySet -->
+    <div class="lesson-card {% if current_lesson > 1 %}completed{% elif current_lesson == 1 %}current{% endif %}" onclick="window.location.href='#lesson2'">
+        <div class="lesson-number">2</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Кастомные менеджеры и QuerySet</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 1 %}completed{% elif current_lesson == 1 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 1 %}✅ Пройдено{% elif current_lesson == 1 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 2 -->
+    {% if current_lesson >= 1 %}
+    <div id="lesson2" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 1 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 2: Кастомные менеджеры и QuerySet</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-cubes"></i> Создание кастомного менеджера</h3>
+            <div class="code-block">
+                <pre>
+from django.db import models
+
+class ActiveManager(models.Manager):
+    """Менеджер для активных записей"""
+    def get_queryset(self):
+        return super().get_queryset().filter(is_active=True)
+
+class Product(models.Model):
+    name = models.CharField(max_length=200)
+    is_active = models.BooleanField(default=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    # Стандартный менеджер
+    objects = models.Manager()
+    # Кастомный менеджер
+    active = ActiveManager()
+
+# Использование
+active_products = Product.active.all()  # Только активные
+all_products = Product.objects.all()    # Все продукты</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-chain"></i> Кастомный QuerySet</h3>
+            <div class="code-block">
+                <pre>
+from django.db import models
+
+class ProductQuerySet(models.QuerySet):
+    def expensive(self):
+        return self.filter(price__gt=1000)
+    
+    def in_stock(self):
+        return self.filter(stock__gt=0)
+
+class Product(models.Model):
+    name = models.CharField(max_length=200)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    stock = models.IntegerField(default=0)
+    
+    objects = ProductQuerySet.as_manager()
+
+# Цепочка вызовов
+products = Product.objects.expensive().in_stock()</pre>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 3: Сигналы Django -->
+    <div class="lesson-card {% if current_lesson > 2 %}completed{% elif current_lesson == 2 %}current{% endif %}" onclick="window.location.href='#lesson3'">
+        <div class="lesson-number">3</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Сигналы Django: pre_save, post_save, pre_delete</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 2 %}completed{% elif current_lesson == 2 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 2 %}✅ Пройдено{% elif current_lesson == 2 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 3 -->
+    {% if current_lesson >= 2 %}
+    <div id="lesson3" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 2 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 3: Сигналы Django</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-bell"></i> Использование сигналов</h3>
+            <div class="code-block">
+                <pre>
+from django.db.models.signals import post_save, pre_save
+from django.dispatch import receiver
+from django.core.mail import send_mail
+from .models import User, Profile
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    """Создание профиля при регистрации пользователя"""
+    if created:
+        Profile.objects.create(user=instance)
+
+@receiver(pre_save, sender=User)
+def validate_email(sender, instance, **kwargs):
+    """Валидация email перед сохранением"""
+    if '@' not in instance.email:
+        raise ValueError("Некорректный email")
+
+@receiver(post_save, sender=Order)
+def send_order_notification(sender, instance, created, **kwargs):
+    """Отправка уведомления о новом заказе"""
+    if created:
+        send_mail(
+            'Новый заказ',
+            f'Создан заказ #{instance.id}',
+            'admin@site.com',
+            ['admin@site.com']
+        )</pre>
+            </div>
+            
+            <div class="note-box">
+                <i class="fa-solid fa-exclamation-triangle"></i>
+                <div class="note-box-content">
+                    <p><strong>Важно:</strong> Сигналы выполняются синхронно. Для асинхронной обработки используйте Celery.</p>
+                </div>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 4: Custom Middleware -->
+    <div class="lesson-card {% if current_lesson > 3 %}completed{% elif current_lesson == 3 %}current{% endif %}" onclick="window.location.href='#lesson4'">
+        <div class="lesson-number">4</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Custom Middleware: логирование, обработка ошибок</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 3 %}completed{% elif current_lesson == 3 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 3 %}✅ Пройдено{% elif current_lesson == 3 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 4 -->
+    {% if current_lesson >= 3 %}
+    <div id="lesson4" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 3 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 4: Custom Middleware</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-code-branch"></i> Создание middleware</h3>
+            <div class="code-block">
+                <pre>
+# middleware.py
+import time
+import logging
+
+logger = logging.getLogger(__name__)
+
+class RequestLoggingMiddleware:
+    """Логирование всех запросов"""
+    
+    def __init__(self, get_response):
+        self.get_response = get_response
+    
+    def __call__(self, request):
+        start_time = time.time()
+        
+        # Логируем запрос
+        logger.info(f"Request: {request.method} {request.path}")
+        
+        response = self.get_response(request)
+        
+        # Логируем время выполнения
+        duration = time.time() - start_time
+        logger.info(f"Response status: {response.status_code}, Duration: {duration:.2f}s")
+        
+        return response
+
+class MaintenanceModeMiddleware:
+    """Middleware для режима обслуживания"""
+    
+    def __init__(self, get_response):
+        self.get_response = get_response
+    
+    def __call__(self, request):
+        # Проверяем, не включен ли режим обслуживания
+        from django.conf import settings
+        
+        if hasattr(settings, 'MAINTENANCE_MODE') and settings.MAINTENANCE_MODE:
+            # Исключаем доступ к админке
+            if not request.path.startswith('/admin'):
+                from django.http import HttpResponse
+                return HttpResponse("Сайт на техническом обслуживании", status=503)
+        
+        return self.get_response(request)</pre>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 5: Django REST Framework (DRF) - основы -->
+    <div class="lesson-card {% if current_lesson > 4 %}completed{% elif current_lesson == 4 %}current{% endif %}" onclick="window.location.href='#lesson5'">
+        <div class="lesson-number">5</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Django REST Framework (DRF) - основы</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 30 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 4 %}completed{% elif current_lesson == 4 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 4 %}✅ Пройдено{% elif current_lesson == 4 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 5 -->
+    {% if current_lesson >= 4 %}
+    <div id="lesson5" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 4 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 5: Django REST Framework (DRF)</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-microchip"></i> Serializers и ViewSets</h3>
+            <div class="code-block">
+                <pre>
+# serializers.py
+from rest_framework import serializers
+from .models import Product, Category
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id', 'name', 'slug']
+
+class ProductSerializer(serializers.ModelSerializer):
+    category = CategorySerializer(read_only=True)
+    category_id = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(), source='category', write_only=True
+    )
+    
+    class Meta:
+        model = Product
+        fields = ['id', 'name', 'price', 'category', 'category_id', 'created_at']
+
+# views.py
+from rest_framework import viewsets, permissions
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from .models import Product
+from .serializers import ProductSerializer
+
+class ProductViewSet(viewsets.ModelViewSet):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    
+    @action(detail=False, methods=['get'])
+    def expensive(self, request):
+        """Кастомный эндпоинт для дорогих товаров"""
+        products = self.get_queryset().filter(price__gt=1000)
+        serializer = self.get_serializer(products, many=True)
+        return Response(serializer.data)</pre>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 6: Аутентификация в DRF -->
+    <div class="lesson-card {% if current_lesson > 5 %}completed{% elif current_lesson == 5 %}current{% endif %}" onclick="window.location.href='#lesson6'">
+        <div class="lesson-number">6</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Аутентификация в DRF: JWT, Token, Session</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 5 %}completed{% elif current_lesson == 5 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 5 %}✅ Пройдено{% elif current_lesson == 5 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 6 -->
+    {% if current_lesson >= 5 %}
+    <div id="lesson6" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 5 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 6: Аутентификация в DRF</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-key"></i> JWT аутентификация</h3>
+            <div class="code-block">
+                <pre>
+# settings.py
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+}
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+}
+
+# urls.py
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
+
+urlpatterns = [
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+]</pre>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 7: Тестирование Django приложений -->
+    <div class="lesson-card {% if current_lesson > 6 %}completed{% elif current_lesson == 6 %}current{% endif %}" onclick="window.location.href='#lesson7'">
+        <div class="lesson-number">7</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Тестирование Django приложений</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 6 %}completed{% elif current_lesson == 6 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 6 %}✅ Пройдено{% elif current_lesson == 6 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 7 -->
+    {% if current_lesson >= 6 %}
+    <div id="lesson7" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 6 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 7: Тестирование Django приложений</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-vial"></i> Тестирование моделей и API</h3>
+            <div class="code-block">
+                <pre>
+# tests.py
+from django.test import TestCase, Client
+from django.urls import reverse
+from rest_framework import status
+from .models import Product, Category
+
+class ProductModelTest(TestCase):
+    def setUp(self):
+        self.category = Category.objects.create(name="Electronics")
+        self.product = Product.objects.create(
+            name="iPhone",
+            price=999,
+            category=self.category
+        )
+    
+    def test_product_creation(self):
+        self.assertEqual(self.product.name, "iPhone")
+        self.assertEqual(self.product.price, 999)
+        self.assertEqual(self.product.category.name, "Electronics")
+    
+    def test_product_str(self):
+        self.assertEqual(str(self.product), "iPhone")
+    
+    def test_expensive_products(self):
+        expensive = Product.objects.filter(price__gt=1000)
+        self.assertEqual(expensive.count(), 0)
+
+class ProductAPITest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.category = Category.objects.create(name="Books")
+        self.product = Product.objects.create(
+            name="Django Book",
+            price=50,
+            category=self.category
+        )
+    
+    def test_product_list(self):
+        response = self.client.get(reverse('product-list'))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.json()), 1)
+    
+    def test_product_detail(self):
+        response = self.client.get(reverse('product-detail', args=[self.product.id]))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()['name'], "Django Book")</pre>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 8: Деплой Django приложения -->
+    <div class="lesson-card {% if current_lesson > 7 %}completed{% elif current_lesson == 7 %}current{% endif %}" onclick="window.location.href='#lesson8'">
+        <div class="lesson-number">8</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Деплой Django приложения</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 30 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 7 %}completed{% elif current_lesson == 7 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 7 %}✅ Пройдено{% elif current_lesson == 7 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 8 -->
+    {% if current_lesson >= 7 %}
+    <div id="lesson8" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 7 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 8: Деплой Django приложения</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-cloud-arrow-up"></i> Подготовка к деплою</h3>
+            <div class="code-block">
+                <pre>
+# settings.py
+import os
+import dj_database_url
+
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+
+# База данных PostgreSQL
+DATABASES = {
+    'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL')
+    )
+}
+
+# Статические файлы
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Безопасность
+SECURE_SSL_REDIRECT = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+
+# Procfile для Heroku
+# web: gunicorn myproject.wsgi --log-file -
+
+# requirements.txt
+# gunicorn
+# psycopg2-binary
+# whitenoise
+# dj-database-url</pre>
+            </div>
+            
+            <div class="note-box">
+                <i class="fa-solid fa-docker"></i>
+                <div class="note-box-content">
+                    <p><strong>Dockerfile пример:</strong></p>
+                    <pre style="background: #0f172a; padding: 10px; border-radius: 8px; margin-top: 10px;">
+FROM python:3.11
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY . .
+CMD ["gunicorn", "myproject.wsgi:application", "--bind", "0.0.0.0:8000"]</pre>
+                </div>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 9: Оптимизация производительности -->
+    <div class="lesson-card {% if current_lesson > 8 %}completed{% elif current_lesson == 8 %}current{% endif %}" onclick="window.location.href='#lesson9'">
+        <div class="lesson-number">9</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Оптимизация производительности Django</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 8 %}completed{% elif current_lesson == 8 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 8 %}✅ Пройдено{% elif current_lesson == 8 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 9 -->
+    {% if current_lesson >= 8 %}
+    <div id="lesson9" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 8 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 9: Оптимизация производительности Django</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-gauge-high"></i> Кэширование и индексы</h3>
+            <div class="code-block">
+                <pre>
+# Кэширование представлений
+from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_headers
+
+@cache_page(60 * 15)  # 15 минут
+@vary_on_headers('Cookie')
+def product_list(request):
+    products = Product.objects.all()
+    return render(request, 'products/list.html', {'products': products})
+
+# Индексы в моделях
+class Product(models.Model):
+    name = models.CharField(max_length=200, db_index=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['price', 'created_at']),
+        ]
+
+# Использование select_related и only для оптимизации
+products = Product.objects.select_related('category').only('name', 'price', 'category__name')</pre>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 10: Тест по Django -->
+    <div class="lesson-card {% if current_lesson > 9 %}completed{% elif current_lesson == 9 %}current{% endif %}" onclick="window.location.href='#lesson10'">
+        <div class="lesson-number">10</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Тест: Django Pro</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-pen-to-square"></i> Тест • 15 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 9 %}completed{% elif current_lesson == 9 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 9 %}✅ Пройдено{% elif current_lesson == 9 %}📝 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 10 -->
+    {% if current_lesson >= 9 %}
+    <div id="lesson10" class="test-block" style="scroll-margin-top: 100px; {% if current_lesson != 9 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 10: Тест по Django</h2>
+        
+        <div class="test-question">Вопрос: Что из перечисленного используется для оптимизации запросов ManyToManyField и предотвращения проблемы N+1?</div>
+        <div class="test-options">
+            <label class="test-option">
+                <input type="radio" name="q1" value="0"> select_related()
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q1" value="1"> prefetch_related()
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q1" value="2"> only()
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q1" value="3"> defer()
+            </label>
+        </div>
+        <div id="feedback1" class="test-feedback" style="display: none;"></div>
+
+        <button class="test-btn" onclick="checkTest()">Проверить ответ</button>
+
+        <div class="navigation-buttons" style="margin-top: 30px;">
+            <button class="nav-btn" onclick="window.location.href='#lesson9'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" id="completeBtn" style="display: none;" onclick="completeCourse(20)">Завершить курс <i class="fa-solid fa-check"></i></button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Кнопка возврата -->
+    <div style="margin-top: 40px; text-align: center;">
+        <a href="{{ url_for('courses') }}" class="btn btn-outline">
+            <i class="fa-solid fa-arrow-left"></i> К списку курсов
+        </a>
+    </div>
+</div>
+
+<!-- Футер -->
+<footer class="footer">
+    <div class="container">
+        <p>© 2025 PyMaster · Django: Pro-уровень</p>
+    </div>
+</footer>
+
+<script>
+    // ID текущего курса
+    const courseId = {{ course.id }};
+    const totalLessons = {{ course.lessons }};
+    
+    // Функция перехода к уроку по клику
+    async function goToLesson(lessonIndex) {
+        try {
+            const response = await fetch('/api/save-progress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    course_id: courseId,
+                    lesson_index: lessonIndex,
+                    completed: false
+                })
+            });
+            
+            if (response.ok) {
+                const lessonElement = document.getElementById(`lesson${lessonIndex + 1}`);
+                if (lessonElement) {
+                    lessonElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    history.pushState(null, null, `#lesson${lessonIndex + 1}`);
+                    updateLessonStyles(lessonIndex);
+                } else {
+                    window.location.reload();
+                }
+            } else {
+                console.error('Ошибка сохранения прогресса:', response.status);
+            }
+        } catch (error) {
+            console.error('Ошибка сохранения прогресса:', error);
+            alert('Произошла ошибка при переходе к уроку. Попробуйте еще раз.');
+        }
+    }
+    
+    // Функция обновления стилей уроков
+    function updateLessonStyles(activeLessonIndex) {
+        const lessonCards = document.querySelectorAll('.lesson-card');
+        const lessonContents = document.querySelectorAll('.theory-content, .test-block');
+        
+        lessonCards.forEach((card, index) => {
+            card.classList.remove('current');
+            if (index === activeLessonIndex) {
+                card.classList.add('current');
+            } else {
+                card.classList.remove('current');
+            }
+            
+            const statusElement = card.querySelector('.lesson-status');
+            if (statusElement) {
+                if (index === activeLessonIndex) {
+                    statusElement.className = 'lesson-status current';
+                    const lessonType = card.querySelector('.lesson-type i');
+                    if (lessonType && lessonType.classList.contains('fa-pen-to-square')) {
+                        statusElement.innerHTML = '📝 Текущий';
+                    } else {
+                        statusElement.innerHTML = '📖 Текущий';
+                    }
+                } else {
+                    statusElement.className = 'lesson-status';
+                    statusElement.innerHTML = '📚 Доступен';
+                }
+            }
+        });
+        
+        lessonContents.forEach((content, index) => {
+            if (index === activeLessonIndex) {
+                content.style.display = 'block';
+                content.style.animation = 'fadeIn 0.5s';
+            } else {
+                content.style.display = 'none';
+            }
+        });
+        
+        updateProgressBar(activeLessonIndex + 1);
+    }
+    
+    // Функция обновления прогресс-бара
+    function updateProgressBar(currentLesson) {
+        const progressPercent = Math.round((currentLesson / totalLessons) * 100);
+        
+        const progressFill = document.querySelector('.progress-fill');
+        const progressPercentSpan = document.querySelector('.progress-percent:first-child');
+        const progressCounter = document.querySelectorAll('.progress-percent')[1];
+        
+        if (progressFill) {
+            progressFill.style.width = `${progressPercent}%`;
+        }
+        
+        if (progressPercentSpan) {
+            progressPercentSpan.textContent = `${progressPercent}%`;
+        }
+        
+        if (progressCounter) {
+            progressCounter.textContent = `${currentLesson}/${totalLessons}`;
+        }
+    }
+    
+    // Функция завершения курса
+    async function completeCourse() {
+        try {
+            const response = await fetch('/api/save-progress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    course_id: courseId,
+                    lesson_index: totalLessons - 1,
+                    completed: true
+                })
+            });
+            
+            if (response.ok) {
+                alert('🎉 Поздравляем! Вы завершили курс! +50 PYTH');
+                window.location.href = "{{ url_for('courses') }}";
+            } else {
+                console.error('Ошибка завершения курса:', response.status);
+                alert('Произошла ошибка при завершении курса. Попробуйте еще раз.');
+            }
+        } catch (error) {
+            console.error('Ошибка завершения курса:', error);
+            alert('Произошла ошибка при завершении курса. Попробуйте еще раз.');
+        }
+    }
+    
+    // Функция проверки теста
+    function checkTest() {
+        const q1 = document.querySelector('input[name="q1"]:checked');
+        let allCorrect = false;
+        
+        if (q1 && q1.value === '1') {
+            document.getElementById('feedback1').className = 'test-feedback correct';
+            document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! prefetch_related() используется для оптимизации ManyToManyField и обратных связей.';
+            document.getElementById('feedback1').style.display = 'block';
+            allCorrect = true;
+        } else {
+            document.getElementById('feedback1').className = 'test-feedback incorrect';
+            document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. Правильный ответ: prefetch_related() для ManyToManyField. select_related() используется для ForeignKey.';
+            document.getElementById('feedback1').style.display = 'block';
+            allCorrect = false;
+        }
+        
+        if (allCorrect) {
+            document.getElementById('completeBtn').style.display = 'flex';
+            const successMessage = document.createElement('div');
+            successMessage.className = 'test-feedback correct';
+            successMessage.innerHTML = '<i class="fa-solid fa-check"></i> 🎉 Тест пройден успешно!';
+            successMessage.style.marginTop = '20px';
+            const testBlock = document.querySelector('.test-block');
+            if (testBlock && !testBlock.querySelector('.final-success')) {
+                successMessage.classList.add('final-success');
+                testBlock.appendChild(successMessage);
+            }
+        }
+    }
+    
+    // Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        const lessonCards = document.querySelectorAll('.lesson-card');
+        const currentLessonIndex = parseInt('{{ current_lesson }}') || 0;
+        
+        lessonCards.forEach((card) => {
+            const statusElement = card.querySelector('.lesson-status');
+            if (statusElement) {
+                statusElement.classList.remove('locked');
+            }
+        });
+        
+        updateLessonStyles(currentLessonIndex);
+        
+        lessonCards.forEach((card, index) => {
+            card.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+                    return;
+                }
+                goToLesson(index);
+            });
+            card.style.cursor = 'pointer';
+        });
+        
+        if (window.location.hash) {
+            const hash = window.location.hash;
+            const lessonMatch = hash.match(/lesson(\d+)/);
+            if (lessonMatch) {
+                const lessonIndex = parseInt(lessonMatch[1]) - 1;
+                if (lessonIndex >= 0 && lessonIndex < totalLessons) {
+                    setTimeout(() => {
+                        goToLesson(lessonIndex);
+                    }, 100);
+                }
+            }
+        }
+    });
+    
+    setTimeout(() => {
+        document.querySelectorAll('.flash-message').forEach(msg => {
+            msg.style.animation = 'slideOut 0.3s';
+            setTimeout(() => msg.remove(), 300);
+        });
+    }, 5000);
+</script>
+
+<style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .lesson-card {
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .lesson-card:hover {
+        transform: translateX(10px);
+        border-color: #3b82f6;
+    }
+    
+    .lesson-card.current {
+        border-color: #3b82f6;
+        background: rgba(59, 130, 246, 0.1);
+    }
+    
+    .lesson-status {
+        padding: 6px 15px;
+        border-radius: 40px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+        border: 1px solid #3b82f6;
+    }
+    
+    .lesson-status.locked {
+        display: none;
+    }
+    
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+</style>
+</body>
+</html>

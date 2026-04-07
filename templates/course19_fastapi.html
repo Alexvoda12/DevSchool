@@ -1,0 +1,1806 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyMaster · FastAPI: современный backend</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Исправленные стили для правильной прокрутки */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: auto;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            background: #0a0c0f;
+            color: #e3e9f1;
+            overflow-y: auto;
+        }
+        
+        .navbar {
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            width: 100%;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            width: 100%;
+        }
+        
+        /* Стилизация скроллбара для всей страницы */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2563eb;
+        }
+
+        /* Остальные стили для курса */
+        .course-header {
+            background: linear-gradient(145deg, #0f172a, #1a2635);
+            border-radius: 40px;
+            padding: 40px;
+            margin-bottom: 30px;
+            border: 1px solid #2a3a55;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .course-header-icon {
+            width: 100px;
+            height: 100px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            color: #3b82f6;
+        }
+        
+        .course-header-info {
+            flex: 1;
+        }
+        
+        .course-header-info h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(145deg, #ffffff, #a5c9ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .course-meta {
+            display: flex;
+            gap: 30px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        
+        .course-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #9ab3d0;
+        }
+        
+        .course-meta-item i {
+            color: #3b82f6;
+        }
+        
+        .progress-section {
+            background: rgba(18, 26, 36, 0.7);
+            border: 1px solid #2a3a55;
+            border-radius: 32px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .progress-percent {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #3b82f6;
+        }
+        
+        .progress-label {
+            color: #9ab3d0;
+        }
+        
+        .lesson-card {
+            background: rgba(18, 26, 36, 0.7);
+            border: 1px solid #2a3a55;
+            border-radius: 24px;
+            padding: 25px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .lesson-card:hover {
+            border-color: #3b82f6;
+            transform: translateX(5px);
+            background: #1e2c3f;
+        }
+        
+        .lesson-card.completed {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+        }
+        
+        .lesson-card.current {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        .lesson-number {
+            width: 50px;
+            height: 50px;
+            background: #1e293b;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: #3b82f6;
+        }
+        
+        .lesson-card.completed .lesson-number {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+        
+        .lesson-card.current .lesson-number {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .lesson-info {
+            flex: 1;
+        }
+        
+        .lesson-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #ffffff;
+        }
+        
+        .lesson-type {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #9ab3d0;
+            font-size: 0.85rem;
+        }
+        
+        .lesson-type i {
+            color: #3b82f6;
+        }
+        
+        .lesson-status {
+            padding: 6px 15px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .lesson-status.completed {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid #10b981;
+        }
+        
+        .lesson-status.current {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+            border: 1px solid #3b82f6;
+        }
+        
+        .lesson-status.locked {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+        
+        .theory-content {
+            background: #1a2635;
+            border: 1px solid #2f405b;
+            border-radius: 24px;
+            padding: 30px;
+            margin: 20px 0;
+            scroll-margin-top: 100px;
+        }
+        
+        .theory-section {
+            margin-bottom: 40px;
+        }
+        
+        .theory-section h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #e9f0fa;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .theory-section h3 i {
+            color: #3b82f6;
+        }
+        
+        .code-block {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            color: #fbbf24;
+            overflow-x: auto;
+        }
+        
+        .test-block {
+            background: #1a2635;
+            border: 1px solid #2f405b;
+            border-radius: 24px;
+            padding: 30px;
+            margin: 30px 0;
+            scroll-margin-top: 100px;
+        }
+        
+        .test-question {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+        
+        .test-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .test-option {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 40px;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .test-option:hover {
+            border-color: #3b82f6;
+            background: #2d3a4f;
+        }
+        
+        .test-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #3b82f6;
+        }
+        
+        .test-btn {
+            background: linear-gradient(145deg, #2563eb, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 20px;
+        }
+        
+        .test-btn:hover {
+            background: linear-gradient(145deg, #3b82f6, #2563eb);
+            transform: scale(1.02);
+        }
+        
+        .test-feedback {
+            margin-top: 15px;
+            padding: 15px 20px;
+            border-radius: 40px;
+            font-size: 0.95rem;
+            animation: fadeIn 0.3s;
+        }
+        
+        .test-feedback.correct {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid #10b981;
+            color: #10b981;
+        }
+        
+        .test-feedback.incorrect {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        .nav-btn {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-btn:hover:not(:disabled) {
+            background: #2d3a4f;
+            border-color: #3b82f6;
+        }
+        
+        .nav-btn.next {
+            background: linear-gradient(145deg, #2563eb, #1d4ed8);
+            border: 1px solid #3b82f6;
+        }
+        
+        .nav-btn.next:hover:not(:disabled) {
+            background: linear-gradient(145deg, #3b82f6, #2563eb);
+        }
+        
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .footer {
+            border-top: 1px solid #1a2635;
+            padding: 40px 0;
+            margin-top: 60px;
+            text-align: center;
+            color: #6b8bb0;
+        }
+        
+        /* Flash сообщения */
+        .flash-messages {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .flash-message {
+            padding: 16px 24px;
+            border-radius: 40px;
+            margin-bottom: 10px;
+            animation: slideIn 0.3s;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-left: 4px solid #10b981;
+            background: rgba(4, 120, 87, 0.95);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0%); opacity: 1; }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .course-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .course-meta {
+                justify-content: center;
+            }
+            
+            .lesson-card {
+                flex-wrap: wrap;
+            }
+            
+            .lesson-status {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        .note-box {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid #f59e0b;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .note-box i {
+            color: #f59e0b;
+            font-size: 1.5rem;
+        }
+
+        .note-box-content {
+            color: #e9f0fa;
+        }
+
+        .note-box-content p {
+            margin: 5px 0;
+        }
+
+        .note-box.warning {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: #ef4444;
+        }
+        
+        .note-box.warning i {
+            color: #ef4444;
+        }
+
+        .note-box.info {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: #3b82f6;
+        }
+        
+        .note-box.info i {
+            color: #3b82f6;
+        }
+
+    </style>
+</head>
+<body>
+
+<!-- Flash сообщения -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <i class="fa-solid fa-circle-check"></i> {{ message }}
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<!-- Навбар -->
+<nav class="navbar">
+    <div class="container nav-wrapper">
+        <div class="logo">
+            <i class="fa-brands fa-python logo-icon"></i>
+            <span class="logo-text">PyMaster</span>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('main') }}">Главная</a>
+            <a href="{{ url_for('courses') }}" class="active">Курсы</a>
+            <a href="{{ url_for('tasks') }}" class="{% if request.endpoint == 'tasks' %}active{% endif %}">Задачи</a>
+            <a href="{{ url_for('ai_assistant') }}">GPT-4</a>
+            <a href="{{ url_for('dashboard') }}">Кабинет</a>
+            <a href="{{ url_for('about') }}" class="{% if request.endpoint == 'about' %}active{% endif %}">О нас</a>
+            
+            <div class="pyth-balance" onclick="window.location.href='{{ url_for('shop') }}'">
+                <i class="fa-solid fa-coins"></i>
+                <span>{{ user.balance }} PYTH</span>
+            </div>
+            
+            <a href="{{ url_for('logout') }}" class="logout-btn">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Основной контент -->
+<div class="container" style="padding: 40px 24px;">
+    <!-- Шапка курса -->
+    <div class="course-header">
+        <div class="course-header-icon">
+            <i class="fa-solid fa-bolt"></i>
+        </div>
+        <div class="course-header-info">
+            <h1>{{ course.title }}</h1>
+            <div class="course-meta">
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-clock"></i> {{ course.hours }} часов
+                </span>
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-book-open"></i> {{ course.lessons }} уроков
+                </span>
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-signal"></i> 
+                    <span class="course-level level-advanced">Продвинутый</span>
+                </span>
+            </div>
+            <p style="color: #9ab3d0;">{{ course.description }}</p>
+        </div>
+    </div>
+
+    <!-- Прогресс -->
+    <div class="progress-section">
+        <div class="progress-stats">
+            <div>
+                <span class="progress-percent">{{ progress }}%</span>
+                <span class="progress-label">прогресс</span>
+            </div>
+            <div>
+                <span class="progress-percent">{{ current_lesson }}/{{ course.lessons }}</span>
+                <span class="progress-label">уроков пройдено</span>
+            </div>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {{ progress }}%"></div>
+        </div>
+    </div>
+
+    <!-- Список уроков -->
+    <h2 style="font-size: 1.8rem; margin-bottom: 20px;">Уроки курса</h2>
+
+    <!-- Урок 1: Введение в FastAPI -->
+    <div class="lesson-card {% if current_lesson > 0 %}completed{% elif current_lesson == 0 %}current{% endif %}" onclick="window.location.href='#lesson1'">
+        <div class="lesson-number">1</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Введение в FastAPI</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 0 %}completed{% elif current_lesson == 0 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 0 %}✅ Пройдено{% elif current_lesson == 0 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 1 -->
+    <div id="lesson1" class="theory-content" style="scroll-margin-top: 100px;">
+        <h2 style="margin-bottom: 20px;">Урок 1: Введение в FastAPI</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-bolt"></i> Что такое FastAPI?</h3>
+            <p>FastAPI — это современный, быстрый (высокопроизводительный) веб-фреймворк для создания API на Python 3.8+ на основе стандартных подсказок типов Python. Он создан для того, чтобы разработка API была простой, быстрой и надежной.</p>
+            <p>Основные преимущества FastAPI:</p>
+            <ul style="color: #9ab3d0; margin-left: 20px;">
+                <li><strong>Высокая производительность:</strong> Один из самых быстрых фреймворков Python, благодаря Starlette и Pydantic</li>
+                <li><strong>Автоматическая документация:</strong> Генерирует документацию OpenAPI (Swagger UI и ReDoc) автоматически</li>
+                <li><strong>Асинхронность из коробки:</strong> Поддержка async/await без дополнительных настроек</li>
+                <li><strong>Валидация данных:</strong> Использует Pydantic для автоматической валидации</li>
+                <li><strong>Внедрение зависимостей:</strong> Мощная и простая система DI</li>
+            </ul>
+            
+            <h4 style="margin: 20px 0 10px;">Установка FastAPI и сервера Uvicorn:</h4>
+            <div class="code-block">
+                <pre>
+# Установка FastAPI
+pip install fastapi
+
+# Установка сервера ASGI (Uvicorn)
+pip install uvicorn</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-rocket"></i> Первое приложение</h3>
+            <p>Создадим простое FastAPI приложение с одним эндпоинтом.</p>
+            
+            <div class="code-block">
+                <pre>
+# main.py
+from fastapi import FastAPI
+
+# Создаем экземпляр приложения
+app = FastAPI()
+
+# Определяем GET эндпоинт на корневом пути "/"
+@app.get("/")
+async def root():
+    return {"message": "Hello, World!"}
+
+# Определяем эндпоинт с параметром пути
+@app.get("/items/{item_id}")
+async def read_item(item_id: int):
+    return {"item_id": item_id}</pre>
+            </div>
+            <p>Запуск приложения:</p>
+            <div class="code-block">
+                <pre>
+# Запуск сервера
+uvicorn main:app --reload</pre>
+            </div>
+            <p>После запуска вы можете открыть в браузере:</p>
+            <ul style="color: #9ab3d0;">
+                <li><a href="http://localhost:8000" target="_blank" style="color: #3b82f6;">http://localhost:8000</a> — ваш API</li>
+                <li><a href="http://localhost:8000/docs" target="_blank" style="color: #3b82f6;">http://localhost:8000/docs</a> — автоматическая документация Swagger UI</li>
+                <li><a href="http://localhost:8000/redoc" target="_blank" style="color: #3b82f6;">http://localhost:8000/redoc</a> — альтернативная документация ReDoc</li>
+            </ul>
+        </div>
+
+        <div class="note-box info">
+            <i class="fa-solid fa-lightbulb"></i>
+            <div class="note-box-content">
+                <p><strong>Почему Uvicorn?</strong> FastAPI — это ASGI-фреймворк (Asynchronous Server Gateway Interface), в отличие от классического WSGI (как у Flask). Uvicorn — это ASGI-сервер, который позволяет использовать все преимущества асинхронности.</p>
+            </div>
+        </div>
+
+        
+    </div>
+
+    <!-- Урок 2: Pydantic модели и валидация -->
+    <div class="lesson-card {% if current_lesson > 1 %}completed{% elif current_lesson == 1 %}current{% endif %}" onclick="window.location.href='#lesson2'">
+        <div class="lesson-number">2</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Pydantic модели и валидация</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 1 %}completed{% elif current_lesson == 1 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 1 %}✅ Пройдено{% elif current_lesson == 1 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 2 -->
+    {% if current_lesson >= 1 %}
+    <div id="lesson2" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 1 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 2: Pydantic модели и валидация</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-check-double"></i> Модели данных Pydantic</h3>
+            <p>Pydantic — это библиотека для валидации данных на основе аннотаций типов. FastAPI использует Pydantic для определения структуры запросов и ответов.</p>
+            
+            <div class="code-block">
+                <pre>
+from fastapi import FastAPI
+from pydantic import BaseModel
+from typing import Optional
+
+app = FastAPI()
+
+# Определяем Pydantic модель для данных пользователя
+class User(BaseModel):
+    id: int
+    name: str
+    email: str
+    age: Optional[int] = None  # Поле необязательное
+    is_active: bool = True      # Поле со значением по умолчанию
+
+# Модель для создания пользователя (без id)
+class UserCreate(BaseModel):
+    name: str
+    email: str
+    age: Optional[int] = None
+
+@app.post("/users/")
+async def create_user(user: UserCreate):
+    # Автоматическая валидация данных происходит здесь
+    # Если данные не соответствуют модели, вернется 422 Unprocessable Entity
+    return {"message": f"User {user.name} created", "data": user}</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-magnifying-glass"></i> Валидация с Field</h3>
+            <p>Для более сложной валидации можно использовать Field из Pydantic.</p>
+            
+            <div class="code-block">
+                <pre>
+from pydantic import BaseModel, Field, EmailStr, validator
+import re
+
+class Product(BaseModel):
+    name: str = Field(..., min_length=3, max_length=50, description="Название товара")
+    price: float = Field(..., gt=0, le=10000, description="Цена товара")
+    quantity: int = Field(..., ge=0, le=1000, description="Количество на складе")
+    email: EmailStr  # Специальный тип для валидации email
+    
+    @validator('name')
+    def name_must_contain_letters(cls, v):
+        if not re.match(r'^[a-zA-Zа-яА-Я0-9\s]+$', v):
+            raise ValueError('Имя может содержать только буквы, цифры и пробелы')
+        return v
+
+@app.post("/products/")
+async def create_product(product: Product):
+    return product</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-arrows-spin"></i> Response модели</h3>
+            <p>Используйте response_model, чтобы документировать и валидировать ответы API.</p>
+            
+            <div class="code-block">
+                <pre>
+from typing import List
+
+class UserOut(BaseModel):
+    id: int
+    name: str
+    email: str
+    # Поле password исключаем из ответа
+
+class UserInDB(User):
+    hashed_password: str
+
+# Скрываем пароль в ответе
+@app.get("/users/{user_id}", response_model=UserOut)
+async def get_user(user_id: int):
+    # В реальном коде здесь был бы запрос к БД
+    user = UserInDB(id=user_id, name="John", email="john@example.com", hashed_password="hash...")
+    return user  # Автоматически преобразуется в UserOut (без hashed_password)</pre>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 3: Эндпоинты и параметры -->
+    <div class="lesson-card {% if current_lesson > 2 %}completed{% elif current_lesson == 2 %}current{% endif %}" onclick="window.location.href='#lesson3'">
+        <div class="lesson-number">3</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Эндпоинты и параметры</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 2 %}completed{% elif current_lesson == 2 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 2 %}✅ Пройдено{% elif current_lesson == 2 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 3 -->
+    {% if current_lesson >= 2 %}
+    <div id="lesson3" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 2 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 3: Эндпоинты и параметры</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-link"></i> HTTP методы</h3>
+            <p>FastAPI поддерживает все стандартные HTTP методы:</p>
+            
+            <div class="code-block">
+                <pre>
+from fastapi import FastAPI, Query, Path, Body
+
+app = FastAPI()
+
+# GET — получение данных
+@app.get("/items/")
+async def read_items(skip: int = 0, limit: int = 10):
+    return {"skip": skip, "limit": limit}
+
+# POST — создание данных
+@app.post("/items/")
+async def create_item(item: dict):
+    return {"item": item}
+
+# PUT — обновление (полная замена)
+@app.put("/items/{item_id}")
+async def update_item(item_id: int, item: dict):
+    return {"item_id": item_id, "item": item}
+
+# PATCH — частичное обновление
+@app.patch("/items/{item_id}")
+async def patch_item(item_id: int, item: dict):
+    return {"item_id": item_id, "item": item}
+
+# DELETE — удаление
+@app.delete("/items/{item_id}")
+async def delete_item(item_id: int):
+    return {"deleted": item_id}</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-code-branch"></i> Типы параметров</h3>
+            <p>FastAPI автоматически определяет, откуда брать параметры:</p>
+            <ul style="color: #9ab3d0; margin-left: 20px;">
+                <li><strong>Параметры пути (Path)</strong> — из URL: <code>/items/{item_id}</code></li>
+                <li><strong>Параметры запроса (Query)</strong> — из строки запроса: <code>?skip=0&limit=10</code></li>
+                <li><strong>Тело запроса (Body)</strong> — из JSON тела POST, PUT, PATCH запросов</li>
+                <li><strong>Заголовки (Header)</strong> — из HTTP заголовков</li>
+                <li><strong>Cookie</strong> — из кук</li>
+            </ul>
+            
+            <div class="code-block">
+                <pre>
+from fastapi import FastAPI, Query, Path, Header, Cookie, Body
+from typing import Optional
+
+app = FastAPI()
+
+@app.get("/items/{item_id}")
+async def read_item(
+    # Параметр пути
+    item_id: int = Path(..., title="ID предмета", ge=1),
+    
+    # Параметры запроса
+    q: Optional[str] = Query(None, max_length=50, title="Поисковый запрос"),
+    page: int = Query(1, ge=1),
+    size: int = Query(10, ge=1, le=100),
+    
+    # Заголовки
+    user_agent: Optional[str] = Header(None),
+    
+    # Cookie
+    session_id: Optional[str] = Cookie(None),
+):
+    return {
+        "item_id": item_id,
+        "q": q,
+        "page": page,
+        "size": size,
+        "user_agent": user_agent,
+        "session_id": session_id
+    }
+
+# Тело запроса
+@app.post("/users/")
+async def create_user(
+    name: str = Body(..., embed=True),  # embed=True для одиночного поля
+    email: str = Body(...)
+):
+    return {"name": name, "email": email}</pre>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 4: Dependency Injection -->
+    <div class="lesson-card {% if current_lesson > 3 %}completed{% elif current_lesson == 3 %}current{% endif %}" onclick="window.location.href='#lesson4'">
+        <div class="lesson-number">4</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Dependency Injection (DI)</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 3 %}completed{% elif current_lesson == 3 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 3 %}✅ Пройдено{% elif current_lesson == 3 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 4 -->
+    {% if current_lesson >= 3 %}
+    <div id="lesson4" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 3 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 4: Dependency Injection (DI)</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-puzzle-piece"></i> Что такое зависимости?</h3>
+            <p>Зависимости (Dependencies) — это способ повторно использовать код и разделять логику. Это могут быть функции, классы или даже другие эндпоинты.</p>
+            
+            <div class="code-block">
+                <pre>
+from fastapi import FastAPI, Depends, HTTPException, status
+
+app = FastAPI()
+
+# Простая зависимость
+async def common_parameters(q: str = None, skip: int = 0, limit: int = 100):
+    return {"q": q, "skip": skip, "limit": limit}
+
+# Зависимость для проверки аутентификации
+async def get_current_user(token: str = Header(...)):
+    if token != "secret-token":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication credentials"
+        )
+    return {"username": "john_doe", "token": token}
+
+# Использование зависимостей
+@app.get("/items/")
+async def read_items(params: dict = Depends(common_parameters)):
+    return params
+
+@app.get("/users/me")
+async def read_users_me(current_user: dict = Depends(get_current_user)):
+    return current_user</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-diagram-project"></i> Зависимости с кэшированием</h3>
+            <p>По умолчанию зависимости вычисляются один раз на запрос. Для зависимостей с кэшированием используйте параметр <code>use_cache</code>.</p>
+            
+            <div class="code-block">
+                <pre>
+from fastapi import FastAPI, Depends, Request
+
+app = FastAPI()
+
+# Зависимость, которая может быть дорогой
+async def get_db_session():
+    # Имитация подключения к БД
+    db = {"session_id": "12345"}
+    yield db
+    # Закрываем соединение после использования
+    print("Closing DB connection")
+
+# Зависимость для получения пользователя
+async def get_current_user(request: Request, db=Depends(get_db_session)):
+    # Получаем пользователя из БД
+    user = {"id": 1, "name": "John"}
+    request.state.user = user
+    return user
+
+@app.get("/profile/")
+async def get_profile(user=Depends(get_current_user)):
+    return user
+
+@app.get("/dashboard/")
+async def get_dashboard(user=Depends(get_current_user)):
+    return {"user": user, "data": "Dashboard data"}</pre>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 5: Обработка ошибок и middleware -->
+    <div class="lesson-card {% if current_lesson > 4 %}completed{% elif current_lesson == 4 %}current{% endif %}" onclick="window.location.href='#lesson5'">
+        <div class="lesson-number">5</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Обработка ошибок и middleware</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 4 %}completed{% elif current_lesson == 4 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 4 %}✅ Пройдено{% elif current_lesson == 4 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 5 -->
+    {% if current_lesson >= 4 %}
+    <div id="lesson5" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 4 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 5: Обработка ошибок и middleware</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-bug"></i> Обработка ошибок</h3>
+            
+            <div class="code-block">
+                <pre>
+from fastapi import FastAPI, HTTPException, status, Request
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+
+app = FastAPI()
+
+# Кастомное исключение
+class UserNotFoundError(Exception):
+    def __init__(self, user_id: int):
+        self.user_id = user_id
+        self.message = f"User with id {user_id} not found"
+
+# Обработчик кастомного исключения
+@app.exception_handler(UserNotFoundError)
+async def user_not_found_handler(request: Request, exc: UserNotFoundError):
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content={"detail": exc.message, "user_id": exc.user_id}
+    )
+
+# Обработчик стандартных HTTP исключений
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail}
+    )
+
+# Обработчик ошибок валидации
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={"detail": exc.errors(), "body": exc.body}
+    )
+
+@app.get("/users/{user_id}")
+async def get_user(user_id: int):
+    if user_id != 1:
+        raise UserNotFoundError(user_id)
+    return {"id": 1, "name": "John"}
+
+@app.get("/items/{item_id}")
+async def get_item(item_id: int):
+    if item_id > 100:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Item not found"
+        )
+    return {"id": item_id}</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-filter"></i> Middleware</h3>
+            <p>Middleware — это компоненты, которые выполняются до и после обработки запроса.</p>
+            
+            <div class="code-block">
+                <pre>
+import time
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+
+app = FastAPI()
+
+# CORS middleware (разрешает запросы с других доменов)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # В продакшене лучше ограничить
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Trusted Host middleware (защита от Host Header Injection)
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=["localhost", "127.0.0.1", "*.example.com"]
+)
+
+# Кастомный middleware для логирования
+class LoggingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        start_time = time.time()
+        
+        # Логируем запрос
+        print(f"Request: {request.method} {request.url.path}")
+        
+        response = await call_next(request)
+        
+        # Логируем ответ
+        process_time = time.time() - start_time
+        print(f"Response: {response.status_code} - {process_time:.4f}s")
+        
+        response.headers["X-Process-Time"] = str(process_time)
+        return response
+
+app.add_middleware(LoggingMiddleware)
+
+@app.get("/")
+async def root():
+    return {"message": "Hello"}</pre>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 6: WebSockets и фоновые задачи -->
+    <div class="lesson-card {% if current_lesson > 5 %}completed{% elif current_lesson == 5 %}current{% endif %}" onclick="window.location.href='#lesson6'">
+        <div class="lesson-number">6</div>
+        <div class="lesson-info">
+            <div class="lesson-title">WebSockets и фоновые задачи</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 5 %}completed{% elif current_lesson == 5 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 5 %}✅ Пройдено{% elif current_lesson == 5 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 6 -->
+    {% if current_lesson >= 5 %}
+    <div id="lesson6" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 5 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 6: WebSockets и фоновые задачи</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-plug"></i> WebSockets</h3>
+            <p>FastAPI поддерживает WebSockets для двусторонней связи с клиентом.</p>
+            
+            <div class="code-block">
+                <pre>
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from typing import List
+
+app = FastAPI()
+
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
+    
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+    
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.remove(websocket)
+    
+    async def broadcast(self, message: str):
+        for connection in self.active_connections:
+            await connection.send_text(message)
+
+manager = ConnectionManager()
+
+@app.websocket("/ws/{client_id}")
+async def websocket_endpoint(websocket: WebSocket, client_id: str):
+    await manager.connect(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            await manager.broadcast(f"Client {client_id}: {data}")
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+        await manager.broadcast(f"Client {client_id} disconnected")</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-clock"></i> Фоновые задачи (Background Tasks)</h3>
+            <p>Фоновые задачи выполняются после отправки ответа клиенту.</p>
+            
+            <div class="code-block">
+                <pre>
+from fastapi import FastAPI, BackgroundTasks
+import time
+
+app = FastAPI()
+
+def send_email(email: str, subject: str, body: str):
+    """Имитация отправки email"""
+    time.sleep(2)  # Имитация долгой операции
+    print(f"Email sent to {email}: {subject}")
+
+def process_file(file_path: str):
+    """Имитация обработки файла"""
+    time.sleep(5)
+    print(f"File {file_path} processed")
+
+@app.post("/users/")
+async def create_user(email: str, background_tasks: BackgroundTasks):
+    # Основной ответ отправляется сразу
+    background_tasks.add_task(send_email, email, "Welcome!", "Thank you for registering!")
+    return {"message": "User created, email will be sent soon"}
+
+@app.post("/upload/")
+async def upload_file(file_path: str, background_tasks: BackgroundTasks):
+    background_tasks.add_task(process_file, file_path)
+    return {"message": "File uploaded, processing in background"}</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-clock"></i> Фоновые задачи через asyncio.create_task</h3>
+            <div class="code-block">
+                <pre>
+import asyncio
+from fastapi import FastAPI
+
+app = FastAPI()
+
+# Глобальная задача
+background_task = None
+
+async def periodic_task():
+    while True:
+        print("Periodic task running...")
+        await asyncio.sleep(10)
+
+@app.on_event("startup")
+async def startup_event():
+    global background_task
+    background_task = asyncio.create_task(periodic_task())
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    if background_task:
+        background_task.cancel()</pre>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 7: Тест -->
+    <div class="lesson-card {% if current_lesson > 6 %}completed{% elif current_lesson == 6 %}current{% endif %}" onclick="window.location.href='#lesson7'">
+        <div class="lesson-number">7</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Тест: FastAPI</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-pen-to-square"></i> Тест • 15 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 6 %}completed{% elif current_lesson == 6 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 6 %}✅ Пройдено{% elif current_lesson == 6 %}📝 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 7 -->
+    {% if current_lesson >= 6 %}
+    <div id="lesson7" class="test-block" style="scroll-margin-top: 100px; {% if current_lesson != 6 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 7: Тест по FastAPI</h2>
+        
+        <div class="test-question">Вопрос 1: Какой инструмент используется для запуска FastAPI приложения в продакшене?</div>
+        <div class="test-options">
+            <label class="test-option">
+                <input type="radio" name="q1" value="0"> Flask
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q1" value="1"> Uvicorn
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q1" value="2"> Gunicorn
+            </label>
+        </div>
+        <div id="feedback1" class="test-feedback" style="display: none;"></div>
+
+        <div class="test-question" style="margin-top: 30px;">Вопрос 2: Какая библиотека используется в FastAPI для валидации данных?</div>
+        <div class="test-options">
+            <label class="test-option">
+                <input type="radio" name="q2" value="0"> JSON Schema
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q2" value="1"> Marshmallow
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q2" value="2"> Pydantic
+            </label>
+        </div>
+        <div id="feedback2" class="test-feedback" style="display: none;"></div>
+
+        <div class="test-question" style="margin-top: 30px;">Вопрос 3: Какой декоратор используется для определения GET эндпоинта?</div>
+        <div class="test-options">
+            <label class="test-option">
+                <input type="radio" name="q3" value="0"> @app.route('GET')
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q3" value="1"> @app.get()
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q3" value="2"> @app.get_method()
+            </label>
+        </div>
+        <div id="feedback3" class="test-feedback" style="display: none;"></div>
+
+        <button class="test-btn" onclick="checkTest(7)">Проверить ответы</button>
+
+        <div class="navigation-buttons" style="margin-top: 30px;">
+            <button class="nav-btn" onclick="window.location.href='#lesson6'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" id="completeBtn" style="display: none;" onclick="completeCourse(19)">Завершить курс <i class="fa-solid fa-check"></i></button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Урок 8: Практический проект -->
+    <div class="lesson-card {% if current_lesson > 7 %}completed{% elif current_lesson == 7 %}current{% endif %}" onclick="window.location.href='#lesson8'">
+        <div class="lesson-number">8</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Практический проект: TODO API</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-laptop-code"></i> Практика • 30 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 7 %}completed{% elif current_lesson == 7 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 7 %}✅ Пройдено{% elif current_lesson == 7 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 8 -->
+    {% if current_lesson >= 7 %}
+    <div id="lesson8" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 7 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 8: Практический проект — TODO API</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-list-check"></i> Создание полноценного API</h3>
+            <p>Создадим REST API для управления задачами (TODO list) с использованием FastAPI, Pydantic и in-memory хранилища.</p>
+            
+            <div class="code-block">
+                <pre>
+from fastapi import FastAPI, HTTPException, status, Depends
+from pydantic import BaseModel, Field
+from typing import List, Optional
+from uuid import uuid4, UUID
+
+app = FastAPI(title="TODO API", version="1.0.0")
+
+# Модели данных
+class TodoCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=100)
+    description: Optional[str] = Field(None, max_length=500)
+    completed: bool = False
+
+class TodoUpdate(BaseModel):
+    title: Optional[str] = Field(None, min_length=1, max_length=100)
+    description: Optional[str] = Field(None, max_length=500)
+    completed: Optional[bool] = None
+
+class Todo(TodoCreate):
+    id: UUID
+    created_at: str
+
+# In-memory хранилище
+todos_db: dict[UUID, dict] = {}
+
+# Вспомогательная функция для получения todo
+async def get_todo_or_404(todo_id: UUID):
+    todo = todos_db.get(todo_id)
+    if not todo:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Todo with id {todo_id} not found"
+        )
+    return todo
+
+# GET /todos - получить все задачи
+@app.get("/todos", response_model=List[Todo])
+async def get_all_todos(completed: Optional[bool] = None):
+    todos = list(todos_db.values())
+    if completed is not None:
+        todos = [t for t in todos if t["completed"] == completed]
+    return todos
+
+# GET /todos/{todo_id} - получить задачу по ID
+@app.get("/todos/{todo_id}", response_model=Todo)
+async def get_todo(todo: dict = Depends(get_todo_or_404)):
+    return todo
+
+# POST /todos - создать задачу
+@app.post("/todos", response_model=Todo, status_code=status.HTTP_201_CREATED)
+async def create_todo(todo_data: TodoCreate):
+    from datetime import datetime
+    todo_id = uuid4()
+    todo = {
+        **todo_data.dict(),
+        "id": todo_id,
+        "created_at": datetime.now().isoformat()
+    }
+    todos_db[todo_id] = todo
+    return todo
+
+# PUT /todos/{todo_id} - обновить задачу
+@app.put("/todos/{todo_id}", response_model=Todo)
+async def update_todo(todo_id: UUID, update_data: TodoUpdate):
+    todo = await get_todo_or_404(todo_id)
+    
+    updated_todo = {**todo}
+    for key, value in update_data.dict(exclude_unset=True).items():
+        updated_todo[key] = value
+    
+    todos_db[todo_id] = updated_todo
+    return updated_todo
+
+# DELETE /todos/{todo_id} - удалить задачу
+@app.delete("/todos/{todo_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_todo(todo_id: UUID):
+    await get_todo_or_404(todo_id)
+    del todos_db[todo_id]
+    return None
+
+# GET /health - проверка здоровья сервиса
+@app.get("/health")
+async def health_check():
+    return {"status": "ok", "todos_count": len(todos_db)}</pre>
+            </div>
+        </div>
+
+        <div class="note-box info">
+            <i class="fa-solid fa-star"></i>
+            <div class="note-box-content">
+                <p><strong>Что дальше?</strong> Теперь вы можете:</p>
+                <ul>
+                    <li>Добавить базу данных (SQLAlchemy + PostgreSQL)</li>
+                    <li>Добавить аутентификацию (JWT токены)</li>
+                    <li>Написать тесты с помощью pytest и TestClient</li>
+                    <li>Добавить Docker для контейнеризации</li>
+                </ul>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Кнопка возврата -->
+    <div style="margin-top: 40px; text-align: center;">
+        <a href="{{ url_for('courses') }}" class="btn btn-outline">
+            <i class="fa-solid fa-arrow-left"></i> К списку курсов
+        </a>
+    </div>
+</div>
+
+<!-- Футер -->
+<footer class="footer">
+    <div class="container">
+        <p>© 2025 PyMaster · FastAPI: современный backend</p>
+    </div>
+</footer>
+
+<script>
+    // ID текущего курса
+    const courseId = {{ course.id }};
+    const totalLessons = {{ course.lessons }};
+    
+    // Функция перехода к уроку по клику
+    async function goToLesson(lessonIndex) {
+        try {
+            // Сохраняем прогресс (отмечаем какой урок сейчас открыт)
+            const response = await fetch('/api/save-progress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    course_id: courseId,
+                    lesson_index: lessonIndex,
+                    completed: false
+                })
+            });
+            
+            if (response.ok) {
+                // Плавная прокрутка к уроку
+                const lessonElement = document.getElementById(`lesson${lessonIndex + 1}`);
+                if (lessonElement) {
+                    lessonElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    
+                    // Обновляем URL без перезагрузки страницы
+                    history.pushState(null, null, `#lesson${lessonIndex + 1}`);
+                    
+                    // Обновляем стили уроков
+                    updateLessonStyles(lessonIndex);
+                } else {
+                    // Если элемент не найден, перезагружаем страницу
+                    window.location.reload();
+                }
+            } else {
+                console.error('Ошибка сохранения прогресса:', response.status);
+            }
+        } catch (error) {
+            console.error('Ошибка сохранения прогресса:', error);
+            alert('Произошла ошибка при переходе к уроку. Попробуйте еще раз.');
+        }
+    }
+    
+    // Функция обновления стилей уроков
+    function updateLessonStyles(activeLessonIndex) {
+        const lessonCards = document.querySelectorAll('.lesson-card');
+        const lessonContents = document.querySelectorAll('.theory-content, .test-block');
+        
+        // Обновляем карточки
+        lessonCards.forEach((card, index) => {
+            card.classList.remove('current');
+            
+            // Определяем, активен ли урок
+            if (index === activeLessonIndex) {
+                card.classList.add('current');
+            } else {
+                card.classList.remove('current');
+            }
+            
+            // Обновляем статус
+            const statusElement = card.querySelector('.lesson-status');
+            if (statusElement) {
+                if (index === activeLessonIndex) {
+                    statusElement.className = 'lesson-status current';
+                    
+                    // Определяем тип урока
+                    const lessonType = card.querySelector('.lesson-type i');
+                    if (lessonType && lessonType.classList.contains('fa-pen-to-square')) {
+                        statusElement.innerHTML = '📝 Текущий';
+                    } else {
+                        statusElement.innerHTML = '📖 Текущий';
+                    }
+                } else {
+                    // Для неактивных уроков просто показываем, что они доступны
+                    statusElement.className = 'lesson-status';
+                    statusElement.innerHTML = '📚 Доступен';
+                }
+            }
+        });
+        
+        // Обновляем видимость контента
+        lessonContents.forEach((content, index) => {
+            if (index === activeLessonIndex) {
+                content.style.display = 'block';
+                // Анимируем появление
+                content.style.animation = 'fadeIn 0.5s';
+            } else {
+                content.style.display = 'none';
+            }
+        });
+        
+        // Обновляем прогресс-бар (просто показываем какой урок открыт)
+        updateProgressBar(activeLessonIndex + 1);
+    }
+    
+    // Функция обновления прогресс-бара
+    function updateProgressBar(currentLesson) {
+        const progressPercent = Math.round((currentLesson / totalLessons) * 100);
+        
+        const progressFill = document.querySelector('.progress-fill');
+        const progressPercentSpan = document.querySelector('.progress-percent:first-child');
+        const progressCounter = document.querySelectorAll('.progress-percent')[1];
+        
+        if (progressFill) {
+            progressFill.style.width = `${progressPercent}%`;
+        }
+        
+        if (progressPercentSpan) {
+            progressPercentSpan.textContent = `${progressPercent}%`;
+        }
+        
+        if (progressCounter) {
+            progressCounter.textContent = `${currentLesson}/${totalLessons}`;
+        }
+    }
+    
+    // Функция завершения курса (опционально)
+    async function completeCourse() {
+        try {
+            const response = await fetch('/api/save-progress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    course_id: courseId,
+                    lesson_index: totalLessons - 1,
+                    completed: true
+                })
+            });
+            
+            if (response.ok) {
+                alert('🎉 Поздравляем! Вы завершили курс! +50 PYTH');
+                window.location.href = "{{ url_for('courses') }}";
+            } else {
+                console.error('Ошибка завершения курса:', response.status);
+                alert('Произошла ошибка при завершении курса. Попробуйте еще раз.');
+            }
+        } catch (error) {
+            console.error('Ошибка завершения курса:', error);
+            alert('Произошла ошибка при завершении курса. Попробуйте еще раз.');
+        }
+    }
+    
+    // Функция проверки теста
+    function checkTest(lessonNum) {
+        let allCorrect = true;
+        
+        if (lessonNum === 7) {
+            const q1 = document.querySelector('input[name="q1"]:checked');
+            const q2 = document.querySelector('input[name="q2"]:checked');
+            const q3 = document.querySelector('input[name="q3"]:checked');
+            
+            // Проверка вопроса 1
+            if (!q1) {
+                document.getElementById('feedback1').className = 'test-feedback incorrect';
+                document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-xmark"></i> Выберите ответ на вопрос 1';
+                document.getElementById('feedback1').style.display = 'block';
+                allCorrect = false;
+            } else if (q1.value === '1') {
+                document.getElementById('feedback1').className = 'test-feedback correct';
+                document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! Uvicorn — это ASGI сервер для запуска FastAPI.';
+                document.getElementById('feedback1').style.display = 'block';
+            } else {
+                document.getElementById('feedback1').className = 'test-feedback incorrect';
+                document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. Правильный ответ: Uvicorn.';
+                document.getElementById('feedback1').style.display = 'block';
+                allCorrect = false;
+            }
+            
+            // Проверка вопроса 2
+            if (!q2) {
+                document.getElementById('feedback2').className = 'test-feedback incorrect';
+                document.getElementById('feedback2').innerHTML = '<i class="fa-solid fa-xmark"></i> Выберите ответ на вопрос 2';
+                document.getElementById('feedback2').style.display = 'block';
+                allCorrect = false;
+            } else if (q2.value === '2') {
+                document.getElementById('feedback2').className = 'test-feedback correct';
+                document.getElementById('feedback2').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! Pydantic используется для валидации данных.';
+                document.getElementById('feedback2').style.display = 'block';
+            } else {
+                document.getElementById('feedback2').className = 'test-feedback incorrect';
+                document.getElementById('feedback2').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. Правильный ответ: Pydantic.';
+                document.getElementById('feedback2').style.display = 'block';
+                allCorrect = false;
+            }
+            
+            // Проверка вопроса 3
+            if (!q3) {
+                document.getElementById('feedback3').className = 'test-feedback incorrect';
+                document.getElementById('feedback3').innerHTML = '<i class="fa-solid fa-xmark"></i> Выберите ответ на вопрос 3';
+                document.getElementById('feedback3').style.display = 'block';
+                allCorrect = false;
+            } else if (q3.value === '1') {
+                document.getElementById('feedback3').className = 'test-feedback correct';
+                document.getElementById('feedback3').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! @app.get() используется для GET эндпоинтов.';
+                document.getElementById('feedback3').style.display = 'block';
+            } else {
+                document.getElementById('feedback3').className = 'test-feedback incorrect';
+                document.getElementById('feedback3').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. Правильный ответ: @app.get().';
+                document.getElementById('feedback3').style.display = 'block';
+                allCorrect = false;
+            }
+        }
+        
+        // Если тест пройден
+        if (allCorrect) {
+            document.getElementById('completeBtn').style.display = 'flex';
+        }
+    }
+    
+    // Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        const lessonCards = document.querySelectorAll('.lesson-card');
+        const currentLessonIndex = parseInt('{{ current_lesson }}') || 0;
+        
+        // Сначала убираем все статусы блокировки
+        lessonCards.forEach((card) => {
+            const statusElement = card.querySelector('.lesson-status');
+            if (statusElement) {
+                statusElement.classList.remove('locked');
+            }
+        });
+        
+        // Обновляем стили при загрузке
+        updateLessonStyles(currentLessonIndex);
+        
+        // Добавляем обработчики кликов на карточки уроков
+        lessonCards.forEach((card, index) => {
+            card.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Проверяем, не кликнули ли по кнопке внутри карточки
+                if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+                    return;
+                }
+                
+                // Переходим к уроку (все уроки доступны)
+                goToLesson(index);
+            });
+            
+            // Добавляем курсор pointer для интерактивности
+            card.style.cursor = 'pointer';
+        });
+        
+        // Обработка якоря в URL при загрузке
+        if (window.location.hash) {
+            const hash = window.location.hash;
+            const lessonMatch = hash.match(/lesson(\d+)/);
+            if (lessonMatch) {
+                const lessonIndex = parseInt(lessonMatch[1]) - 1;
+                if (lessonIndex >= 0 && lessonIndex < totalLessons) {
+                    // Небольшая задержка для полной загрузки DOM
+                    setTimeout(() => {
+                        goToLesson(lessonIndex);
+                    }, 100);
+                }
+            }
+        }
+        
+        // Добавляем обработчики для радио-кнопок в тестах
+        const radioButtons = document.querySelectorAll('input[type="radio"]');
+        radioButtons.forEach(radio => {
+            radio.addEventListener('change', function() {
+                const feedbackDiv = this.closest('.test-options').nextElementSibling;
+                if (feedbackDiv && feedbackDiv.classList.contains('test-feedback')) {
+                    feedbackDiv.style.display = 'none';
+                }
+            });
+        });
+    });
+    
+    // Автоматическое скрытие flash сообщений
+    setTimeout(() => {
+        document.querySelectorAll('.flash-message').forEach(msg => {
+            msg.style.animation = 'slideOut 0.3s';
+            setTimeout(() => msg.remove(), 300);
+        });
+    }, 5000);
+</script>
+
+<style>
+    /* Анимация для появления контента */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Стили для карточек уроков */
+    .lesson-card {
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .lesson-card:hover {
+        transform: translateX(10px);
+        border-color: #3b82f6;
+    }
+    
+    .lesson-card.current {
+        border-color: #3b82f6;
+        background: rgba(59, 130, 246, 0.1);
+    }
+    
+    .lesson-status {
+        padding: 6px 15px;
+        border-radius: 40px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+        border: 1px solid #3b82f6;
+    }
+    
+    /* Убираем стили для заблокированных уроков */
+    .lesson-status.locked {
+        display: none;
+    }
+</style>
+
+<style>
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+</style>
+</body>
+</html>

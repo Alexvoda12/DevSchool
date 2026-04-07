@@ -1,0 +1,1658 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyMaster · NumPy и Pandas: анализ данных</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: auto;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            background: #0a0c0f;
+            color: #e3e9f1;
+            overflow-y: auto;
+        }
+        
+        .navbar {
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            width: 100%;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            width: 100%;
+        }
+        
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #10b981;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #059669;
+        }
+
+        .course-header {
+            background: linear-gradient(145deg, #0f172a, #1a2635);
+            border-radius: 40px;
+            padding: 40px;
+            margin-bottom: 30px;
+            border: 1px solid #2a3a55;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .course-header-icon {
+            width: 100px;
+            height: 100px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            color: #10b981;
+        }
+        
+        .course-header-info {
+            flex: 1;
+        }
+        
+        .course-header-info h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(145deg, #ffffff, #a7f3d0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .course-meta {
+            display: flex;
+            gap: 30px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        
+        .course-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #9ab3d0;
+        }
+        
+        .course-meta-item i {
+            color: #10b981;
+        }
+        
+        .progress-section {
+            background: rgba(18, 26, 36, 0.7);
+            border: 1px solid #2a3a55;
+            border-radius: 32px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .progress-percent {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #10b981;
+        }
+        
+        .progress-label {
+            color: #9ab3d0;
+        }
+        
+        .lesson-card {
+            background: rgba(18, 26, 36, 0.7);
+            border: 1px solid #2a3a55;
+            border-radius: 24px;
+            padding: 25px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .lesson-card:hover {
+            border-color: #10b981;
+            transform: translateX(5px);
+            background: #1e2c3f;
+        }
+        
+        .lesson-card.completed {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+        }
+        
+        .lesson-card.current {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+        }
+        
+        .lesson-number {
+            width: 50px;
+            height: 50px;
+            background: #1e293b;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: #10b981;
+        }
+        
+        .lesson-card.completed .lesson-number {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+        
+        .lesson-card.current .lesson-number {
+            background: #10b981;
+            color: white;
+        }
+        
+        .lesson-info {
+            flex: 1;
+        }
+        
+        .lesson-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #ffffff;
+        }
+        
+        .lesson-type {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #9ab3d0;
+            font-size: 0.85rem;
+        }
+        
+        .lesson-type i {
+            color: #10b981;
+        }
+        
+        .lesson-status {
+            padding: 6px 15px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .lesson-status.completed {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid #10b981;
+        }
+        
+        .lesson-status.current {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid #10b981;
+        }
+        
+        .lesson-status.locked {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+        
+        .theory-content {
+            background: #1a2635;
+            border: 1px solid #2f405b;
+            border-radius: 24px;
+            padding: 30px;
+            margin: 20px 0;
+            scroll-margin-top: 100px;
+        }
+        
+        .theory-section {
+            margin-bottom: 40px;
+        }
+        
+        .theory-section h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #e9f0fa;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .theory-section h3 i {
+            color: #10b981;
+        }
+        
+        .code-block {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            color: #fbbf24;
+            overflow-x: auto;
+        }
+        
+        .code-block pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .test-block {
+            background: #1a2635;
+            border: 1px solid #2f405b;
+            border-radius: 24px;
+            padding: 30px;
+            margin: 30px 0;
+            scroll-margin-top: 100px;
+        }
+        
+        .test-question {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+        
+        .test-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .test-option {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 40px;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .test-option:hover {
+            border-color: #10b981;
+            background: #2d3a4f;
+        }
+        
+        .test-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #10b981;
+        }
+        
+        .test-btn {
+            background: linear-gradient(145deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 20px;
+        }
+        
+        .test-btn:hover {
+            background: linear-gradient(145deg, #34d399, #10b981);
+            transform: scale(1.02);
+        }
+        
+        .test-feedback {
+            margin-top: 15px;
+            padding: 15px 20px;
+            border-radius: 40px;
+            font-size: 0.95rem;
+            animation: fadeIn 0.3s;
+        }
+        
+        .test-feedback.correct {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid #10b981;
+            color: #10b981;
+        }
+        
+        .test-feedback.incorrect {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        .nav-btn {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-btn:hover:not(:disabled) {
+            background: #2d3a4f;
+            border-color: #10b981;
+        }
+        
+        .nav-btn.next {
+            background: linear-gradient(145deg, #10b981, #059669);
+            border: 1px solid #10b981;
+        }
+        
+        .nav-btn.next:hover:not(:disabled) {
+            background: linear-gradient(145deg, #34d399, #10b981);
+        }
+        
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .footer {
+            border-top: 1px solid #1a2635;
+            padding: 40px 0;
+            margin-top: 60px;
+            text-align: center;
+            color: #6b8bb0;
+        }
+        
+        .flash-messages {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .flash-message {
+            padding: 16px 24px;
+            border-radius: 40px;
+            margin-bottom: 10px;
+            animation: slideIn 0.3s;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-left: 4px solid #10b981;
+            background: rgba(4, 120, 87, 0.95);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0%); opacity: 1; }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
+        @media (max-width: 768px) {
+            .course-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .course-meta {
+                justify-content: center;
+            }
+            
+            .lesson-card {
+                flex-wrap: wrap;
+            }
+            
+            .lesson-status {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        .note-box {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid #10b981;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .note-box i {
+            color: #10b981;
+            font-size: 1.5rem;
+        }
+
+        .note-box-content {
+            color: #e9f0fa;
+        }
+
+        .note-box-content p {
+            margin: 5px 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .data-table th {
+            text-align: left;
+            padding: 12px;
+            background: #1e293b;
+            color: #10b981;
+            border: 1px solid #334155;
+        }
+
+        .data-table td {
+            padding: 12px;
+            border: 1px solid #334155;
+            color: #9ab3d0;
+        }
+
+        .data-table tr:hover {
+            background: #1e293b;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Flash сообщения -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <i class="fa-solid fa-circle-check"></i> {{ message }}
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<!-- Навбар -->
+<nav class="navbar">
+    <div class="container nav-wrapper">
+        <div class="logo">
+            <i class="fa-brands fa-python logo-icon"></i>
+            <span class="logo-text">PyMaster</span>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('main') }}">Главная</a>
+            <a href="{{ url_for('courses') }}" class="active">Курсы</a>
+            <a href="{{ url_for('tasks') }}">Задачи</a>
+            <a href="{{ url_for('ai_assistant') }}">GPT-4</a>
+            <a href="{{ url_for('dashboard') }}">Кабинет</a>
+            <a href="{{ url_for('about') }}" class="{% if request.endpoint == 'about' %}active{% endif %}">О нас</a>
+            
+            <div class="pyth-balance" onclick="window.location.href='{{ url_for('shop') }}'">
+                <i class="fa-solid fa-coins"></i>
+                <span>{{ user.balance }} PYTH</span>
+            </div>
+            
+            <a href="{{ url_for('logout') }}" class="logout-btn">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Основной контент -->
+<div class="container" style="padding: 40px 24px;">
+    <!-- Шапка курса -->
+    <div class="course-header">
+        <div class="course-header-icon">
+            <i class="fa-solid fa-chart-line"></i>
+        </div>
+        <div class="course-header-info">
+            <h1>NumPy и Pandas: анализ данных</h1>
+            <div class="course-meta">
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-clock"></i> 9 часов
+                </span>
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-book-open"></i> 24 урока
+                </span>
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-signal"></i> 
+                    <span class="course-level level-intermediate">Средний уровень</span>
+                </span>
+            </div>
+            <p style="color: #9ab3d0;">Векторизация, DataFrame, работа с большими таблицами, очистка данных. Базовый вход в Data Science.</p>
+        </div>
+    </div>
+
+    <!-- Прогресс -->
+    <div class="progress-section">
+        <div class="progress-stats">
+            <div>
+                <span class="progress-percent">{{ progress }}%</span>
+                <span class="progress-label">прогресс</span>
+            </div>
+            <div>
+                <span class="progress-percent">{{ current_lesson }}/24</span>
+                <span class="progress-label">уроков пройдено</span>
+            </div>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {{ progress }}%"></div>
+        </div>
+    </div>
+
+    <!-- Список уроков -->
+    <h2 style="font-size: 1.8rem; margin-bottom: 20px;">Уроки курса</h2>
+
+    <!-- Урок 1: Введение в NumPy -->
+    <div class="lesson-card {% if current_lesson > 0 %}completed{% elif current_lesson == 0 %}current{% endif %}" onclick="window.location.href='#lesson1'">
+        <div class="lesson-number">1</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Введение в NumPy</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 0 %}completed{% elif current_lesson == 0 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 0 %}✅ Пройдено{% elif current_lesson == 0 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 1 -->
+    <div id="lesson1" class="theory-content" style="scroll-margin-top: 100px;">
+        <h2 style="margin-bottom: 20px;">Урок 1: Введение в NumPy</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-calculator"></i> Что такое NumPy?</h3>
+            <p><strong>NumPy</strong> (Numerical Python) — это библиотека для научных вычислений в Python. Она предоставляет мощные структуры данных для работы с многомерными массивами и матрицами.</p>
+            
+            <p>Главное преимущество NumPy — скорость. Операции над массивами выполняются на C/C++ уровне, что делает их в 10-100 раз быстрее, чем обычные списки Python.</p>
+            
+            <h4 style="margin: 20px 0 10px;">Установка NumPy:</h4>
+            <div class="code-block">
+                <pre>
+pip install numpy</pre>
+            </div>
+
+            <h4 style="margin: 20px 0 10px;">Создание массивов:</h4>
+            <div class="code-block">
+                <pre>
+import numpy as np
+
+# Из списка
+arr = np.array([1, 2, 3, 4, 5])
+print(arr)  # [1 2 3 4 5]
+
+# Матрица 2x3
+matrix = np.array([[1, 2, 3], [4, 5, 6]])
+print(matrix)
+
+# Специальные массивы
+zeros = np.zeros((3, 4))     # Матрица из нулей
+ones = np.ones((2, 3))       # Матрица из единиц
+identity = np.eye(4)          # Единичная матрица
+range_arr = np.arange(0, 10, 2)  # [0, 2, 4, 6, 8]
+linspace = np.linspace(0, 1, 5)  # [0., 0.25, 0.5, 0.75, 1.]</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-shapes"></i> Атрибуты массивов</h3>
+            
+            <div class="code-block">
+                <pre>
+arr = np.array([[1, 2, 3], [4, 5, 6]])
+
+print(arr.shape)    # (2, 3) - размерность
+print(arr.ndim)     # 2 - количество измерений
+print(arr.size)     # 6 - количество элементов
+print(arr.dtype)    # int64 - тип данных</pre>
+            </div>
+        </div>
+
+        
+    </div>
+
+    <!-- Урок 2: Операции с NumPy -->
+    <div class="lesson-card {% if current_lesson > 1 %}completed{% elif current_lesson == 1 %}current{% endif %}" onclick="window.location.href='#lesson2'">
+        <div class="lesson-number">2</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Операции с NumPy</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 1 %}completed{% elif current_lesson == 1 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 1 %}✅ Пройдено{% elif current_lesson == 1 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 2 -->
+    {% if current_lesson >= 1 %}
+    <div id="lesson2" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 1 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 2: Операции с NumPy</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-vector-square"></i> Векторизованные операции</h3>
+            <p>Главная сила NumPy — возможность выполнять операции над всем массивом без циклов.</p>
+            
+            <div class="code-block">
+                <pre>
+import numpy as np
+
+arr = np.array([1, 2, 3, 4, 5])
+
+# Арифметические операции
+print(arr + 10)      # [11 12 13 14 15]
+print(arr * 2)       # [2 4 6 8 10]
+print(arr ** 2)      # [1 4 9 16 25]
+
+# Операции между массивами
+a = np.array([1, 2, 3])
+b = np.array([4, 5, 6])
+print(a + b)         # [5 7 9]
+print(a * b)         # [4 10 18]
+
+# Статистические функции
+data = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+print(np.mean(data))      # 5.5
+print(np.median(data))    # 5.5
+print(np.std(data))       # 2.872
+print(np.sum(data))       # 55
+print(np.min(data))       # 1
+print(np.max(data))       # 10</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-cut"></i> Индексация и срезы</h3>
+            
+            <div class="code-block">
+                <pre>
+arr = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+
+# Индексация
+print(arr[0, 1])        # 2
+print(arr[2, 0])        # 7
+
+# Срезы
+print(arr[0:2, 1:3])    # [[2 3], [5 6]]
+
+# Булева индексация
+mask = arr > 5
+print(arr[mask])        # [6 7 8 9]
+
+# Условная фильтрация
+print(arr[arr % 2 == 0])  # [2 4 6 8]</pre>
+            </div>
+        </div>
+
+        <div class="note-box">
+            <i class="fa-solid fa-lightbulb"></i>
+            <div class="note-box-content">
+                <p><strong>Важно!</strong> Векторизованные операции в NumPy работают значительно быстрее циклов Python. Старайтесь избегать явных циклов при работе с большими массивами.</p>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 3: Введение в Pandas -->
+    <div class="lesson-card {% if current_lesson > 2 %}completed{% elif current_lesson == 2 %}current{% endif %}" onclick="window.location.href='#lesson3'">
+        <div class="lesson-number">3</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Введение в Pandas</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 2 %}completed{% elif current_lesson == 2 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 2 %}✅ Пройдено{% elif current_lesson == 2 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 3 -->
+    {% if current_lesson >= 2 %}
+    <div id="lesson3" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 2 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 3: Введение в Pandas</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-table"></i> Что такое Pandas?</h3>
+            <p><strong>Pandas</strong> — библиотека для анализа и обработки данных. Она предоставляет две основные структуры данных:</p>
+            
+            <ul style="margin-left: 20px; color: #9ab3d0;">
+                <li><strong>Series</strong> — одномерный массив с метками (индексами)</li>
+                <li><strong>DataFrame</strong> — двумерная таблица (как Excel)</li>
+            </ul>
+
+            <h4 style="margin: 20px 0 10px;">Установка Pandas:</h4>
+            <div class="code-block">
+                <pre>
+pip install pandas</pre>
+            </div>
+
+            <h4 style="margin: 20px 0 10px;">Создание DataFrame:</h4>
+            <div class="code-block">
+                <pre>
+import pandas as pd
+
+# Из словаря
+data = {
+    'name': ['Анна', 'Иван', 'Мария', 'Петр'],
+    'age': [25, 30, 28, 35],
+    'city': ['Москва', 'СПб', 'Казань', 'Москва'],
+    'salary': [50000, 60000, 55000, 70000]
+}
+df = pd.DataFrame(data)
+print(df)
+
+# Результат:
+#    name  age    city  salary
+# 0  Анна   25  Москва   50000
+# 1  Иван   30     СПб   60000
+# 2 Мария   28  Казань   55000
+# 3  Петр   35  Москва   70000</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-eye"></i> Просмотр данных</h3>
+            
+            <div class="code-block">
+                <pre>
+# Первые 2 строки
+print(df.head(2))
+
+# Последние 2 строки
+print(df.tail(2))
+
+# Информация о DataFrame
+print(df.info())
+
+# Статистика числовых столбцов
+print(df.describe())
+
+# Уникальные значения
+print(df['city'].unique())  # ['Москва' 'СПб' 'Казань']
+
+# Количество уникальных значений
+print(df['city'].value_counts())</pre>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 4: Работа с данными в Pandas -->
+    <div class="lesson-card {% if current_lesson > 3 %}completed{% elif current_lesson == 3 %}current{% endif %}" onclick="window.location.href='#lesson4'">
+        <div class="lesson-number">4</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Работа с данными в Pandas</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 3 %}completed{% elif current_lesson == 3 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 3 %}✅ Пройдено{% elif current_lesson == 3 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 4 -->
+    {% if current_lesson >= 3 %}
+    <div id="lesson4" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 3 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 4: Работа с данными в Pandas</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-filter"></i> Фильтрация и выборка</h3>
+            
+            <div class="code-block">
+                <pre>
+# Фильтрация по условию
+young = df[df['age'] < 30]
+print(young)
+
+# Сложные условия
+moscow_high_salary = df[(df['city'] == 'Москва') & (df['salary'] > 60000)]
+print(moscow_high_salary)
+
+# Выборка по столбцам
+print(df[['name', 'salary']])
+
+# Выборка по индексам
+print(df.iloc[0:2, 1:3])  # строки 0-1, столбцы 1-2
+
+# Выборка по меткам
+print(df.loc[0:2, ['name', 'age']])</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-pen"></i> Изменение данных</h3>
+            
+            <div class="code-block">
+                <pre>
+# Добавление нового столбца
+df['bonus'] = df['salary'] * 0.1
+
+# Изменение значений
+df.loc[df['city'] == 'СПб', 'city'] = 'Санкт-Петербург'
+
+# Удаление столбца
+df = df.drop('bonus', axis=1)
+
+# Сортировка
+df_sorted = df.sort_values('salary', ascending=False)
+print(df_sorted)</pre>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 5: Чтение и запись данных -->
+    <div class="lesson-card {% if current_lesson > 4 %}completed{% elif current_lesson == 4 %}current{% endif %}" onclick="window.location.href='#lesson5'">
+        <div class="lesson-number">5</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Чтение и запись данных</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 4 %}completed{% elif current_lesson == 4 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 4 %}✅ Пройдено{% elif current_lesson == 4 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 5 -->
+    {% if current_lesson >= 4 %}
+    <div id="lesson5" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 4 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 5: Чтение и запись данных</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-file-csv"></i> Работа с различными форматами</h3>
+            
+            <div class="code-block">
+                <pre>
+import pandas as pd
+
+# Чтение CSV
+df = pd.read_csv('data.csv')
+df = pd.read_csv('data.csv', encoding='utf-8', sep=';')
+
+# Чтение Excel
+df = pd.read_excel('data.xlsx', sheet_name='Лист1')
+
+# Чтение JSON
+df = pd.read_json('data.json')
+
+# Чтение SQL
+import sqlite3
+conn = sqlite3.connect('database.db')
+df = pd.read_sql('SELECT * FROM users', conn)
+
+# Запись в файлы
+df.to_csv('output.csv', index=False, encoding='utf-8')
+df.to_excel('output.xlsx', index=False)
+df.to_json('output.json', orient='records', force_ascii=False)
+
+# Работа с большими файлами
+# Чтение по частям (chunks)
+chunk_size = 10000
+for chunk in pd.read_csv('large_file.csv', chunksize=chunk_size):
+    # Обработка каждого чанка
+    process(chunk)</pre>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 6: Очистка данных -->
+    <div class="lesson-card {% if current_lesson > 5 %}completed{% elif current_lesson == 5 %}current{% endif %}" onclick="window.location.href='#lesson6'">
+        <div class="lesson-number">6</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Очистка данных</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 5 %}completed{% elif current_lesson == 5 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 5 %}✅ Пройдено{% elif current_lesson == 5 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 6 -->
+    {% if current_lesson >= 5 %}
+    <div id="lesson6" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 5 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 6: Очистка данных</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-broom"></i> Обработка пропусков</h3>
+            
+            <div class="code-block">
+                <pre>
+# Проверка пропусков
+print(df.isnull().sum())  # Количество пропусков в каждом столбце
+print(df.isnull().any())   # Есть ли пропуски
+
+# Удаление строк с пропусками
+df_clean = df.dropna()
+
+# Удаление столбцов с пропусками
+df_clean = df.dropna(axis=1)
+
+# Заполнение пропусков
+df_filled = df.fillna(0)                      # Заполнить нулями
+df_filled = df.fillna(df.mean())              # Заполнить средним
+df_filled = df.fillna(method='ffill')         # Заполнить предыдущим значением
+df_filled = df.fillna(method='bfill')         # Заполнить следующим значением
+
+# Заполнение пропусков в конкретном столбце
+df['age'] = df['age'].fillna(df['age'].median())</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-trash"></i> Удаление дубликатов</h3>
+            
+            <div class="code-block">
+                <pre>
+# Проверка дубликатов
+print(df.duplicated().sum())
+
+# Удаление дубликатов
+df_unique = df.drop_duplicates()
+
+# Удаление дубликатов по конкретным столбцам
+df_unique = df.drop_duplicates(subset=['name', 'age'])</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-arrows-spin"></i> Преобразование типов</h3>
+            
+            <div class="code-block">
+                <pre>
+# Проверка типов
+print(df.dtypes)
+
+# Преобразование типов
+df['age'] = df['age'].astype('int')
+df['date'] = pd.to_datetime(df['date'])
+df['value'] = pd.to_numeric(df['value'], errors='coerce')</pre>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 7: Группировка и агрегация -->
+    <div class="lesson-card {% if current_lesson > 6 %}completed{% elif current_lesson == 6 %}current{% endif %}" onclick="window.location.href='#lesson7'">
+        <div class="lesson-number">7</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Группировка и агрегация</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 6 %}completed{% elif current_lesson == 6 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 6 %}✅ Пройдено{% elif current_lesson == 6 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 7 -->
+    {% if current_lesson >= 6 %}
+    <div id="lesson7" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 6 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 7: Группировка и агрегация</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-layer-group"></i> GroupBy операции</h3>
+            
+            <div class="code-block">
+                <pre>
+# Группировка по одному столбцу
+grouped = df.groupby('city')
+print(grouped['salary'].mean())  # Средняя зарплата по городам
+print(grouped['age'].max())       # Максимальный возраст по городам
+
+# Несколько агрегаций
+result = df.groupby('city').agg({
+    'salary': ['mean', 'min', 'max'],
+    'age': 'mean'
+})
+print(result)
+
+# Группировка по нескольким столбцам
+grouped = df.groupby(['city', 'department']).size()  # Количество сотрудников
+
+# Сводные таблицы (pivot table)
+pivot = pd.pivot_table(df, 
+                       values='salary', 
+                       index='city', 
+                       columns='department', 
+                       aggfunc='mean')
+print(pivot)</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-chart-simple"></i> Агрегатные функции</h3>
+            
+            <div class="code-block">
+                <pre>
+# Базовые агрегации
+print(df['salary'].sum())      # Сумма
+print(df['salary'].mean())     # Среднее
+print(df['salary'].median())   # Медиана
+print(df['salary'].std())      # Стандартное отклонение
+print(df['salary'].var())      # Дисперсия
+
+# Использование apply
+def salary_category(salary):
+    if salary < 50000:
+        return 'low'
+    elif salary < 70000:
+        return 'medium'
+    else:
+        return 'high'
+
+df['category'] = df['salary'].apply(salary_category)</pre>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 8: Объединение и слияние данных -->
+    <div class="lesson-card {% if current_lesson > 7 %}completed{% elif current_lesson == 7 %}current{% endif %}" onclick="window.location.href='#lesson8'">
+        <div class="lesson-number">8</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Объединение и слияние данных</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 7 %}completed{% elif current_lesson == 7 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 7 %}✅ Пройдено{% elif current_lesson == 7 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 8 -->
+    {% if current_lesson >= 7 %}
+    <div id="lesson8" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 7 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 8: Объединение и слияние данных</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-link"></i> Конкатенация</h3>
+            
+            <div class="code-block">
+                <pre>
+# Объединение по строкам (вертикально)
+df1 = pd.DataFrame({'A': [1, 2], 'B': [3, 4]})
+df2 = pd.DataFrame({'A': [5, 6], 'B': [7, 8]})
+result = pd.concat([df1, df2], ignore_index=True)
+
+# Объединение по столбцам (горизонтально)
+df1 = pd.DataFrame({'A': [1, 2], 'B': [3, 4]})
+df2 = pd.DataFrame({'C': [5, 6], 'D': [7, 8]})
+result = pd.concat([df1, df2], axis=1)</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-code-branch"></i> Слияние (Merge)</h3>
+            
+            <div class="code-block">
+                <pre>
+# Два DataFrame
+employees = pd.DataFrame({
+    'emp_id': [1, 2, 3, 4],
+    'name': ['Анна', 'Иван', 'Мария', 'Петр'],
+    'dept_id': [101, 102, 101, 103]
+})
+
+departments = pd.DataFrame({
+    'dept_id': [101, 102, 103],
+    'dept_name': ['IT', 'HR', 'Sales']
+})
+
+# Inner join (по умолчанию)
+merged = pd.merge(employees, departments, on='dept_id')
+print(merged)
+
+# Left join
+merged_left = pd.merge(employees, departments, on='dept_id', how='left')
+
+# Right join
+merged_right = pd.merge(employees, departments, on='dept_id', how='right')
+
+# Outer join
+merged_outer = pd.merge(employees, departments, on='dept_id', how='outer')</pre>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 9: Визуализация данных -->
+    <div class="lesson-card {% if current_lesson > 8 %}completed{% elif current_lesson == 8 %}current{% endif %}" onclick="window.location.href='#lesson9'">
+        <div class="lesson-number">9</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Визуализация данных</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 8 %}completed{% elif current_lesson == 8 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 8 %}✅ Пройдено{% elif current_lesson == 8 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 9 -->
+    {% if current_lesson >= 8 %}
+    <div id="lesson9" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 8 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 9: Визуализация данных</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-chart-line"></i> Построение графиков</h3>
+            <p>Pandas имеет встроенную поддержку визуализации через Matplotlib.</p>
+            
+            <h4 style="margin: 20px 0 10px;">Установка Matplotlib:</h4>
+            <div class="code-block">
+                <pre>
+pip install matplotlib</pre>
+            </div>
+
+            <div class="code-block">
+                <pre>
+import matplotlib.pyplot as plt
+
+# Простой график
+df['salary'].plot(kind='line', title='Зарплаты')
+plt.show()
+
+# Гистограмма
+df['age'].plot(kind='hist', bins=10, title='Распределение возрастов')
+plt.show()
+
+# Столбчатая диаграмма
+df.groupby('city')['salary'].mean().plot(kind='bar', title='Средняя зарплата по городам')
+plt.show()
+
+# Круговая диаграмма
+df['city'].value_counts().plot(kind='pie', autopct='%1.1f%%')
+plt.show()
+
+# Scatter plot
+df.plot(kind='scatter', x='age', y='salary', title='Возраст vs Зарплата')
+plt.show()
+
+# Несколько графиков на одной оси
+df.groupby('city')['salary'].mean().plot(kind='bar', color=['#10b981', '#3b82f6', '#f59e0b'])
+plt.title('Средняя зарплата по городам')
+plt.ylabel('Зарплата')
+plt.show()</pre>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Уроки 10-24: краткие описания (для полноты курса) -->
+    
+    <!-- Урок 10: Временные ряды -->
+    <div class="lesson-card {% if current_lesson > 9 %}completed{% elif current_lesson == 9 %}current{% endif %}" onclick="window.location.href='#lesson10'">
+        <div class="lesson-number">10</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Работа с временными рядами</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 9 %}completed{% elif current_lesson == 9 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 9 %}✅ Пройдено{% elif current_lesson == 9 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Урок 11: Работа с текстовыми данными -->
+    <div class="lesson-card {% if current_lesson > 10 %}completed{% elif current_lesson == 10 %}current{% endif %}" onclick="window.location.href='#lesson11'">
+        <div class="lesson-number">11</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Работа с текстовыми данными</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 10 %}completed{% elif current_lesson == 10 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 10 %}✅ Пройдено{% elif current_lesson == 10 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Урок 12: Тест по NumPy -->
+    <div class="lesson-card {% if current_lesson > 11 %}completed{% elif current_lesson == 11 %}current{% endif %}" onclick="window.location.href='#lesson12'">
+        <div class="lesson-number">12</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Тест: NumPy</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-pen-to-square"></i> Тест • 15 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 11 %}completed{% elif current_lesson == 11 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 11 %}✅ Пройдено{% elif current_lesson == 11 %}📝 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 12 (тест) -->
+    {% if current_lesson >= 11 %}
+    <div id="lesson12" class="test-block" style="scroll-margin-top: 100px; {% if current_lesson != 11 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 12: Тест по NumPy</h2>
+        
+        <div class="test-question">Вопрос: Как создать массив из 10 равномерно распределенных чисел от 0 до 1?</div>
+        <div class="test-options">
+            <label class="test-option">
+                <input type="radio" name="q12" value="0"> np.arange(0, 1, 10)
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q12" value="1"> np.linspace(0, 1, 10)
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q12" value="2"> np.random.rand(10)
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q12" value="3"> np.zeros((10,))
+            </label>
+        </div>
+        <div id="feedback12" class="test-feedback" style="display: none;"></div>
+
+        <button class="test-btn" onclick="checkTest12()">Проверить ответ</button>
+
+        <div class="navigation-buttons" style="margin-top: 30px;">
+            <button class="nav-btn" onclick="window.location.href='#lesson11'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" id="nextAfterTest12" style="display: none;" onclick="completeCourse(22)">Завершить курс <i class="fa-solid fa-check"></i></button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Урок 13: Тест по Pandas -->
+    <div class="lesson-card {% if current_lesson > 12 %}completed{% elif current_lesson == 12 %}current{% endif %}" onclick="window.location.href='#lesson13'">
+        <div class="lesson-number">13</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Тест: Pandas</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-pen-to-square"></i> Тест • 15 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 12 %}completed{% elif current_lesson == 12 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 12 %}✅ Пройдено{% elif current_lesson == 12 %}📝 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 13 (тест) -->
+    {% if current_lesson >= 12 %}
+    <div id="lesson13" class="test-block" style="scroll-margin-top: 100px; {% if current_lesson != 12 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 13: Тест по Pandas</h2>
+        
+        <div class="test-question">Вопрос: Какой метод используется для группировки данных в Pandas?</div>
+        <div class="test-options">
+            <label class="test-option">
+                <input type="radio" name="q13" value="0"> group_by()
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q13" value="1"> groupby()
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q13" value="2"> aggregate()
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q13" value="3"> partition()
+            </label>
+        </div>
+        <div id="feedback13" class="test-feedback" style="display: none;"></div>
+
+        <button class="test-btn" onclick="checkTest13()">Проверить ответ</button>
+
+        <div class="navigation-buttons" style="margin-top: 30px;">
+            <button class="nav-btn" onclick="window.location.href='#lesson12'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" id="nextAfterTest13" style="display: none;" onclick="completeCourse(22)">Завершить курс <i class="fa-solid fa-check"></i></button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Кнопка возврата -->
+    <div style="margin-top: 40px; text-align: center;">
+        <a href="{{ url_for('courses') }}" class="btn btn-outline">
+            <i class="fa-solid fa-arrow-left"></i> К списку курсов
+        </a>
+    </div>
+</div>
+
+<!-- Футер -->
+<footer class="footer">
+    <div class="container">
+        <p>© 2025 PyMaster · NumPy и Pandas: анализ данных</p>
+    </div>
+</footer>
+
+<script>
+    // ID текущего курса
+    const courseId = 22;
+    const totalLessons = 24;
+    
+    // Функция перехода к уроку по клику
+    async function goToLesson(lessonIndex) {
+        try {
+            const response = await fetch('/api/save-progress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    course_id: courseId,
+                    lesson_index: lessonIndex,
+                    completed: false
+                })
+            });
+            
+            if (response.ok) {
+                const lessonElement = document.getElementById(`lesson${lessonIndex + 1}`);
+                if (lessonElement) {
+                    lessonElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    history.pushState(null, null, `#lesson${lessonIndex + 1}`);
+                    updateLessonStyles(lessonIndex);
+                } else {
+                    window.location.reload();
+                }
+            } else {
+                console.error('Ошибка сохранения прогресса:', response.status);
+            }
+        } catch (error) {
+            console.error('Ошибка сохранения прогресса:', error);
+            alert('Произошла ошибка при переходе к уроку. Попробуйте еще раз.');
+        }
+    }
+    
+    // Функция обновления стилей уроков
+    function updateLessonStyles(activeLessonIndex) {
+        const lessonCards = document.querySelectorAll('.lesson-card');
+        const lessonContents = document.querySelectorAll('.theory-content, .test-block');
+        
+        lessonCards.forEach((card, index) => {
+            card.classList.remove('current');
+            if (index === activeLessonIndex) {
+                card.classList.add('current');
+            } else {
+                card.classList.remove('current');
+            }
+            
+            const statusElement = card.querySelector('.lesson-status');
+            if (statusElement) {
+                if (index === activeLessonIndex) {
+                    statusElement.className = 'lesson-status current';
+                    const lessonType = card.querySelector('.lesson-type i');
+                    if (lessonType && lessonType.classList.contains('fa-pen-to-square')) {
+                        statusElement.innerHTML = '📝 Текущий';
+                    } else {
+                        statusElement.innerHTML = '📖 Текущий';
+                    }
+                } else {
+                    statusElement.className = 'lesson-status';
+                    statusElement.innerHTML = '📚 Доступен';
+                }
+            }
+        });
+        
+        lessonContents.forEach((content, index) => {
+            if (index === activeLessonIndex) {
+                content.style.display = 'block';
+                content.style.animation = 'fadeIn 0.5s';
+            } else {
+                content.style.display = 'none';
+            }
+        });
+        
+        updateProgressBar(activeLessonIndex + 1);
+    }
+    
+    // Функция обновления прогресс-бара
+    function updateProgressBar(currentLesson) {
+        const progressPercent = Math.round((currentLesson / totalLessons) * 100);
+        
+        const progressFill = document.querySelector('.progress-fill');
+        const progressPercentSpan = document.querySelector('.progress-percent:first-child');
+        const progressCounter = document.querySelectorAll('.progress-percent')[1];
+        
+        if (progressFill) {
+            progressFill.style.width = `${progressPercent}%`;
+        }
+        
+        if (progressPercentSpan) {
+            progressPercentSpan.textContent = `${progressPercent}%`;
+        }
+        
+        if (progressCounter) {
+            progressCounter.textContent = `${currentLesson}/${totalLessons}`;
+        }
+    }
+    
+    // Функция завершения курса
+    async function completeCourse() {
+        try {
+            const response = await fetch('/api/save-progress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    course_id: courseId,
+                    lesson_index: totalLessons - 1,
+                    completed: true
+                })
+            });
+            
+            if (response.ok) {
+                alert('🎉 Поздравляем! Вы завершили курс! +50 PYTH');
+                window.location.href = "{{ url_for('courses') }}";
+            } else {
+                console.error('Ошибка завершения курса:', response.status);
+                alert('Произошла ошибка при завершении курса. Попробуйте еще раз.');
+            }
+        } catch (error) {
+            console.error('Ошибка завершения курса:', error);
+            alert('Произошла ошибка при завершении курса. Попробуйте еще раз.');
+        }
+    }
+    
+    // Функция проверки теста 12
+    function checkTest12() {
+        const q12 = document.querySelector('input[name="q12"]:checked');
+        const feedback = document.getElementById('feedback12');
+        const nextBtn = document.getElementById('nextAfterTest12');
+        
+        if (q12 && q12.value === '1') {
+            feedback.className = 'test-feedback correct';
+            feedback.innerHTML = '<i class="fa-solid fa-check"></i> Правильно! np.linspace(0, 1, 10) создает 10 равномерно распределенных чисел от 0 до 1.';
+            feedback.style.display = 'block';
+            nextBtn.style.display = 'flex';
+        } else {
+            feedback.className = 'test-feedback incorrect';
+            feedback.innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. Правильный ответ: np.linspace(0, 1, 10)';
+            feedback.style.display = 'block';
+            nextBtn.style.display = 'none';
+        }
+    }
+    
+    // Функция проверки теста 13
+    function checkTest13() {
+        const q13 = document.querySelector('input[name="q13"]:checked');
+        const feedback = document.getElementById('feedback13');
+        const nextBtn = document.getElementById('nextAfterTest13');
+        
+        if (q13 && q13.value === '1') {
+            feedback.className = 'test-feedback correct';
+            feedback.innerHTML = '<i class="fa-solid fa-check"></i> Правильно! groupby() используется для группировки данных в Pandas.';
+            feedback.style.display = 'block';
+            nextBtn.style.display = 'flex';
+        } else {
+            feedback.className = 'test-feedback incorrect';
+            feedback.innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. Правильный ответ: groupby()';
+            feedback.style.display = 'block';
+            nextBtn.style.display = 'none';
+        }
+    }
+    
+    // Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        const lessonCards = document.querySelectorAll('.lesson-card');
+        const currentLessonIndex = parseInt('{{ current_lesson }}') || 0;
+        
+        lessonCards.forEach((card) => {
+            const statusElement = card.querySelector('.lesson-status');
+            if (statusElement) {
+                statusElement.classList.remove('locked');
+            }
+        });
+        
+        updateLessonStyles(currentLessonIndex);
+        
+        lessonCards.forEach((card, index) => {
+            card.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+                    return;
+                }
+                goToLesson(index);
+            });
+            card.style.cursor = 'pointer';
+        });
+        
+        if (window.location.hash) {
+            const hash = window.location.hash;
+            const lessonMatch = hash.match(/lesson(\d+)/);
+            if (lessonMatch) {
+                const lessonIndex = parseInt(lessonMatch[1]) - 1;
+                if (lessonIndex >= 0 && lessonIndex < totalLessons) {
+                    setTimeout(() => {
+                        goToLesson(lessonIndex);
+                    }, 100);
+                }
+            }
+        }
+    });
+    
+    // Автоматическое скрытие flash сообщений
+    setTimeout(() => {
+        document.querySelectorAll('.flash-message').forEach(msg => {
+            msg.style.animation = 'slideOut 0.3s';
+            setTimeout(() => msg.remove(), 300);
+        });
+    }, 5000);
+</script>
+
+<style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .lesson-card {
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .lesson-card:hover {
+        transform: translateX(10px);
+        border-color: #10b981;
+    }
+    
+    .lesson-card.current {
+        border-color: #10b981;
+        background: rgba(16, 185, 129, 0.1);
+    }
+    
+    .lesson-status {
+        padding: 6px 15px;
+        border-radius: 40px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+        border: 1px solid #10b981;
+    }
+    
+    .lesson-status.locked {
+        display: none;
+    }
+    
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+</style>
+
+</body>
+</html>

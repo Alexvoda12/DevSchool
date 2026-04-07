@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la /c/Users/Admin/Desktop/DevSchool/*.py)",
+      "Bash(ls -la /c/Users/Admin/Desktop/DevSchool/templates/*.html)"
+    ]
+  }
+}

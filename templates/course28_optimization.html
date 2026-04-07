@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyMaster · Профилирование и оптимизация кода в Python</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Исправленные стили для правильной прокрутки */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: auto; /* Изменено с hidden на auto */
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            background: #0a0c0f;
+            color: #e3e9f1;
+            overflow-y: auto; /* Добавлено для вертикальной прокрутки */
+        }
+        
+        .navbar {
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            width: 100%;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            width: 100%;
+        }
+        
+        /* Основной контент с прокруткой */
+        .course-content {
+            flex: 1;
+            padding: 40px 0;
+            overflow-y: visible;
+        }
+        
+        /* Стилизация скроллбара для всей страницы */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #8b5cf6;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #7c3aed;
+        }
+
+        /* Остальные стили для курса */
+        .course-header {
+            background: linear-gradient(145deg, #0f172a, #1a2635);
+            border-radius: 40px;
+            padding: 40px;
+            margin-bottom: 30px;
+            border: 1px solid #2a3a55;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .course-header-icon {
+            width: 100px;
+            height: 100px;
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            color: #8b5cf6;
+        }
+        
+        .course-header-info {
+            flex: 1;
+        }
+        
+        .course-header-info h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(145deg, #ffffff, #d8b4fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .course-meta {
+            display: flex;
+            gap: 30px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        
+        .course-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #9ab3d0;
+        }
+        
+        .course-meta-item i {
+            color: #8b5cf6;
+        }
+        
+        .progress-section {
+            background: rgba(18, 26, 36, 0.7);
+            border: 1px solid #2a3a55;
+            border-radius: 32px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .progress-percent {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #8b5cf6;
+        }
+        
+        .progress-label {
+            color: #9ab3d0;
+        }
+        
+        .lesson-card {
+            background: rgba(18, 26, 36, 0.7);
+            border: 1px solid #2a3a55;
+            border-radius: 24px;
+            padding: 25px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .lesson-card:hover {
+            border-color: #8b5cf6;
+            transform: translateX(5px);
+            background: #1e2c3f;
+        }
+        
+        .lesson-card.completed {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+        }
+        
+        .lesson-card.current {
+            border-color: #8b5cf6;
+            background: rgba(139, 92, 246, 0.1);
+        }
+        
+        .lesson-number {
+            width: 50px;
+            height: 50px;
+            background: #1e293b;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: #8b5cf6;
+        }
+        
+        .lesson-card.completed .lesson-number {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+        
+        .lesson-card.current .lesson-number {
+            background: #8b5cf6;
+            color: white;
+        }
+        
+        .lesson-info {
+            flex: 1;
+        }
+        
+        .lesson-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #ffffff;
+        }
+        
+        .lesson-type {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #9ab3d0;
+            font-size: 0.85rem;
+        }
+        
+        .lesson-type i {
+            color: #8b5cf6;
+        }
+        
+        .lesson-status {
+            padding: 6px 15px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .lesson-status.completed {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid #10b981;
+        }
+        
+        .lesson-status.current {
+            background: rgba(139, 92, 246, 0.2);
+            color: #8b5cf6;
+            border: 1px solid #8b5cf6;
+        }
+        
+        .lesson-status.locked {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+        
+        .theory-content {
+            background: #1a2635;
+            border: 1px solid #2f405b;
+            border-radius: 24px;
+            padding: 30px;
+            margin: 20px 0;
+            scroll-margin-top: 100px;
+        }
+        
+        .theory-section {
+            margin-bottom: 40px;
+        }
+        
+        .theory-section h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #e9f0fa;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .theory-section h3 i {
+            color: #8b5cf6;
+        }
+        
+        .code-block {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            color: #fbbf24;
+            overflow-x: auto;
+        }
+        
+        .code-block pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .test-block {
+            background: #1a2635;
+            border: 1px solid #2f405b;
+            border-radius: 24px;
+            padding: 30px;
+            margin: 30px 0;
+            scroll-margin-top: 100px;
+        }
+        
+        .test-question {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+        
+        .test-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .test-option {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 40px;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .test-option:hover {
+            border-color: #8b5cf6;
+            background: #2d3a4f;
+        }
+        
+        .test-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #8b5cf6;
+        }
+        
+        .test-btn {
+            background: linear-gradient(145deg, #7c3aed, #6d28d9);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 20px;
+        }
+        
+        .test-btn:hover {
+            background: linear-gradient(145deg, #8b5cf6, #7c3aed);
+            transform: scale(1.02);
+        }
+        
+        .test-feedback {
+            margin-top: 15px;
+            padding: 15px 20px;
+            border-radius: 40px;
+            font-size: 0.95rem;
+            animation: fadeIn 0.3s;
+        }
+        
+        .test-feedback.correct {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid #10b981;
+            color: #10b981;
+        }
+        
+        .test-feedback.incorrect {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        .nav-btn {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-btn:hover:not(:disabled) {
+            background: #2d3a4f;
+            border-color: #8b5cf6;
+        }
+        
+        .nav-btn.next {
+            background: linear-gradient(145deg, #7c3aed, #6d28d9);
+            border: 1px solid #8b5cf6;
+        }
+        
+        .nav-btn.next:hover:not(:disabled) {
+            background: linear-gradient(145deg, #8b5cf6, #7c3aed);
+        }
+        
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .footer {
+            border-top: 1px solid #1a2635;
+            padding: 40px 0;
+            margin-top: 60px;
+            text-align: center;
+            color: #6b8bb0;
+        }
+        
+        /* Flash сообщения */
+        .flash-messages {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .flash-message {
+            padding: 16px 24px;
+            border-radius: 40px;
+            margin-bottom: 10px;
+            animation: slideIn 0.3s;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-left: 4px solid #10b981;
+            background: rgba(4, 120, 87, 0.95);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0%); opacity: 1; }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .course-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .course-meta {
+                justify-content: center;
+            }
+            
+            .lesson-card {
+                flex-wrap: wrap;
+            }
+            
+            .lesson-status {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        .note-box {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid #8b5cf6;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .note-box i {
+            color: #8b5cf6;
+            font-size: 1.5rem;
+        }
+
+        .note-box-content {
+            color: #e9f0fa;
+        }
+
+        .note-box-content p {
+            margin: 5px 0;
+        }
+
+        .exception-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .exception-table th {
+            text-align: left;
+            padding: 12px;
+            background: #1e293b;
+            color: #8b5cf6;
+            border: 1px solid #334155;
+        }
+
+        .exception-table td {
+            padding: 12px;
+            border: 1px solid #334155;
+            color: #9ab3d0;
+        }
+
+        .exception-table tr:hover {
+            background: #1e293b;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Flash сообщения -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <i class="fa-solid fa-circle-check"></i> {{ message }}
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<!-- Навбар -->
+<nav class="navbar">
+    <div class="container nav-wrapper">
+        <div class="logo">
+            <i class="fa-brands fa-python logo-icon"></i>
+            <span class="logo-text">PyMaster</span>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('main') }}">Главная</a>
+            <a href="{{ url_for('courses') }}" class="active">Курсы</a>
+            <a href="{{ url_for('tasks') }}">Задачи</a>
+            <a href="{{ url_for('ai_assistant') }}">GPT-4</a>
+            <a href="{{ url_for('dashboard') }}">Кабинет</a>
+            <a href="{{ url_for('about') }}">О нас</a>
+            
+            <div class="pyth-balance" onclick="window.location.href='{{ url_for('shop') }}'">
+                <i class="fa-solid fa-coins"></i>
+                <span>{{ user.balance }} PYTH</span>
+            </div>
+            
+            <a href="{{ url_for('logout') }}" class="logout-btn">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Основной контент -->
+<div class="container" style="padding: 40px 24px;">
+    <!-- Шапка курса -->
+    <div class="course-header">
+        <div class="course-header-icon">
+            <i class="fa-solid fa-gauge-high"></i>
+        </div>
+        <div class="course-header-info">
+            <h1>{{ course.title }}</h1>
+            <div class="course-meta">
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-clock"></i> {{ course.hours }} часов
+                </span>
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-book-open"></i> {{ course.lessons }} уроков
+                </span>
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-signal"></i> 
+                    <span class="course-level level-expert">Экспертный уровень</span>
+                </span>
+            </div>
+            <p style="color: #9ab3d0;">Научитесь находить и устранять узкие места в коде. cProfile, memory_profiler, оптимизация алгоритмов и работа с GIL.</p>
+        </div>
+    </div>
+
+    <!-- Прогресс -->
+    <div class="progress-section">
+        <div class="progress-stats">
+            <div>
+                <span class="progress-percent">{{ progress }}%</span>
+                <span class="progress-label">прогресс</span>
+            </div>
+            <div>
+                <span class="progress-percent">{{ current_lesson }}/{{ course.lessons }}</span>
+                <span class="progress-label">уроков пройдено</span>
+            </div>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {{ progress }}%"></div>
+        </div>
+    </div>
+
+    <!-- Список уроков -->
+    <h2 style="font-size: 1.8rem; margin-bottom: 20px;">Уроки курса</h2>
+
+    <!-- Урок 1: Введение в профилирование -->
+    <div class="lesson-card {% if current_lesson > 0 %}completed{% elif current_lesson == 0 %}current{% endif %}" onclick="window.location.href='#lesson1'">
+        <div class="lesson-number">1</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Введение в профилирование</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 0 %}completed{% elif current_lesson == 0 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 0 %}✅ Пройдено{% elif current_lesson == 0 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 1 -->
+    <div id="lesson1" class="theory-content" style="scroll-margin-top: 100px;">
+        <h2 style="margin-bottom: 20px;">Урок 1: Введение в профилирование</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-chart-line"></i> Почему код может работать медленно?</h3>
+            <p>Профилирование — это процесс измерения производительности кода. Оно помогает ответить на вопросы: "Какая функция выполняется дольше всего?", "Где тратится больше всего памяти?", "Почему программа тормозит?".</p>
+            <p>Без профилирования мы оптимизируем наугад, часто тратя время на неважные участки кода.</p>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-microscope"></i> Виды профилирования</h3>
+            <ul style="color: #9ab3d0; margin-left: 20px;">
+                <li><strong>Профилирование времени (CPU):</strong> измеряет, сколько времени занимает выполнение каждой функции.</li>
+                <li><strong>Профилирование памяти (Memory):</strong> отслеживает, сколько памяти использует код.</li>
+                <li><strong>Профилирование вызовов (Call Graph):</strong> показывает, как функции вызывают друг друга.</li>
+            </ul>
+            <p>В этом курсе мы изучим инструменты для каждого типа профилирования.</p>
+        </div>
+
+        <div class="note-box">
+            <i class="fa-solid fa-lightbulb"></i>
+            <div class="note-box-content">
+                <p><strong>Золотое правило оптимизации:</strong> "Сначала измерь, потом оптимизируй". Никогда не предполагай, что медленно. Всегда проверяй с помощью профилировщика.</p>
+            </div>
+        </div>
+
+        
+    </div>
+
+    <!-- Урок 2: cProfile и профилирование CPU -->
+    <div class="lesson-card {% if current_lesson > 1 %}completed{% elif current_lesson == 1 %}current{% endif %}" onclick="window.location.href='#lesson2'">
+        <div class="lesson-number">2</div>
+        <div class="lesson-info">
+            <div class="lesson-title">cProfile — профилирование CPU</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 1 %}completed{% elif current_lesson == 1 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 1 %}✅ Пройдено{% elif current_lesson == 1 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 2 -->
+    {% if current_lesson >= 1 %}
+    <div id="lesson2" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 1 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 2: cProfile — профилирование CPU</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-chart-simple"></i> Использование cProfile</h3>
+            <p>cProfile — встроенный модуль Python для профилирования. Он показывает, сколько времени тратится на каждую функцию.</p>
+
+            <div class="code-block">
+                <pre>
+import cProfile
+import pstats
+import io
+
+def slow_function():
+    total = 0
+    for i in range(1000000):
+        total += i ** 2
+    return total
+
+def fast_function():
+    return sum(i ** 2 for i in range(1000000))
+
+def main():
+    slow_function()
+    fast_function()
+
+# Профилирование через командную строку
+# python -m cProfile my_script.py
+
+# Профилирование из кода
+profiler = cProfile.Profile()
+profiler.enable()
+main()
+profiler.disable()
+
+# Сохранение и анализ результатов
+stream = io.StringIO()
+stats = pstats.Stats(profiler, stream=stream)
+stats.sort_stats('cumulative')  # Сортировка по накопленному времени
+stats.print_stats(10)  # Вывод топ-10 функций
+
+print(stream.getvalue())</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-chart-gantt"></i> Интерпретация результатов</h3>
+            
+            <table class="exception-table">
+                <tr><th>Поле</th><th>Описание</th></tr>
+                <tr><td>ncalls</td><td>Количество вызовов функции</td></tr>
+                <tr><td>tottime</td><td>Общее время, проведённое в функции (без вызовов подфункций)</td></tr>
+                <tr><td>percall (tottime)</td><td>Среднее время одного вызова функции</td></tr>
+                <tr><td>cumtime</td><td>Общее время, включая время во всех подфункциях</td></tr>
+                <tr><td>percall (cumtime)</td><td>Среднее время одного вызова с учётом подфункций</td></tr>
+            </table>
+
+            <p><strong>Важно!</strong> Смотрите на <code>tottime</code> — это время, которое функция потратила на свою работу, не считая вызовы других функций. Именно здесь чаще всего находятся узкие места.</p>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-eye"></i> Визуализация с snakeviz</h3>
+            <p>Для визуализации результатов установите snakeviz: <code>pip install snakeviz</code>.</p>
+            <div class="code-block">
+                <pre>
+# Генерация файла со статистикой
+import cProfile
+cProfile.run('main()', 'profile_stats.prof')
+
+# Запуск визуализации
+# snakeviz profile_stats.prof
+# Откроется интерактивный график в браузере</pre>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 3: Профилирование памяти -->
+    <div class="lesson-card {% if current_lesson > 2 %}completed{% elif current_lesson == 2 %}current{% endif %}" onclick="window.location.href='#lesson3'">
+        <div class="lesson-number">3</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Профилирование памяти</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 2 %}completed{% elif current_lesson == 2 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 2 %}✅ Пройдено{% elif current_lesson == 2 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 3 -->
+    {% if current_lesson >= 2 %}
+    <div id="lesson3" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 2 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 3: Профилирование памяти</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-memory"></i> Библиотека memory_profiler</h3>
+            <p>Установка: <code>pip install memory-profiler</code></p>
+            
+            <div class="code-block">
+                <pre>
+from memory_profiler import profile
+import time
+
+@profile
+def memory_intensive():
+    # Создаём большой список
+    big_list = [i for i in range(1000000)]
+    
+    # Добавляем ещё один
+    another_list = [x * 2 for x in big_list]
+    
+    # Освобождаем память
+    del big_list
+    
+    # Создаём словарь
+    big_dict = {i: i**2 for i in range(500000)}
+    
+    return len(another_list) + len(big_dict)
+
+if __name__ == '__main__':
+    result = memory_intensive()
+    print(f"Результат: {result}")</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-chart-line"></i> Построчное использование памяти</h3>
+            <div class="code-block">
+                <pre>
+# Запуск с выводом в файл
+# python -m memory_profiler script.py
+
+# В коде можно использовать декоратор @profile
+
+# Пример вывода:
+# Line #    Mem usage    Increment   Line Contents
+# ================================================
+#     5   38.2 MiB   38.2 MiB   @profile
+#     6                             def memory_intensive():
+#     7   38.2 MiB    0.0 MiB       big_list = [i for i in range(1000000)]
+#     8   46.0 MiB    7.8 MiB       another_list = [x * 2 for x in big_list]
+#     9   46.0 MiB    0.0 MiB       del big_list
+#    10   54.5 MiB    8.5 MiB       big_dict = {i: i**2 for i in range(500000)}</pre>
+            </div>
+        </div>
+
+        <div class="note-box">
+            <i class="fa-solid fa-warning"></i>
+            <div class="note-box-content">
+                <p><strong>Утечки памяти:</strong> Используйте <code>tracemalloc</code> для отслеживания объектов, которые не освобождаются.</p>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 4: Оптимизация алгоритмов -->
+    <div class="lesson-card {% if current_lesson > 3 %}completed{% elif current_lesson == 3 %}current{% endif %}" onclick="window.location.href='#lesson4'">
+        <div class="lesson-number">4</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Оптимизация алгоритмов</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 3 %}completed{% elif current_lesson == 3 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 3 %}✅ Пройдено{% elif current_lesson == 3 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 4 -->
+    {% if current_lesson >= 3 %}
+    <div id="lesson4" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 3 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 4: Оптимизация алгоритмов</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-chart-line"></i> Сложность алгоритмов (Big O)</h3>
+            <p>Выбор правильного алгоритма — самый эффективный способ ускорить код. Ошибка в сложности может замедлить программу в тысячи раз.</p>
+            
+            <table class="exception-table">
+                <tr><th>Сложность</th><th>Название</th><th>Пример</th></tr>
+                <tr><td>O(1)</td><td>Константная</td><td>Доступ по индексу</td></tr>
+                <tr><td>O(log n)</td><td>Логарифмическая</td><td>Бинарный поиск</td></tr>
+                <tr><td>O(n)</td><td>Линейная</td><td>Поиск элемента</td></tr>
+                <tr><td>O(n log n)</td><td>Линейно-логарифмическая</td><td>Быстрая сортировка</td></tr>
+                <tr><td>O(n²)</td><td>Квадратичная</td><td>Вложенные циклы</td></tr>
+                <tr><td>O(2ⁿ)</td><td>Экспоненциальная</td><td>Рекурсивный перебор</td></tr>
+            </table>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-code-branch"></i> Практические примеры оптимизации</h3>
+            
+            <div class="code-block">
+                <pre>
+# Плохо: O(n²)
+def find_duplicates_slow(items):
+    duplicates = []
+    for i in range(len(items)):
+        for j in range(i+1, len(items)):
+            if items[i] == items[j] and items[i] not in duplicates:
+                duplicates.append(items[i])
+    return duplicates
+
+# Хорошо: O(n) с использованием set
+def find_duplicates_fast(items):
+    seen = set()
+    duplicates = set()
+    for item in items:
+        if item in seen:
+            duplicates.add(item)
+        else:
+            seen.add(item)
+    return list(duplicates)
+
+# Плохо: частый поиск в списке
+def slow_member_check(items, target):
+    return target in items  # O(n) каждый раз
+
+# Хорошо: использовать set для проверки
+def fast_member_check(items, target):
+    items_set = set(items)  # O(n) один раз
+    return target in items_set  # O(1)</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-database"></i> Оптимизация работы с данными</h3>
+            <ul style="color: #9ab3d0; margin-left: 20px;">
+                <li><strong>Используйте генераторы вместо списков</strong> для больших данных.</li>
+                <li><strong>Избегайте многократных вычислений</strong> — кэшируйте результаты (functools.lru_cache).</li>
+                <li><strong>Выбирайте правильные структуры данных:</strong> set для уникальности, deque для очередей, heap для приоритетов.</li>
+            </ul>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 5: Работа с GIL -->
+    <div class="lesson-card {% if current_lesson > 4 %}completed{% elif current_lesson == 4 %}current{% endif %}" onclick="window.location.href='#lesson5'">
+        <div class="lesson-number">5</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Работа с GIL</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 4 %}completed{% elif current_lesson == 4 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 4 %}✅ Пройдено{% elif current_lesson == 4 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 5 -->
+    {% if current_lesson >= 4 %}
+    <div id="lesson5" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 4 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 5: Работа с GIL</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-lock"></i> Что такое GIL?</h3>
+            <p>GIL (Global Interpreter Lock) — глобальная блокировка интерпретатора, которая позволяет выполнять только один поток Python одновременно. Это ограничение для CPU-bound задач.</p>
+            <p>GIL не мешает I/O-bound задачам (сеть, файлы), но CPU-bound задачи в потоках не ускоряются.</p>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-microchip"></i> Обход GIL</h3>
+            
+            <div class="code-block">
+                <pre>
+import threading
+import multiprocessing
+import time
+
+# CPU-bound задача
+def cpu_intensive(n):
+    return sum(i * i for i in range(n))
+
+# Потоки НЕ ускоряют CPU-bound задачи из-за GIL
+def test_threads():
+    numbers = [10_000_000] * 4
+    start = time.time()
+    with threading.ThreadPoolExecutor(max_workers=4) as executor:
+        results = list(executor.map(cpu_intensive, numbers))
+    print(f"Threads: {time.time() - start:.2f}s")
+
+# Процессы ускоряют за счёт отдельных интерпретаторов
+def test_processes():
+    numbers = [10_000_000] * 4
+    start = time.time()
+    with multiprocessing.Pool(processes=4) as pool:
+        results = pool.map(cpu_intensive, numbers)
+    print(f"Processes: {time.time() - start:.2f}s")</pre>
+            </div>
+        </div>
+
+        <div class="note-box">
+            <i class="fa-solid fa-key"></i>
+            <div class="note-box-content">
+                <p><strong>Вывод:</strong> Для CPU-bound задач используйте multiprocessing или выносите тяжелые вычисления в C-расширения (NumPy, Cython). Для I/O-bound задач асинхронность и потоки работают отлично.</p>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 6: Тест -->
+    <div class="lesson-card {% if current_lesson > 5 %}completed{% elif current_lesson == 5 %}current{% endif %}" onclick="window.location.href='#lesson6'">
+        <div class="lesson-number">6</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Тест: Профилирование и оптимизация</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-pen-to-square"></i> Тест • 10 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 5 %}completed{% elif current_lesson == 5 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 5 %}✅ Пройдено{% elif current_lesson == 5 %}📝 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 6 -->
+    {% if current_lesson >= 5 %}
+    <div id="lesson6" class="test-block" style="scroll-margin-top: 100px; {% if current_lesson != 5 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 6: Тест по профилированию и оптимизации</h2>
+        
+        <div class="test-question">Вопрос: Какая из структур данных даёт O(1) сложность при проверке наличия элемента?</div>
+        <div class="test-options">
+            <label class="test-option"><input type="radio" name="q1" value="0"> Список (list)</label>
+            <label class="test-option"><input type="radio" name="q1" value="1"> Множество (set)</label>
+            <label class="test-option"><input type="radio" name="q1" value="2"> Строка (str)</label>
+            <label class="test-option"><input type="radio" name="q1" value="3"> Кортеж (tuple)</label>
+        </div>
+        <div id="feedback1" class="test-feedback" style="display: none;"></div>
+
+        <div class="test-question" style="margin-top: 30px;">Вопрос: Что такое GIL в Python?</div>
+        <div class="test-options">
+            <label class="test-option"><input type="radio" name="q2" value="0"> Библиотека для работы с изображениями</label>
+            <label class="test-option"><input type="radio" name="q2" value="1"> Глобальная блокировка интерпретатора, ограничивающая параллелизм потоков</label>
+            <label class="test-option"><input type="radio" name="q2" value="2"> Система для профилирования памяти</label>
+            <label class="test-option"><input type="radio" name="q2" value="3"> Графический интерфейс для отладки</label>
+        </div>
+        <div id="feedback2" class="test-feedback" style="display: none;"></div>
+
+        <button class="test-btn" onclick="checkTest()">Проверить ответы</button>
+
+        <div class="navigation-buttons" style="margin-top: 30px;">
+            <button class="nav-btn" onclick="window.location.href='#lesson5'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" id="completeBtn" style="display: none;" onclick="completeCourse(28)">Завершить курс <i class="fa-solid fa-check"></i></button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Кнопка возврата -->
+    <div style="margin-top: 40px; text-align: center;">
+        <a href="{{ url_for('courses') }}" class="btn btn-outline">
+            <i class="fa-solid fa-arrow-left"></i> К списку курсов
+        </a>
+    </div>
+</div>
+
+<!-- Футер -->
+<footer class="footer">
+    <div class="container">
+        <p>© 2025 PyMaster · Профилирование и оптимизация</p>
+    </div>
+</footer>
+
+<script>
+    // ID текущего курса
+    const courseId = {{ course.id }};
+    const totalLessons = {{ course.lessons }};
+    
+    // Функция перехода к уроку по клику
+    async function goToLesson(lessonIndex) {
+        try {
+            const response = await fetch('/api/save-progress', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({course_id: courseId, lesson_index: lessonIndex, completed: false})
+            });
+            if (response.ok) {
+                const lessonElement = document.getElementById(`lesson${lessonIndex + 1}`);
+                if (lessonElement) {
+                    lessonElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    history.pushState(null, null, `#lesson${lessonIndex + 1}`);
+                    updateLessonStyles(lessonIndex);
+                } else { window.location.reload(); }
+            }
+        } catch (error) {
+            console.error('Ошибка сохранения прогресса:', error);
+            alert('Произошла ошибка при переходе к уроку.');
+        }
+    }
+    
+    function updateLessonStyles(activeLessonIndex) {
+        const lessonCards = document.querySelectorAll('.lesson-card');
+        const lessonContents = document.querySelectorAll('.theory-content, .test-block');
+        lessonCards.forEach((card, index) => {
+            card.classList.remove('current');
+            if (index === activeLessonIndex) card.classList.add('current');
+            const statusElement = card.querySelector('.lesson-status');
+            if (statusElement) {
+                if (index === activeLessonIndex) {
+                    statusElement.className = 'lesson-status current';
+                    const lessonType = card.querySelector('.lesson-type i');
+                    statusElement.innerHTML = lessonType && lessonType.classList.contains('fa-pen-to-square') ? '📝 Текущий' : '📖 Текущий';
+                } else {
+                    statusElement.className = 'lesson-status';
+                    statusElement.innerHTML = '📚 Доступен';
+                }
+            }
+        });
+        lessonContents.forEach((content, index) => {
+            content.style.display = index === activeLessonIndex ? 'block' : 'none';
+            if (index === activeLessonIndex) content.style.animation = 'fadeIn 0.5s';
+        });
+        updateProgressBar(activeLessonIndex + 1);
+    }
+    
+    function updateProgressBar(currentLesson) {
+        const progressPercent = Math.round((currentLesson / totalLessons) * 100);
+        const progressFill = document.querySelector('.progress-fill');
+        const progressPercentSpan = document.querySelector('.progress-percent:first-child');
+        const progressCounter = document.querySelectorAll('.progress-percent')[1];
+        if (progressFill) progressFill.style.width = `${progressPercent}%`;
+        if (progressPercentSpan) progressPercentSpan.textContent = `${progressPercent}%`;
+        if (progressCounter) progressCounter.textContent = `${currentLesson}/${totalLessons}`;
+    }
+    
+    async function completeCourse() {
+        try {
+            const response = await fetch('/api/save-progress', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({course_id: courseId, lesson_index: totalLessons - 1, completed: true})
+            });
+            if (response.ok) {
+                alert('🎉 Поздравляем! Вы завершили курс! +50 PYTH');
+                window.location.href = "{{ url_for('courses') }}";
+            }
+        } catch (error) { console.error('Ошибка завершения курса:', error); }
+    }
+    
+    function checkTest() {
+        let allCorrect = true;
+        const q1 = document.querySelector('input[name="q1"]:checked');
+        const q2 = document.querySelector('input[name="q2"]:checked');
+        if (!q1) { allCorrect = false; document.getElementById('feedback1').style.display = 'block'; document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-xmark"></i> Выберите ответ на вопрос 1'; }
+        else if (q1.value === '1') { document.getElementById('feedback1').className = 'test-feedback correct'; document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! Множества (set) дают O(1) при проверке наличия элемента.'; document.getElementById('feedback1').style.display = 'block'; }
+        else { allCorrect = false; document.getElementById('feedback1').className = 'test-feedback incorrect'; document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. Правильный ответ: множество (set).'; document.getElementById('feedback1').style.display = 'block'; }
+        if (!q2) { allCorrect = false; document.getElementById('feedback2').style.display = 'block'; document.getElementById('feedback2').innerHTML = '<i class="fa-solid fa-xmark"></i> Выберите ответ на вопрос 2'; }
+        else if (q2.value === '1') { document.getElementById('feedback2').className = 'test-feedback correct'; document.getElementById('feedback2').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! GIL — глобальная блокировка интерпретатора, ограничивающая параллелизм потоков для CPU-bound задач.'; document.getElementById('feedback2').style.display = 'block'; }
+        else { allCorrect = false; document.getElementById('feedback2').className = 'test-feedback incorrect'; document.getElementById('feedback2').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. GIL — это глобальная блокировка интерпретатора.'; document.getElementById('feedback2').style.display = 'block'; }
+        if (allCorrect) document.getElementById('completeBtn').style.display = 'flex';
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const lessonCards = document.querySelectorAll('.lesson-card');
+        const currentLessonIndex = parseInt('{{ current_lesson }}') || 0;
+        lessonCards.forEach(card => { const statusElement = card.querySelector('.lesson-status'); if (statusElement) statusElement.classList.remove('locked'); });
+        updateLessonStyles(currentLessonIndex);
+        lessonCards.forEach((card, index) => { card.addEventListener('click', function(e) { if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return; goToLesson(index); }); card.style.cursor = 'pointer'; });
+        if (window.location.hash) { const lessonMatch = window.location.hash.match(/lesson(\d+)/); if (lessonMatch) { const lessonIndex = parseInt(lessonMatch[1]) - 1; if (lessonIndex >= 0 && lessonIndex < totalLessons) setTimeout(() => goToLesson(lessonIndex), 100); } }
+    });
+    setTimeout(() => { document.querySelectorAll('.flash-message').forEach(msg => { msg.style.animation = 'slideOut 0.3s'; setTimeout(() => msg.remove(), 300); }); }, 5000);
+</script>
+
+<style>
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .lesson-card { cursor: pointer; transition: all 0.3s; }
+    .lesson-card:hover { transform: translateX(10px); border-color: #8b5cf6; }
+    .lesson-card.current { border-color: #8b5cf6; background: rgba(139, 92, 246, 0.1); }
+    .lesson-status { padding: 6px 15px; border-radius: 40px; font-size: 0.85rem; font-weight: 500; background: rgba(139, 92, 246, 0.1); color: #8b5cf6; border: 1px solid #8b5cf6; }
+    @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+</style>
+</body>
+</html>

@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyMaster · Введение в ML на Python</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Исправленные стили для правильной прокрутки */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: auto;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            background: #0a0c0f;
+            color: #e3e9f1;
+            overflow-y: auto;
+        }
+        
+        .navbar {
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            width: 100%;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            width: 100%;
+        }
+        
+        /* Основной контент с прокруткой */
+        .course-content {
+            flex: 1;
+            padding: 40px 0;
+            overflow-y: visible;
+        }
+        
+        /* Стилизация скроллбара для всей страницы */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #8b5cf6;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #7c3aed;
+        }
+
+        /* Остальные стили для курса */
+        .course-header {
+            background: linear-gradient(145deg, #0f172a, #1a2635);
+            border-radius: 40px;
+            padding: 40px;
+            margin-bottom: 30px;
+            border: 1px solid #2a3a55;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .course-header-icon {
+            width: 100px;
+            height: 100px;
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            color: #8b5cf6;
+        }
+        
+        .course-header-info {
+            flex: 1;
+        }
+        
+        .course-header-info h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(145deg, #ffffff, #d8b4fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .course-meta {
+            display: flex;
+            gap: 30px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        
+        .course-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #9ab3d0;
+        }
+        
+        .course-meta-item i {
+            color: #8b5cf6;
+        }
+        
+        .progress-section {
+            background: rgba(18, 26, 36, 0.7);
+            border: 1px solid #2a3a55;
+            border-radius: 32px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .progress-percent {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #8b5cf6;
+        }
+        
+        .progress-label {
+            color: #9ab3d0;
+        }
+        
+        .lesson-card {
+            background: rgba(18, 26, 36, 0.7);
+            border: 1px solid #2a3a55;
+            border-radius: 24px;
+            padding: 25px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .lesson-card:hover {
+            border-color: #8b5cf6;
+            transform: translateX(5px);
+            background: #1e2c3f;
+        }
+        
+        .lesson-card.completed {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+        }
+        
+        .lesson-card.current {
+            border-color: #8b5cf6;
+            background: rgba(139, 92, 246, 0.1);
+        }
+        
+        .lesson-number {
+            width: 50px;
+            height: 50px;
+            background: #1e293b;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: #8b5cf6;
+        }
+        
+        .lesson-card.completed .lesson-number {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+        
+        .lesson-card.current .lesson-number {
+            background: #8b5cf6;
+            color: white;
+        }
+        
+        .lesson-info {
+            flex: 1;
+        }
+        
+        .lesson-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #ffffff;
+        }
+        
+        .lesson-type {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #9ab3d0;
+            font-size: 0.85rem;
+        }
+        
+        .lesson-type i {
+            color: #8b5cf6;
+        }
+        
+        .lesson-status {
+            padding: 6px 15px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .lesson-status.completed {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid #10b981;
+        }
+        
+        .lesson-status.current {
+            background: rgba(139, 92, 246, 0.2);
+            color: #8b5cf6;
+            border: 1px solid #8b5cf6;
+        }
+        
+        .lesson-status.locked {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+        
+        .theory-content {
+            background: #1a2635;
+            border: 1px solid #2f405b;
+            border-radius: 24px;
+            padding: 30px;
+            margin: 20px 0;
+            scroll-margin-top: 100px;
+        }
+        
+        .theory-section {
+            margin-bottom: 40px;
+        }
+        
+        .theory-section h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #e9f0fa;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .theory-section h3 i {
+            color: #8b5cf6;
+        }
+        
+        .code-block {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            color: #fbbf24;
+            overflow-x: auto;
+        }
+        
+        .code-block pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .test-block {
+            background: #1a2635;
+            border: 1px solid #2f405b;
+            border-radius: 24px;
+            padding: 30px;
+            margin: 30px 0;
+            scroll-margin-top: 100px;
+        }
+        
+        .test-question {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+        
+        .test-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .test-option {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 40px;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .test-option:hover {
+            border-color: #8b5cf6;
+            background: #2d3a4f;
+        }
+        
+        .test-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #8b5cf6;
+        }
+        
+        .test-btn {
+            background: linear-gradient(145deg, #8b5cf6, #7c3aed);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 20px;
+        }
+        
+        .test-btn:hover {
+            background: linear-gradient(145deg, #a78bfa, #8b5cf6);
+            transform: scale(1.02);
+        }
+        
+        .test-feedback {
+            margin-top: 15px;
+            padding: 15px 20px;
+            border-radius: 40px;
+            font-size: 0.95rem;
+            animation: fadeIn 0.3s;
+        }
+        
+        .test-feedback.correct {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid #10b981;
+            color: #10b981;
+        }
+        
+        .test-feedback.incorrect {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        .nav-btn {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-btn:hover:not(:disabled) {
+            background: #2d3a4f;
+            border-color: #8b5cf6;
+        }
+        
+        .nav-btn.next {
+            background: linear-gradient(145deg, #8b5cf6, #7c3aed);
+            border: 1px solid #8b5cf6;
+        }
+        
+        .nav-btn.next:hover:not(:disabled) {
+            background: linear-gradient(145deg, #a78bfa, #8b5cf6);
+        }
+        
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .footer {
+            border-top: 1px solid #1a2635;
+            padding: 40px 0;
+            margin-top: 60px;
+            text-align: center;
+            color: #6b8bb0;
+        }
+        
+        /* Flash сообщения */
+        .flash-messages {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .flash-message {
+            padding: 16px 24px;
+            border-radius: 40px;
+            margin-bottom: 10px;
+            animation: slideIn 0.3s;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-left: 4px solid #10b981;
+            background: rgba(4, 120, 87, 0.95);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0%); opacity: 1; }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .course-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .course-meta {
+                justify-content: center;
+            }
+            
+            .lesson-card {
+                flex-wrap: wrap;
+            }
+            
+            .lesson-status {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        .note-box {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid #8b5cf6;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .note-box i {
+            color: #8b5cf6;
+            font-size: 1.5rem;
+        }
+
+        .note-box-content {
+            color: #e9f0fa;
+        }
+
+        .note-box-content p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Flash сообщения -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <i class="fa-solid fa-circle-check"></i> {{ message }}
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<!-- Навбар -->
+<nav class="navbar">
+    <div class="container nav-wrapper">
+        <div class="logo">
+            <i class="fa-brands fa-python logo-icon"></i>
+            <span class="logo-text">PyMaster</span>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('main') }}">Главная</a>
+            <a href="{{ url_for('courses') }}" class="active">Курсы</a>
+            <a href="{{ url_for('tasks') }}" class="{% if request.endpoint == 'tasks' %}active{% endif %}">Задачи</a>
+            <a href="{{ url_for('ai_assistant') }}">GPT-4</a>
+            <a href="{{ url_for('dashboard') }}">Кабинет</a>
+            <a href="{{ url_for('about') }}" class="{% if request.endpoint == 'about' %}active{% endif %}">О нас</a>
+            
+            <div class="pyth-balance" onclick="window.location.href='{{ url_for('shop') }}'">
+                <i class="fa-solid fa-coins"></i>
+                <span>{{ user.balance }} PYTH</span>
+            </div>
+            
+            <a href="{{ url_for('logout') }}" class="logout-btn">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Основной контент -->
+<div class="container" style="padding: 40px 24px;">
+    <!-- Шапка курса -->
+    <div class="course-header">
+        <div class="course-header-icon">
+            <i class="fa-solid fa-brain"></i>
+        </div>
+        <div class="course-header-info">
+            <h1>{{ course.title }}</h1>
+            <div class="course-meta">
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-clock"></i> {{ course.hours }} часов
+                </span>
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-book-open"></i> {{ course.lessons }} уроков
+                </span>
+                <span class="course-meta-item">
+                    <i class="fa-solid fa-signal"></i> 
+                    <span class="course-level level-advanced">Продвинутый уровень</span>
+                </span>
+            </div>
+            <p style="color: #9ab3d0;">Погрузитесь в мир машинного обучения с Python. Scikit-learn, построение моделей, оценка качества, feature engineering. Практические кейсы.</p>
+        </div>
+    </div>
+
+    <!-- Прогресс -->
+    <div class="progress-section">
+        <div class="progress-stats">
+            <div>
+                <span class="progress-percent">{{ progress }}%</span>
+                <span class="progress-label">прогресс</span>
+            </div>
+            <div>
+                <span class="progress-percent">{{ current_lesson }}/{{ course.lessons }}</span>
+                <span class="progress-label">уроков пройдено</span>
+            </div>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {{ progress }}%"></div>
+        </div>
+    </div>
+
+    <!-- Список уроков -->
+    <h2 style="font-size: 1.8rem; margin-bottom: 20px;">Уроки курса</h2>
+
+    <!-- Урок 1: Введение в ML -->
+    <div class="lesson-card {% if current_lesson > 0 %}completed{% elif current_lesson == 0 %}current{% endif %}" onclick="window.location.href='#lesson1'">
+        <div class="lesson-number">1</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Введение в машинное обучение</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 0 %}completed{% elif current_lesson == 0 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 0 %}✅ Пройдено{% elif current_lesson == 0 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 1 -->
+    <div id="lesson1" class="theory-content" style="scroll-margin-top: 100px;">
+        <h2 style="margin-bottom: 20px;">Урок 1: Введение в машинное обучение</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-question-circle"></i> Что такое машинное обучение?</h3>
+            <p>Машинное обучение (ML) — это подмножество искусственного интеллекта, которое позволяет компьютерам учиться на данных без явного программирования. Вместо того чтобы писать правила, мы предоставляем алгоритму примеры, и он находит закономерности.</p>
+            <p>Классический пример: вместо того чтобы писать правила для распознавания спама ("если есть слово 'выигрыш', то спам"), мы показываем модели тысячи писем, помеченных как спам или не спам, и она сама учится отличать их.</p>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-chart-line"></i> Типы машинного обучения</h3>
+            <ul style="list-style: none; padding: 0;">
+                <li style="margin-bottom: 12px;"><i class="fa-solid fa-check" style="color: #10b981; margin-right: 10px;"></i> <strong>Обучение с учителем (Supervised Learning):</strong> У нас есть данные с ответами. Мы учим модель предсказывать ответы на новых данных. <br> <span style="color:#94a3b8">Примеры: классификация (спам/не спам), регрессия (предсказание цены дома).</span></li>
+                <li style="margin-bottom: 12px;"><i class="fa-solid fa-check" style="color: #10b981; margin-right: 10px;"></i> <strong>Обучение без учителя (Unsupervised Learning):</strong> Данные без ответов. Модель ищет скрытые структуры или группировки. <br> <span style="color:#94a3b8">Примеры: кластеризация клиентов, снижение размерности.</span></li>
+                <li style="margin-bottom: 12px;"><i class="fa-solid fa-check" style="color: #10b981; margin-right: 10px;"></i> <strong>Обучение с подкреплением (Reinforcement Learning):</strong> Агент учится взаимодействовать со средой, получая награды или штрафы. <br> <span style="color:#94a3b8">Примеры: обучение роботов, игры (AlphaGo).</span></li>
+            </ul>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-toolbox"></i> Основные библиотеки Python для ML</h3>
+            <ul style="list-style: none; padding: 0;">
+                <li style="margin-bottom: 8px;"><i class="fa-brands fa-python" style="color: #8b5cf6; margin-right: 10px;"></i> <strong>NumPy:</strong> Работа с многомерными массивами, математические операции.</li>
+                <li style="margin-bottom: 8px;"><i class="fa-solid fa-table" style="color: #8b5cf6; margin-right: 10px;"></i> <strong>Pandas:</strong> Анализ и манипуляция данными (DataFrame).</li>
+                <li style="margin-bottom: 8px;"><i class="fa-solid fa-chart-simple" style="color: #8b5cf6; margin-right: 10px;"></i> <strong>Matplotlib/Seaborn:</strong> Визуализация данных.</li>
+                <li style="margin-bottom: 8px;"><i class="fa-solid fa-robot" style="color: #8b5cf6; margin-right: 10px;"></i> <strong>Scikit-learn:</strong> Алгоритмы машинного обучения (это наш фокус).</li>
+                <li style="margin-bottom: 8px;"><i class="fa-solid fa-chart-line" style="color: #8b5cf6; margin-right: 10px;"></i> <strong>TensorFlow/PyTorch:</strong> Глубокое обучение.</li>
+            </ul>
+            <div class="code-block">
+                <pre>
+# Установка библиотек
+pip install numpy pandas matplotlib seaborn scikit-learn</pre>
+            </div>
+        </div>
+
+        
+    </div>
+
+    <!-- Урок 2: Знакомство с Scikit-learn -->
+    <div class="lesson-card {% if current_lesson > 1 %}completed{% elif current_lesson == 1 %}current{% endif %}" onclick="window.location.href='#lesson2'">
+        <div class="lesson-number">2</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Знакомство с Scikit-learn</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 1 %}completed{% elif current_lesson == 1 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 1 %}✅ Пройдено{% elif current_lesson == 1 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 2 -->
+    {% if current_lesson >= 1 %}
+    <div id="lesson2" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 1 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 2: Знакомство с Scikit-learn</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-cubes"></i> Единый API Scikit-learn</h3>
+            <p>Scikit-learn предоставляет единый интерфейс для всех алгоритмов:</p>
+            <ul style="list-style: none; padding: 0;">
+                <li style="margin-bottom: 8px;"><i class="fa-solid fa-code" style="color: #8b5cf6; margin-right: 10px;"></i> <strong>model = Estimator()</strong> — создание модели.</li>
+                <li style="margin-bottom: 8px;"><i class="fa-solid fa-code" style="color: #8b5cf6; margin-right: 10px;"></i> <strong>model.fit(X, y)</strong> — обучение модели на данных X и ответах y.</li>
+                <li style="margin-bottom: 8px;"><i class="fa-solid fa-code" style="color: #8b5cf6; margin-right: 10px;"></i> <strong>model.predict(X_new)</strong> — предсказание для новых данных.</li>
+                <li style="margin-bottom: 8px;"><i class="fa-solid fa-code" style="color: #8b5cf6; margin-right: 10px;"></i> <strong>model.score(X_test, y_test)</strong> — оценка качества.</li>
+            </ul>
+
+            <h4 style="margin: 20px 0 10px;">Первый пример: классификация ирисов Фишера</h4>
+            <div class="code-block">
+                <pre>
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score
+
+# 1. Загрузка данных
+iris = load_iris()
+X = iris.data  # Признаки: длина и ширина чашелистика и лепестка
+y = iris.target  # Целевая переменная: виды ирисов (0, 1, 2)
+
+# 2. Разделение на обучающую и тестовую выборки
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 3. Создание и обучение модели
+model = KNeighborsClassifier(n_neighbors=3)
+model.fit(X_train, y_train)
+
+# 4. Предсказание и оценка
+y_pred = model.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Точность модели: {accuracy:.2f}")  # 1.00</pre>
+            </div>
+            <p>Этот код загружает известный датасет "Ирисы Фишера", разделяет его на обучающую (80%) и тестовую (20%) части, обучает модель K-ближайших соседей и оценивает её точность.</p>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-gear"></i> Основные этапы ML-проекта</h3>
+            <ol style="color: #9ab3d0;">
+                <li>Понимание задачи и бизнес-целей</li>
+                <li>Сбор и предобработка данных (очистка, заполнение пропусков)</li>
+                <li>Исследовательский анализ данных (EDA) и визуализация</li>
+                <li>Выбор признаков и feature engineering</li>
+                <li>Выбор модели и её обучение</li>
+                <li>Оценка качества и настройка гиперпараметров</li>
+                <li>Развертывание модели</li>
+                <li>Мониторинг и обновление</li>
+            </ol>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 3: Классификация -->
+    <div class="lesson-card {% if current_lesson > 2 %}completed{% elif current_lesson == 2 %}current{% endif %}" onclick="window.location.href='#lesson3'">
+        <div class="lesson-number">3</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Классификация</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 2 %}completed{% elif current_lesson == 2 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 2 %}✅ Пройдено{% elif current_lesson == 2 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 3 -->
+    {% if current_lesson >= 2 %}
+    <div id="lesson3" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 2 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 3: Классификация</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-chart-pie"></i> Основные алгоритмы классификации</h3>
+            
+            <p><strong>Логистическая регрессия:</strong> Несмотря на название, используется для классификации. Предсказывает вероятность принадлежности к классу.</p>
+            <div class="code-block">
+                <pre>
+from sklearn.linear_model import LogisticRegression
+model = LogisticRegression()
+model.fit(X_train, y_train)
+print(f"Accuracy: {model.score(X_test, y_test):.2f}")</pre>
+            </div>
+
+            <p><strong>Метод опорных векторов (SVM):</strong> Ищет гиперплоскость, максимально разделяющую классы.</p>
+            <div class="code-block">
+                <pre>
+from sklearn.svm import SVC
+model = SVC(kernel='rbf')
+model.fit(X_train, y_train)
+print(f"Accuracy: {model.score(X_test, y_test):.2f}")</pre>
+            </div>
+
+            <p><strong>Дерево решений:</strong> Принимает решения, задавая серию вопросов о признаках.</p>
+            <div class="code-block">
+                <pre>
+from sklearn.tree import DecisionTreeClassifier
+model = DecisionTreeClassifier(max_depth=3)
+model.fit(X_train, y_train)
+print(f"Accuracy: {model.score(X_test, y_test):.2f}")</pre>
+            </div>
+
+            <p><strong>Случайный лес:</strong> Ансамбль деревьев решений, который обычно дает лучшие результаты.</p>
+            <div class="code-block">
+                <pre>
+from sklearn.ensemble import RandomForestClassifier
+model = RandomForestClassifier(n_estimators=100)
+model.fit(X_train, y_train)
+print(f"Accuracy: {model.score(X_test, y_test):.2f}")</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-chart-simple"></i> Оценка качества классификации</h3>
+            <p>Accuracy (точность) не всегда лучшая метрика, особенно при несбалансированных классах. Используют также:</p>
+            <ul style="color: #9ab3d0;">
+                <li><strong>Precision (точность):</strong> из всех предсказанных положительных сколько действительно положительных.</li>
+                <li><strong>Recall (полнота):</strong> из всех реальных положительных сколько мы нашли.</li>
+                <li><strong>F1-score:</strong> гармоническое среднее Precision и Recall.</li>
+                <li><strong>Confusion Matrix:</strong> матрица ошибок.</li>
+            </ul>
+            <div class="code-block">
+                <pre>
+from sklearn.metrics import classification_report, confusion_matrix
+
+print(classification_report(y_test, y_pred))
+print(confusion_matrix(y_test, y_pred))</pre>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 4: Регрессия -->
+    <div class="lesson-card {% if current_lesson > 3 %}completed{% elif current_lesson == 3 %}current{% endif %}" onclick="window.location.href='#lesson4'">
+        <div class="lesson-number">4</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Регрессия</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 3 %}completed{% elif current_lesson == 3 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 3 %}✅ Пройдено{% elif current_lesson == 3 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 4 -->
+    {% if current_lesson >= 3 %}
+    <div id="lesson4" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 3 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 4: Регрессия</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-chart-line"></i> Предсказание непрерывных значений</h3>
+            <p>Регрессия используется, когда нужно предсказать число: цену дома, температуру, количество продаж.</p>
+
+            <h4 style="margin: 20px 0 10px;">Линейная регрессия</h4>
+            <div class="code-block">
+                <pre>
+from sklearn.datasets import fetch_california_housing
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, r2_score
+
+# Загрузка данных (цены на жилье в Калифорнии)
+housing = fetch_california_housing()
+X, y = housing.data, housing.target
+
+# Разделение
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Обучение
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# Предсказание и оценка
+y_pred = model.predict(X_test)
+rmse = mean_squared_error(y_test, y_pred, squared=False)
+r2 = r2_score(y_test, y_pred)
+
+print(f"RMSE: {rmse:.2f}")
+print(f"R² Score: {r2:.3f}")</pre>
+            </div>
+            <p>RMSE (Root Mean Square Error) — стандартное отклонение ошибок предсказания. Чем меньше, тем лучше. R² — коэффициент детерминации, показывает, какую долю дисперсии объясняет модель (от 0 до 1).</p>
+
+            <h4 style="margin: 20px 0 10px;">Другие алгоритмы регрессии:</h4>
+            <ul style="color: #9ab3d0;">
+                <li><strong>Ridge/Lasso:</strong> Линейная регрессия с регуляризацией (борьба с переобучением).</li>
+                <li><strong>Decision Tree Regressor:</strong> Дерево решений для регрессии.</li>
+                <li><strong>Random Forest Regressor:</strong> Случайный лес для регрессии.</li>
+                <li><strong>SVR:</strong> Метод опорных векторов для регрессии.</li>
+            </ul>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 5: Оценка качества и валидация -->
+    <div class="lesson-card {% if current_lesson > 4 %}completed{% elif current_lesson == 4 %}current{% endif %}" onclick="window.location.href='#lesson5'">
+        <div class="lesson-number">5</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Оценка качества и валидация</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 20 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 4 %}completed{% elif current_lesson == 4 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 4 %}✅ Пройдено{% elif current_lesson == 4 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 5 -->
+    {% if current_lesson >= 4 %}
+    <div id="lesson5" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 4 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 5: Оценка качества и валидация</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-code-branch"></i> Кросс-валидация</h3>
+            <p>Вместо одного разделения на train/test, кросс-валидация многократно делит данные на обучающие и валидационные части, что дает более стабильную оценку качества.</p>
+
+            <div class="code-block">
+                <pre>
+from sklearn.model_selection import cross_val_score
+from sklearn.ensemble import RandomForestClassifier
+
+model = RandomForestClassifier(n_estimators=100)
+scores = cross_val_score(model, X, y, cv=5)  # 5-кратная кросс-валидация
+
+print(f"Средняя точность: {scores.mean():.3f}")
+print(f"Стандартное отклонение: {scores.std():.3f}")</pre>
+            </div>
+
+            <h4 style="margin: 20px 0 10px;">Grid Search — поиск лучших гиперпараметров</h4>
+            <div class="code-block">
+                <pre>
+from sklearn.model_selection import GridSearchCV
+
+param_grid = {
+    'n_estimators': [50, 100, 200],
+    'max_depth': [None, 10, 20],
+    'min_samples_split': [2, 5, 10]
+}
+
+grid_search = GridSearchCV(RandomForestClassifier(), param_grid, cv=5, scoring='accuracy')
+grid_search.fit(X_train, y_train)
+
+print(f"Лучшие параметры: {grid_search.best_params_}")
+print(f"Лучшая точность: {grid_search.best_score_:.3f}")</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-chart-gantt"></i> Кривые обучения</h3>
+            <p>Помогают понять, страдает ли модель от переобучения (overfitting) или недообучения (underfitting).</p>
+            <div class="code-block">
+                <pre>
+from sklearn.model_selection import learning_curve
+import matplotlib.pyplot as plt
+
+train_sizes, train_scores, test_scores = learning_curve(
+    model, X, y, cv=5, train_sizes=np.linspace(0.1, 1.0, 10))
+
+plt.plot(train_sizes, train_scores.mean(axis=1), label='Train')
+plt.plot(train_sizes, test_scores.mean(axis=1), label='Validation')
+plt.xlabel('Training examples')
+plt.ylabel('Score')
+plt.legend()
+plt.show()</pre>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 6: Feature Engineering -->
+    <div class="lesson-card {% if current_lesson > 5 %}completed{% elif current_lesson == 5 %}current{% endif %}" onclick="window.location.href='#lesson6'">
+        <div class="lesson-number">6</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Feature Engineering</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-book-open"></i> Теория • 25 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 5 %}completed{% elif current_lesson == 5 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 5 %}✅ Пройдено{% elif current_lesson == 5 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 6 -->
+    {% if current_lesson >= 5 %}
+    <div id="lesson6" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 5 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 6: Feature Engineering</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-wrench"></i> Создание новых признаков</h3>
+            <p>Feature Engineering — это искусство создания новых признаков из имеющихся данных, которые помогают модели лучше учиться.</p>
+
+            <div class="code-block">
+                <pre>
+import pandas as pd
+
+# Пример: работа с датой
+df['date'] = pd.to_datetime(df['date'])
+df['day_of_week'] = df['date'].dt.dayofweek
+df['month'] = df['date'].dt.month
+df['is_weekend'] = df['day_of_week'].isin([5, 6]).astype(int)
+
+# Пример: комбинация признаков
+df['area'] = df['width'] * df['height']
+df['price_per_sqm'] = df['price'] / df['area']
+
+# One-Hot Encoding для категориальных признаков
+df = pd.get_dummies(df, columns=['city', 'property_type'])</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-chart-line"></i> Масштабирование признаков</h3>
+            <p>Многие алгоритмы чувствительны к масштабу признаков. Поэтому их нужно нормализовать или стандартизировать.</p>
+
+            <div class="code-block">
+                <pre>
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
+
+# Стандартизация (среднее=0, дисперсия=1)
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# Нормализация (все значения в диапазоне [0,1])
+scaler = MinMaxScaler()
+X_scaled = scaler.fit_transform(X)</pre>
+            </div>
+        </div>
+
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-filter"></i> Отбор признаков</h3>
+            <p>Удаление неинформативных признаков улучшает качество и скорость обучения.</p>
+            <div class="code-block">
+                <pre>
+from sklearn.feature_selection import SelectKBest, f_classif
+
+# Выбор K лучших признаков
+selector = SelectKBest(score_func=f_classif, k=10)
+X_selected = selector.fit_transform(X, y)</pre>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Урок 7: Тест по ML -->
+    <div class="lesson-card {% if current_lesson > 6 %}completed{% elif current_lesson == 6 %}current{% endif %}" onclick="window.location.href='#lesson7'">
+        <div class="lesson-number">7</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Тест: Машинное обучение</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-pen-to-square"></i> Тест • 10 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 6 %}completed{% elif current_lesson == 6 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 6 %}✅ Пройдено{% elif current_lesson == 6 %}📝 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 7 -->
+    {% if current_lesson >= 6 %}
+    <div id="lesson7" class="test-block" style="scroll-margin-top: 100px; {% if current_lesson != 6 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 7: Тест по машинному обучению</h2>
+        
+        <div class="test-question">Вопрос: Для решения какой задачи лучше всего подходит классификация?</div>
+        <div class="test-options">
+            <label class="test-option">
+                <input type="radio" name="q1" value="0"> Предсказание цены квартиры
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q1" value="1"> Определение, является ли письмо спамом
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q1" value="2"> Группировка клиентов по интересам
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q1" value="3"> Удаление шума из изображения
+            </label>
+        </div>
+        <div id="feedback1" class="test-feedback" style="display: none;"></div>
+
+        <div class="test-question" style="margin-top: 30px;">Вопрос 2: Какой метод оценки качества лучше использовать для несбалансированных классов?</div>
+        <div class="test-options">
+            <label class="test-option">
+                <input type="radio" name="q2" value="0"> Accuracy
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q2" value="1"> F1-score
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q2" value="2"> RMSE
+            </label>
+            <label class="test-option">
+                <input type="radio" name="q2" value="3"> R²
+            </label>
+        </div>
+        <div id="feedback2" class="test-feedback" style="display: none;"></div>
+
+        <button class="test-btn" onclick="checkTest()">Проверить ответы</button>
+
+        <div class="navigation-buttons" style="margin-top: 30px;">
+            <button class="nav-btn" onclick="window.location.href='#lesson6'"><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <button class="nav-btn next" id="completeBtn" style="display: none;" onclick="completeCourse(23)">Завершить курс <i class="fa-solid fa-check"></i></button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Урок 8: Практический проект -->
+    <div class="lesson-card {% if current_lesson > 7 %}completed{% elif current_lesson == 7 %}current{% endif %}" onclick="window.location.href='#lesson8'">
+        <div class="lesson-number">8</div>
+        <div class="lesson-info">
+            <div class="lesson-title">Практический проект: Классификация пациентов</div>
+            <div class="lesson-type">
+                <i class="fa-solid fa-laptop-code"></i> Практика • 30 минут
+            </div>
+        </div>
+        <div class="lesson-status {% if current_lesson > 7 %}completed{% elif current_lesson == 7 %}current{% else %}locked{% endif %}">
+            {% if current_lesson > 7 %}✅ Пройдено{% elif current_lesson == 7 %}📖 Текущий{% else %}🔒 Заблокировано{% endif %}
+        </div>
+    </div>
+
+    <!-- Контент урока 8 -->
+    {% if current_lesson >= 7 %}
+    <div id="lesson8" class="theory-content" style="scroll-margin-top: 100px; {% if current_lesson != 7 %}display: none;{% endif %}">
+        <h2 style="margin-bottom: 20px;">Урок 8: Практический проект</h2>
+        
+        <div class="theory-section">
+            <h3><i class="fa-solid fa-heartbeat"></i> Проект: Предсказание сердечных заболеваний</h3>
+            <p>Создадим модель для предсказания наличия сердечного заболевания на основе клинических данных.</p>
+
+            <div class="code-block">
+                <pre>
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# 1. Загрузка и исследование данных
+# Данные можно взять из sklearn или загрузить свой датасет
+from sklearn.datasets import make_classification
+
+# Для примера создадим синтетические данные
+X, y = make_classification(n_samples=1000, n_features=20, n_informative=15, 
+                           n_redundant=5, random_state=42)
+
+# 2. Анализ данных
+print("Размер данных:", X.shape)
+print("Распределение классов:", np.bincount(y))
+
+# 3. Разделение на train/test
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 4. Масштабирование
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# 5. Обучение модели
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train_scaled, y_train)
+
+# 6. Оценка
+y_pred = model.predict(X_test_scaled)
+y_proba = model.predict_proba(X_test_scaled)[:, 1]
+
+print("Classification Report:")
+print(classification_report(y_test, y_pred))
+print(f"AUC-ROC: {roc_auc_score(y_test, y_proba):.3f}")
+
+# 7. Важность признаков
+feature_importance = pd.DataFrame({
+    'feature': [f'feature_{i}' for i in range(X.shape[1])],
+    'importance': model.feature_importances_
+}).sort_values('importance', ascending=False)
+
+print("\nТоп-5 важных признаков:")
+print(feature_importance.head())</pre>
+            </div>
+
+            <p>Задачи для самостоятельного выполнения:</p>
+            <ol style="color: #9ab3d0;">
+                <li>Используйте реальный датасет (например, UCI Heart Disease или Breast Cancer).</li>
+                <li>Проведите EDA: постройте графики распределений, корреляционную матрицу.</li>
+                <li>Попробуйте разные модели (LogisticRegression, SVM, RandomForest).</li>
+                <li>Используйте GridSearchCV для настройки гиперпараметров.</li>
+                <li>Постройте кривую ROC для лучшей модели.</li>
+                <li>Проанализируйте, какие признаки оказались наиболее важными.</li>
+            </ol>
+        </div>
+
+        <div class="note-box">
+            <i class="fa-solid fa-lightbulb"></i>
+            <div class="note-box-content">
+                <p><strong>Совет:</strong> Реальные данные часто содержат пропуски и выбросы. Попрактикуйтесь в их обработке: заполните пропуски средним/медианой, удалите выбросы с помощью IQR-метода.</p>
+            </div>
+        </div>
+
+        
+    </div>
+    {% endif %}
+
+    <!-- Кнопка возврата -->
+    <div style="margin-top: 40px; text-align: center;">
+        <a href="{{ url_for('courses') }}" class="btn btn-outline">
+            <i class="fa-solid fa-arrow-left"></i> К списку курсов
+        </a>
+    </div>
+</div>
+
+<!-- Футер -->
+<footer class="footer">
+    <div class="container">
+        <p>© 2025 PyMaster · Введение в машинное обучение на Python</p>
+    </div>
+</footer>
+
+<script>
+    // ID текущего курса
+    const courseId = {{ course.id }};
+    const totalLessons = {{ course.lessons }};
+    
+    // Функция перехода к уроку по клику
+    async function goToLesson(lessonIndex) {
+        try {
+            // Сохраняем прогресс
+            const response = await fetch('/api/save-progress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    course_id: courseId,
+                    lesson_index: lessonIndex,
+                    completed: false
+                })
+            });
+            
+            if (response.ok) {
+                const lessonElement = document.getElementById(`lesson${lessonIndex + 1}`);
+                if (lessonElement) {
+                    lessonElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    history.pushState(null, null, `#lesson${lessonIndex + 1}`);
+                    updateLessonStyles(lessonIndex);
+                } else {
+                    window.location.reload();
+                }
+            } else {
+                console.error('Ошибка сохранения прогресса:', response.status);
+            }
+        } catch (error) {
+            console.error('Ошибка сохранения прогресса:', error);
+            alert('Произошла ошибка при переходе к уроку. Попробуйте еще раз.');
+        }
+    }
+    
+    // Функция обновления стилей уроков
+    function updateLessonStyles(activeLessonIndex) {
+        const lessonCards = document.querySelectorAll('.lesson-card');
+        const lessonContents = document.querySelectorAll('.theory-content, .test-block');
+        
+        lessonCards.forEach((card, index) => {
+            card.classList.remove('current');
+            
+            if (index === activeLessonIndex) {
+                card.classList.add('current');
+            } else {
+                card.classList.remove('current');
+            }
+            
+            const statusElement = card.querySelector('.lesson-status');
+            if (statusElement) {
+                if (index === activeLessonIndex) {
+                    statusElement.className = 'lesson-status current';
+                    const lessonType = card.querySelector('.lesson-type i');
+                    if (lessonType && lessonType.classList.contains('fa-pen-to-square')) {
+                        statusElement.innerHTML = '📝 Текущий';
+                    } else {
+                        statusElement.innerHTML = '📖 Текущий';
+                    }
+                } else {
+                    statusElement.className = 'lesson-status';
+                    statusElement.innerHTML = '📚 Доступен';
+                }
+            }
+        });
+        
+        lessonContents.forEach((content, index) => {
+            if (index === activeLessonIndex) {
+                content.style.display = 'block';
+                content.style.animation = 'fadeIn 0.5s';
+            } else {
+                content.style.display = 'none';
+            }
+        });
+        
+        updateProgressBar(activeLessonIndex + 1);
+    }
+    
+    // Функция обновления прогресс-бара
+    function updateProgressBar(currentLesson) {
+        const progressPercent = Math.round((currentLesson / totalLessons) * 100);
+        
+        const progressFill = document.querySelector('.progress-fill');
+        const progressPercentSpan = document.querySelector('.progress-percent:first-child');
+        const progressCounter = document.querySelectorAll('.progress-percent')[1];
+        
+        if (progressFill) {
+            progressFill.style.width = `${progressPercent}%`;
+        }
+        
+        if (progressPercentSpan) {
+            progressPercentSpan.textContent = `${progressPercent}%`;
+        }
+        
+        if (progressCounter) {
+            progressCounter.textContent = `${currentLesson}/${totalLessons}`;
+        }
+    }
+    
+    // Функция завершения курса
+    async function completeCourse() {
+        try {
+            const response = await fetch('/api/save-progress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    course_id: courseId,
+                    lesson_index: totalLessons - 1,
+                    completed: true
+                })
+            });
+            
+            if (response.ok) {
+                alert('🎉 Поздравляем! Вы завершили курс! +50 PYTH');
+                window.location.href = "{{ url_for('courses') }}";
+            } else {
+                console.error('Ошибка завершения курса:', response.status);
+                alert('Произошла ошибка при завершении курса. Попробуйте еще раз.');
+            }
+        } catch (error) {
+            console.error('Ошибка завершения курса:', error);
+            alert('Произошла ошибка при завершении курса. Попробуйте еще раз.');
+        }
+    }
+    
+    // Функция проверки теста
+    function checkTest() {
+        const q1 = document.querySelector('input[name="q1"]:checked');
+        const q2 = document.querySelector('input[name="q2"]:checked');
+        let allCorrect = true;
+        
+        if (!q1) {
+            document.getElementById('feedback1').className = 'test-feedback incorrect';
+            document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-xmark"></i> Выберите ответ на вопрос 1';
+            document.getElementById('feedback1').style.display = 'block';
+            allCorrect = false;
+        } else if (q1.value === '1') {
+            document.getElementById('feedback1').className = 'test-feedback correct';
+            document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! Определение спама — задача классификации.';
+            document.getElementById('feedback1').style.display = 'block';
+        } else {
+            document.getElementById('feedback1').className = 'test-feedback incorrect';
+            document.getElementById('feedback1').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. Классификация используется для дискретных категорий.';
+            document.getElementById('feedback1').style.display = 'block';
+            allCorrect = false;
+        }
+        
+        if (!q2) {
+            document.getElementById('feedback2').className = 'test-feedback incorrect';
+            document.getElementById('feedback2').innerHTML = '<i class="fa-solid fa-xmark"></i> Выберите ответ на вопрос 2';
+            document.getElementById('feedback2').style.display = 'block';
+            allCorrect = false;
+        } else if (q2.value === '1') {
+            document.getElementById('feedback2').className = 'test-feedback correct';
+            document.getElementById('feedback2').innerHTML = '<i class="fa-solid fa-check"></i> Правильно! F1-score лучше учитывает дисбаланс классов.';
+            document.getElementById('feedback2').style.display = 'block';
+        } else {
+            document.getElementById('feedback2').className = 'test-feedback incorrect';
+            document.getElementById('feedback2').innerHTML = '<i class="fa-solid fa-xmark"></i> Неправильно. Для несбалансированных классов лучше использовать F1-score или AUC-ROC.';
+            document.getElementById('feedback2').style.display = 'block';
+            allCorrect = false;
+        }
+        
+        if (allCorrect) {
+            document.getElementById('completeBtn').style.display = 'flex';
+            const successMessage = document.createElement('div');
+            successMessage.className = 'test-feedback correct';
+            successMessage.innerHTML = '<i class="fa-solid fa-check"></i> 🎉 Тест пройден успешно!';
+            successMessage.style.marginTop = '20px';
+            const testBlock = document.querySelector('.test-block');
+            if (testBlock && !testBlock.querySelector('.final-success')) {
+                successMessage.classList.add('final-success');
+                testBlock.appendChild(successMessage);
+            }
+        }
+    }
+    
+    // Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        const lessonCards = document.querySelectorAll('.lesson-card');
+        const currentLessonIndex = parseInt('{{ current_lesson }}') || 0;
+        
+        lessonCards.forEach((card) => {
+            const statusElement = card.querySelector('.lesson-status');
+            if (statusElement) {
+                statusElement.classList.remove('locked');
+            }
+        });
+        
+        updateLessonStyles(currentLessonIndex);
+        
+        lessonCards.forEach((card, index) => {
+            card.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+                    return;
+                }
+                goToLesson(index);
+            });
+            card.style.cursor = 'pointer';
+        });
+        
+        if (window.location.hash) {
+            const hash = window.location.hash;
+            const lessonMatch = hash.match(/lesson(\d+)/);
+            if (lessonMatch) {
+                const lessonIndex = parseInt(lessonMatch[1]) - 1;
+                if (lessonIndex >= 0 && lessonIndex < totalLessons) {
+                    setTimeout(() => {
+                        goToLesson(lessonIndex);
+                    }, 100);
+                }
+            }
+        }
+        
+        const radioButtons = document.querySelectorAll('input[type="radio"]');
+        radioButtons.forEach(radio => {
+            radio.addEventListener('change', function() {
+                const feedbacks = document.querySelectorAll('#feedback1, #feedback2');
+                feedbacks.forEach(fb => fb.style.display = 'none');
+            });
+        });
+    });
+    
+    // Автоматическое скрытие flash сообщений
+    setTimeout(() => {
+        document.querySelectorAll('.flash-message').forEach(msg => {
+            msg.style.animation = 'slideOut 0.3s';
+            setTimeout(() => msg.remove(), 300);
+        });
+    }, 5000);
+</script>
+
+<style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .lesson-card {
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .lesson-card:hover {
+        transform: translateX(10px);
+        border-color: #8b5cf6;
+    }
+    
+    .lesson-card.current {
+        border-color: #8b5cf6;
+        background: rgba(139, 92, 246, 0.1);
+    }
+    
+    .lesson-status {
+        padding: 6px 15px;
+        border-radius: 40px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        background: rgba(139, 92, 246, 0.1);
+        color: #8b5cf6;
+        border: 1px solid #8b5cf6;
+    }
+    
+    .lesson-status.locked {
+        display: none;
+    }
+    
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+</style>
+
+</body>
+</html>
