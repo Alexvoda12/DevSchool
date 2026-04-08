@@ -78,7 +78,23 @@ courses_meta = {
     
     # === Безопасность и качество ===
     27: {'title': 'Безопасность Python-приложений', 'level': 'advanced', 'price_coins': 4990, 'price_rub': 4990, 'icon': 'fa-solid fa-shield-halved', 'lessons': 20, 'hours': 8, 'description': 'OWASP Top 10 для Python: SQL-инъекции, XSS, уязвимости десериализации, защита API.'},
-    28: {'title': 'Профилирование и оптимизация', 'level': 'expert', 'price_coins': 4490, 'price_rub': 4490, 'icon': 'fa-solid fa-gauge-high', 'lessons': 18, 'hours': 7, 'description': 'cProfile, memory_profiler, оптимизация алгоритмов, устранение узких мест (bottlenecks), работа с GIL.'}
+    28: {'title': 'Профилирование и оптимизация', 'level': 'expert', 'price_coins': 4490, 'price_rub': 4490, 'icon': 'fa-solid fa-gauge-high', 'lessons': 18, 'hours': 7, 'description': 'cProfile, memory_profiler, оптимизация алгоритмов, устранение узких мест (bottlenecks), работа с GIL.'},
+
+    # === ДОПОЛНИТЕЛЬНЫЕ КУРСЫ (Разделы 1-3) ===
+    29: {'title': 'Введение и окружение Python', 'level': 'beginner', 'price_coins': 0, 'price_rub': 0, 'icon': 'fa-solid fa-door-open', 'lessons': 10, 'hours': 5, 'description': 'История Python, философия языка, Zen of Python, переменные окружения, аргументы командной строки, запуск скриптов.'},
+    30: {'title': 'Базовый синтаксис и типы данных', 'level': 'beginner', 'price_coins': 0, 'price_rub': 0, 'icon': 'fa-solid fa-code', 'lessons': 9, 'hours': 4, 'description': 'Зарезервированные слова, многострочные операторы, комплексные числа, функции chr(), ord(), hex(), oct().'},
+    31: {'title': 'Побитовые операторы и приоритеты', 'level': 'beginner', 'price_coins': 0, 'price_rub': 0, 'icon': 'fa-solid fa-microchip', 'lessons': 8, 'hours': 4, 'description': 'Побитовые операции AND, OR, XOR, NOT, сдвиги, полная таблица приоритетов операторов Python.'},
+    32: {'title': 'Продвинутое управление потоком', 'level': 'beginner', 'price_coins': 0, 'price_rub': 0, 'icon': 'fa-solid fa-arrows-spin', 'lessons': 4, 'hours': 3, 'description': 'Вложенные циклы, конструкции for...else и while...else, пустой оператор pass.'},
+    33: {'title': 'Математические функции', 'level': 'beginner', 'price_coins': 0, 'price_rub': 0, 'icon': 'fa-solid fa-calculator', 'lessons': 3, 'hours': 2, 'description': 'math.hypot(), random.seed(), сравнение чисел и устаревшие функции.'},
+    34: {'title': 'Продвинутые функции Python', 'level': 'intermediate', 'price_coins': 199, 'price_rub': 1990, 'icon': 'fa-solid fa-function', 'lessons': 8, 'hours': 6, 'description': 'Рекурсия, функции высшего порядка, map, filter, reduce, *args, **kwargs, замыкания.'},
+    35: {'title': 'Продвинутое ООП', 'level': 'intermediate', 'price_coins': 299, 'price_rub': 2990, 'icon': 'fa-solid fa-cube', 'lessons': 6, 'hours': 5, 'description': 'Абстрактные классы, метаклассы, SOLID принципы, композиция, агрегация, дескрипторы, weakref.'},
+    36: {'title': 'Модули и пакеты: углублённо', 'level': 'intermediate', 'price_coins': 249, 'price_rub': 2490, 'icon': 'fa-solid fa-box-archive', 'lessons': 8, 'hours': 5, 'description': 'Исполняемые скрипты, sys.path, PYTHONPATH, pickle, zipfile, tarfile, tempfile, shutil.'},
+    37: {'title': 'Обработка исключений: углублённо', 'level': 'intermediate', 'price_coins': 199, 'price_rub': 1990, 'icon': 'fa-solid fa-triangle-exclamation', 'lessons': 4, 'hours': 3, 'description': 'Модуль traceback, assert, вложенные try-except, исключения в конструкторах.'},
+    38: {'title': 'Работа с файлами: углублённо', 'level': 'intermediate', 'price_coins': 249, 'price_rub': 2490, 'icon': 'fa-solid fa-folder-tree', 'lessons': 7, 'hours': 5, 'description': 'pickle, csv с диалектами, json с кодировщиками, xml, configparser, pathlib, struct.'},
+    39: {'title': 'Тестирование: углублённо', 'level': 'advanced', 'price_coins': 299, 'price_rub': 2990, 'icon': 'fa-solid fa-vial-circle-check', 'lessons': 5, 'hours': 4, 'description': 'doctest, timeit, cProfile, mock, tox — профессиональное тестирование.'},
+    40: {'title': 'Многопоточность и процессы', 'level': 'advanced', 'price_coins': 399, 'price_rub': 3990, 'icon': 'fa-solid fa-microchip', 'lessons': 8, 'hours': 7, 'description': 'threading, multiprocessing, concurrent.futures, GIL, синхронизация, очереди, пулы.'},
+    41: {'title': 'Python продвинутые техники', 'level': 'advanced', 'price_coins': 349, 'price_rub': 3490, 'icon': 'fa-solid fa-wand-magic-sparkles', 'lessons': 12, 'hours': 8, 'description': 'Декораторы, генераторы, итераторы, контекстные менеджеры, type hints, метаклассы, Enum.'},
+    42: {'title': 'Инструменты разработчика', 'level': 'intermediate', 'price_coins': 199, 'price_rub': 1990, 'icon': 'fa-solid fa-toolbox', 'lessons': 8, 'hours': 5, 'description': 'venv, pipenv, poetry, pylint, flake8, black, Jupyter, pdb, Sphinx, git.'}
 }
 
 # Преобразуем в список для совместимости
@@ -1898,7 +1914,8 @@ def register():
 
     return render_template('register.html')
 
-# Личный кабинет
+# Вместо двух отдельных маршрутов, сделаем один или перенаправление
+
 @app.route('/dashboard')
 def dashboard():
     if 'user' not in session:
@@ -1911,12 +1928,15 @@ def dashboard():
     user_data['achievements'] = get_achievements(user_data)
     user_data['days_active'] = (datetime.now() - user_data['registered']).days
     user_data['avg_hours_per_day'] = round(user_data['total_hours'] / max(1, user_data['days_active']), 1)
+    user_data['level'] = min(99, user_data['total_hours'] // 10 + 1)
+    user_data['next_level_hours'] = (user_data['level'] * 10) - user_data['total_hours']
+    user_data['tag'] = get_user_tag(user_data['total_hours'])
     
+    # Получаем купленные курсы с прогрессом
     purchased = []
     for course in courses_list:
-        if course['id'] in user_data['purchased_courses']:
-            course_copy = course.copy() # Копируем, чтобы не менять оригинальный словарь курса
-            # Добавляем прогресс для каждого курса
+        if course['id'] in user_data.get('purchased_courses', []):
+            course_copy = course.copy()
             progress_data = user_data.get('course_progress_data', {}).get(course['id'], {})
             course_copy['current_lesson'] = progress_data.get('current_lesson', 0)
             course_copy['completed'] = progress_data.get('completed', False)
@@ -1924,33 +1944,12 @@ def dashboard():
             course_copy['progress'] = int((course_copy['current_lesson'] / total_lessons) * 100) if total_lessons > 0 else 0
             purchased.append(course_copy)
     
-    user_data['purchased_courses_count'] = len(purchased)
-    user_data['balance'] = user_data.get('balance', 0)
-    
-    return render_template('dashboard.html', user=user_data, purchased_courses=purchased[:3])
+    return render_template('profile.html', user=user_data, purchased_courses=purchased[:3])
 
-# Профиль пользователя
 @app.route('/profile')
 def profile():
-    if 'user' not in session:
-        flash('Необходимо авторизоваться', 'warning')
-        return redirect(url_for('login'))
-    
-    email = session['user']['email']
-    user_data = users[email].copy()
-    user_data['email'] = email
-    user_data['tag'] = get_user_tag(user_data['total_hours'])
-    user_data['achievements'] = get_achievements(user_data)
-    user_data['level'] = min(99, user_data['total_hours'] // 10 + 1)
-    user_data['next_level_hours'] = (user_data['level'] * 10) - user_data['total_hours']
-    user_data['days_active'] = (datetime.now() - user_data['registered']).days
-    user_data['avg_hours_per_day'] = round(user_data['total_hours'] / max(1, user_data['days_active']), 1)
-    
-    user_data['balance'] = user_data.get('balance', 0)
-    user_data['transaction_history'] = user_data.get('transaction_history', [])
-    user_data['transaction_history'].sort(key=lambda x: x['date'], reverse=True)
-    
-    return render_template('profile.html', user=user_data)
+    # Перенаправляем на dashboard (объединённую страницу)
+    return redirect(url_for('dashboard'))
 
 # Страница с ценами
 @app.route('/pricing')
@@ -2043,7 +2042,22 @@ def course_page(course_id):
     25: 'course25_cicd.html',
     26: 'course26_async_pro.html',
     27: 'course27_security.html',
-    28: 'course28_optimization.html'
+    28: 'course28_optimization.html',
+    # Новые курсы (разделы 1-14)
+    29: 'course29_intro_env.html',
+    30: 'course30_syntax_types.html',
+    31: 'course31_operators.html',
+    32: 'course32_control_flow.html',
+    33: 'course33_math_funcs.html',
+    34: 'course34_advanced_funcs.html',
+    35: 'course35_advanced_oop.html',
+    36: 'course36_modules_deep.html',
+    37: 'course37_exceptions_deep.html',
+    38: 'course38_files_deep.html',
+    39: 'course39_testing_deep.html',
+    40: 'course40_threading.html',
+    41: 'course41_advanced_python.html',
+    42: 'course42_dev_tools.html'
     }
     
     template = template_map.get(course_id, 'course_template.html')
