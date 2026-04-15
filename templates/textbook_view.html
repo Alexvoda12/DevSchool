@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyMaster · {{ textbook.title }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            font-family: 'Inter', sans-serif;
+            background: #0a0c0f;
+            color: #e3e9f1;
+        }
+        
+        .navbar {
+            flex-shrink: 0;
+        }
+        
+        .pdf-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #1a1a1a;
+        }
+        
+        .pdf-toolbar {
+            background: #1e293b;
+            border-bottom: 1px solid #334155;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .pdf-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .pdf-title i {
+            font-size: 1.5rem;
+            color: #ef4444;
+        }
+        
+        .pdf-title h2 {
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+        
+        .pdf-controls {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .pdf-btn {
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .pdf-btn:hover {
+            background: #3b82f6;
+            border-color: #3b82f6;
+        }
+        
+        .pdf-container {
+            flex: 1;
+            background: #0f172a;
+        }
+        
+        .pdf-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .flash-messages {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        @media (max-width: 700px) {
+            .pdf-toolbar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .pdf-controls {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <i class="fa-solid fa-circle-check"></i> {{ message }}
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<nav class="navbar">
+    <div class="container nav-wrapper">
+        <div class="logo">
+            <i class="fa-brands fa-python logo-icon"></i>
+            <span class="logo-text">PyMaster</span>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('main') }}">Главная</a>
+            <a href="{{ url_for('courses') }}">Курсы</a>
+            <a href="{{ url_for('tasks') }}">Задачи</a>
+            <a href="{{ url_for('textbooks') }}" class="active">Учебники</a>
+            <a href="{{ url_for('ai_assistant') }}">GPT-4</a>
+            <a href="{{ url_for('dashboard') }}">Кабинет</a>
+            <a href="{{ url_for('about') }}">О нас</a>
+            
+            <div class="pyth-balance" onclick="window.location.href='{{ url_for('shop') }}'">
+                <i class="fa-solid fa-coins"></i>
+                <span>{{ user.balance }} PYTH</span>
+            </div>
+            
+            <a href="{{ url_for('logout') }}" class="logout-btn">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="pdf-wrapper">
+    <div class="pdf-toolbar">
+        <div class="pdf-title">
+            <i class="fa-regular fa-file-pdf"></i>
+            <h2>{{ textbook.title }}</h2>
+        </div>
+        <div class="pdf-controls">
+            <a href="{{ url_for('textbooks') }}" class="pdf-btn">
+                <i class="fa-solid fa-arrow-left"></i> К списку
+            </a>
+            <a href="{{ url_for('download_textbook', textbook_id=textbook_id) }}" class="pdf-btn">
+                <i class="fa-solid fa-download"></i> Скачать PDF
+            </a>
+        </div>
+    </div>
+    
+    <div class="pdf-container">
+        <iframe src="{{ url_for('static', filename='pdf/' + textbook.file) }}" 
+                title="{{ textbook.title }}">
+            Ваш браузер не поддерживает просмотр PDF
+        </iframe>
+    </div>
+</div>
+
+<script>
+    setTimeout(() => {
+        document.querySelectorAll('.flash-message').forEach(msg => {
+            msg.style.animation = 'slideOut 0.3s';
+            setTimeout(() => msg.remove(), 300);
+        });
+    }, 5000);
+</script>
+
+<style>
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+</style>
+
+</body>
+</html>

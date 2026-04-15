@@ -572,6 +572,7 @@
             <a href="{{ url_for('main') }}">Главная</a>
             <a href="{{ url_for('courses') }}" class="active">Курсы</a>
             <a href="{{ url_for('tasks') }}" class="{% if request.endpoint == 'tasks' %}active{% endif %}">Задачи</a>
+            <a href="{{ url_for('textbooks') }}" class="{% if request.endpoint == 'textbooks' %}active{% endif %}">Учебники</a>
             <a href="{{ url_for('ai_assistant') }}">GPT-4</a>
             <a href="{{ url_for('dashboard') }}">Кабинет</a>
             <a href="{{ url_for('about') }}" class="{% if request.endpoint == 'about' %}active{% endif %}">О нас</a>

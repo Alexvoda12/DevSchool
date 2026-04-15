@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, send_file
 from datetime import datetime, timedelta
 import random
 import uuid
@@ -79,22 +79,6 @@ courses_meta = {
     # === Безопасность и качество ===
     27: {'title': 'Безопасность Python-приложений', 'level': 'advanced', 'price_coins': 4990, 'price_rub': 4990, 'icon': 'fa-solid fa-shield-halved', 'lessons': 20, 'hours': 8, 'description': 'OWASP Top 10 для Python: SQL-инъекции, XSS, уязвимости десериализации, защита API.'},
     28: {'title': 'Профилирование и оптимизация', 'level': 'expert', 'price_coins': 4490, 'price_rub': 4490, 'icon': 'fa-solid fa-gauge-high', 'lessons': 18, 'hours': 7, 'description': 'cProfile, memory_profiler, оптимизация алгоритмов, устранение узких мест (bottlenecks), работа с GIL.'},
-
-    # === ДОПОЛНИТЕЛЬНЫЕ КУРСЫ (Разделы 1-3) ===
-    29: {'title': 'Введение и окружение Python', 'level': 'beginner', 'price_coins': 0, 'price_rub': 0, 'icon': 'fa-solid fa-door-open', 'lessons': 10, 'hours': 5, 'description': 'История Python, философия языка, Zen of Python, переменные окружения, аргументы командной строки, запуск скриптов.'},
-    30: {'title': 'Базовый синтаксис и типы данных', 'level': 'beginner', 'price_coins': 0, 'price_rub': 0, 'icon': 'fa-solid fa-code', 'lessons': 9, 'hours': 4, 'description': 'Зарезервированные слова, многострочные операторы, комплексные числа, функции chr(), ord(), hex(), oct().'},
-    31: {'title': 'Побитовые операторы и приоритеты', 'level': 'beginner', 'price_coins': 0, 'price_rub': 0, 'icon': 'fa-solid fa-microchip', 'lessons': 8, 'hours': 4, 'description': 'Побитовые операции AND, OR, XOR, NOT, сдвиги, полная таблица приоритетов операторов Python.'},
-    32: {'title': 'Продвинутое управление потоком', 'level': 'beginner', 'price_coins': 0, 'price_rub': 0, 'icon': 'fa-solid fa-arrows-spin', 'lessons': 4, 'hours': 3, 'description': 'Вложенные циклы, конструкции for...else и while...else, пустой оператор pass.'},
-    33: {'title': 'Математические функции', 'level': 'beginner', 'price_coins': 0, 'price_rub': 0, 'icon': 'fa-solid fa-calculator', 'lessons': 3, 'hours': 2, 'description': 'math.hypot(), random.seed(), сравнение чисел и устаревшие функции.'},
-    34: {'title': 'Продвинутые функции Python', 'level': 'intermediate', 'price_coins': 199, 'price_rub': 1990, 'icon': 'fa-solid fa-function', 'lessons': 8, 'hours': 6, 'description': 'Рекурсия, функции высшего порядка, map, filter, reduce, *args, **kwargs, замыкания.'},
-    35: {'title': 'Продвинутое ООП', 'level': 'intermediate', 'price_coins': 299, 'price_rub': 2990, 'icon': 'fa-solid fa-cube', 'lessons': 6, 'hours': 5, 'description': 'Абстрактные классы, метаклассы, SOLID принципы, композиция, агрегация, дескрипторы, weakref.'},
-    36: {'title': 'Модули и пакеты: углублённо', 'level': 'intermediate', 'price_coins': 249, 'price_rub': 2490, 'icon': 'fa-solid fa-box-archive', 'lessons': 8, 'hours': 5, 'description': 'Исполняемые скрипты, sys.path, PYTHONPATH, pickle, zipfile, tarfile, tempfile, shutil.'},
-    37: {'title': 'Обработка исключений: углублённо', 'level': 'intermediate', 'price_coins': 199, 'price_rub': 1990, 'icon': 'fa-solid fa-triangle-exclamation', 'lessons': 4, 'hours': 3, 'description': 'Модуль traceback, assert, вложенные try-except, исключения в конструкторах.'},
-    38: {'title': 'Работа с файлами: углублённо', 'level': 'intermediate', 'price_coins': 249, 'price_rub': 2490, 'icon': 'fa-solid fa-folder-tree', 'lessons': 7, 'hours': 5, 'description': 'pickle, csv с диалектами, json с кодировщиками, xml, configparser, pathlib, struct.'},
-    39: {'title': 'Тестирование: углублённо', 'level': 'advanced', 'price_coins': 299, 'price_rub': 2990, 'icon': 'fa-solid fa-vial-circle-check', 'lessons': 5, 'hours': 4, 'description': 'doctest, timeit, cProfile, mock, tox — профессиональное тестирование.'},
-    40: {'title': 'Многопоточность и процессы', 'level': 'advanced', 'price_coins': 399, 'price_rub': 3990, 'icon': 'fa-solid fa-microchip', 'lessons': 8, 'hours': 7, 'description': 'threading, multiprocessing, concurrent.futures, GIL, синхронизация, очереди, пулы.'},
-    41: {'title': 'Python продвинутые техники', 'level': 'advanced', 'price_coins': 349, 'price_rub': 3490, 'icon': 'fa-solid fa-wand-magic-sparkles', 'lessons': 12, 'hours': 8, 'description': 'Декораторы, генераторы, итераторы, контекстные менеджеры, type hints, метаклассы, Enum.'},
-    42: {'title': 'Инструменты разработчика', 'level': 'intermediate', 'price_coins': 199, 'price_rub': 1990, 'icon': 'fa-solid fa-toolbox', 'lessons': 8, 'hours': 5, 'description': 'venv, pipenv, poetry, pylint, flake8, black, Jupyter, pdb, Sphinx, git.'}
 }
 
 # Преобразуем в список для совместимости
@@ -1946,6 +1930,154 @@ def dashboard():
     
     return render_template('profile.html', user=user_data, purchased_courses=purchased[:3])
 
+# Добавьте этот маршрут в app.py после других маршрутов
+
+@app.route('/textbooks')
+def textbooks():
+    """Страница с PDF-учебниками"""
+    if 'user' not in session:
+        flash('Войдите, чтобы просматривать учебники', 'info')
+        return redirect(url_for('login'))
+    
+    email = session['user']['email']
+    user_data = users[email]
+    
+    # Список учебников
+    textbooks_list = [
+        {
+            'id': 1,
+            'title': 'Алгоритмы и структуры данных на Python',
+            'description': 'Изучите основные алгоритмы сортировки, поиска, структуры данных: стек, очередь, деревья, графы. Более 50 примеров кода и упражнений.',
+            'file': '1.pdf',
+            'pages': 245,
+            'level': 'beginner',
+            'level_name': 'Начинающий',
+            'icon': 'fa-solid fa-diagram-project',
+            'color': '#10b981',
+            'author': 'PyMaster Team',
+            'published': '2025',
+            'topics': ['Сортировка пузырьком', 'Бинарный поиск', 'Стек и очередь', 'Связные списки', 'Деревья и графы']
+        },
+        {
+            'id': 2,
+            'title': 'Регулярные выражения в Python',
+            'description': 'Полное руководство по регулярным выражениям: от простых паттернов до сложных группировок и lookaround assertions.',
+            'file': '2.pdf',
+            'pages': 178,
+            'level': 'intermediate',
+            'level_name': 'Средний',
+            'icon': 'fa-solid fa-magnifying-glass',
+            'color': '#f59e0b',
+            'author': 'PyMaster Team',
+            'published': '2025',
+            'topics': ['Синтаксис regex', 'Метасимволы', 'Группировка', 'Lookahead/Lookbehind', 're.findall/re.sub']
+        },
+        {
+            'id': 3,
+            'title': 'Работа с датой и временем',
+            'description': 'datetime, timezone, timedelta, парсинг и форматирование дат. Практические примеры для реальных проектов.',
+            'file': '3.pdf',
+            'pages': 156,
+            'level': 'beginner',
+            'level_name': 'Начинающий',
+            'icon': 'fa-solid fa-calendar',
+            'color': '#3b82f6',
+            'author': 'PyMaster Team',
+            'published': '2025',
+            'topics': ['datetime.now()', 'strftime/strptime', 'timedelta', 'Работа с часовыми поясами', 'pytz и zoneinfo']
+        },
+        {
+            'id': 4,
+            'title': 'Генераторы и итераторы в Python',
+            'description': 'Ленивые вычисления, yield, itertools, бесконечные последовательности. Оптимизация памяти и производительности.',
+            'file': '4.pdf',
+            'pages': 198,
+            'level': 'intermediate',
+            'level_name': 'Средний',
+            'icon': 'fa-solid fa-arrow-trend-down',
+            'color': '#8b5cf6',
+            'author': 'PyMaster Team',
+            'published': '2025',
+            'topics': ['Итераторы и iter()', 'Генераторы и yield', 'itertools модуль', 'Бесконечные генераторы', 'Пайплайны данных']
+        }
+    ]
+    
+    return render_template('textbooks.html', user=user_data, textbooks=textbooks_list)
+
+
+@app.route('/textbook/<int:textbook_id>')
+def textbook_detail(textbook_id):
+    """Просмотр учебника (PDF просмотрщик)"""
+    if 'user' not in session:
+        flash('Войдите, чтобы просматривать учебники', 'info')
+        return redirect(url_for('login'))
+    
+    email = session['user']['email']
+    user_data = users[email]
+    
+    textbooks_map = {
+        1: {
+            'title': 'Алгоритмы и структуры данных на Python',
+            'file': '1.pdf',
+            'description': 'Изучите основные алгоритмы сортировки, поиска, структуры данных...'
+        },
+        2: {
+            'title': 'Регулярные выражения в Python',
+            'file': '2.pdf',
+            'description': 'Полное руководство по регулярным выражениям...'
+        },
+        3: {
+            'title': 'Работа с датой и временем',
+            'file': '3.pdf',
+            'description': 'datetime, timezone, timedelta, парсинг и форматирование дат...'
+        },
+        4: {
+            'title': 'Генераторы и итераторы в Python',
+            'file': '4.pdf',
+            'description': 'Ленивые вычисления, yield, itertools, бесконечные последовательности...'
+        }
+    }
+    
+    textbook = textbooks_map.get(textbook_id)
+    if not textbook:
+        flash('Учебник не найден', 'error')
+        return redirect(url_for('textbooks'))
+    
+    return render_template('textbook_view.html', user=user_data, textbook=textbook, textbook_id=textbook_id)
+
+
+@app.route('/download-textbook/<int:textbook_id>')
+def download_textbook(textbook_id):
+    """Скачивание PDF учебника"""
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
+    textbooks_files = {
+        1: '1.pdf',
+        2: '2.pdf',
+        3: '3.pdf',
+        4: '4.pdf'
+    }
+    
+    filename = textbooks_files.get(textbook_id)
+    if not filename:
+        flash('Файл не найден', 'error')
+        return redirect(url_for('textbooks'))
+    
+    # Путь к папке с PDF файлами
+    file_path = os.path.join(app.root_path, 'static', 'pdf', filename)
+    
+    if not os.path.exists(file_path):
+        flash('Файл временно недоступен', 'error')
+        return redirect(url_for('textbooks'))
+    
+    return send_file(
+        file_path,
+        as_attachment=True,
+        download_name=filename,
+        mimetype='application/pdf'
+    )
+    
 @app.route('/profile')
 def profile():
     # Перенаправляем на dashboard (объединённую страницу)
@@ -2425,4 +2557,4 @@ def logout():
     return redirect(url_for('main'))
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=1000)
+    app.run(debug=True, host='0.0.0.0', port=80)
