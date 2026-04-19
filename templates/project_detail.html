@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyMaster · {{ project.title }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <style>
+        html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; }
+        body { display: flex; flex-direction: column; height: 100vh; font-family: 'Inter', sans-serif; background: #0a0c0f; color: #e3e9f1; }
+        .navbar { flex-shrink: 0; }
+        .project-wrapper { flex: 1; overflow-y: auto; padding: 0; background: #0a0c0f; height: calc(100vh - 80px); }
+        .project-wrapper::-webkit-scrollbar { width: 8px; }
+        .project-wrapper::-webkit-scrollbar-track { background: #1e293b; }
+        .project-wrapper::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
+        
+        .project-header { background: linear-gradient(145deg, #0f172a, #1a2635); border-radius: 40px; padding: 40px; margin-bottom: 30px; }
+        .project-title { font-size: 2rem; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .project-actions { display: flex; gap: 10px; }
+        .action-btn { background: #1e293b; border: 1px solid #2f405b; border-radius: 40px; padding: 10px 20px; color: white; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+        .action-btn:hover { border-color: #3b82f6; background: #2d3a4f; }
+        .like-btn.liked { background: #ef4444; border-color: #ef4444; }
+        
+        .project-meta { display: flex; gap: 25px; color: #9ab3d0; margin-bottom: 20px; flex-wrap: wrap; }
+        .project-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+        .tag { background: #1e293b; padding: 6px 14px; border-radius: 40px; font-size: 0.85rem; color: #60a5fa; }
+        
+        .project-description { background: #1a2635; border-radius: 24px; padding: 25px; margin-bottom: 25px; line-height: 1.6; }
+        
+        .code-section { background: #0d1117; border-radius: 24px; overflow: hidden; margin-bottom: 25px; }
+        .code-header { background: #161b22; padding: 12px 20px; border-bottom: 1px solid #30363d; display: flex; align-items: center; gap: 10px; }
+        .code-header i { color: #fbbf24; }
+        .code-content { padding: 20px; overflow-x: auto; }
+        .code-content pre { margin: 0; }
+        .code-content code { font-family: 'Courier New', monospace; font-size: 0.9rem; }
+        
+        .files-section { background: #1a2635; border-radius: 24px; padding: 25px; margin-bottom: 25px; }
+        .file-item { background: #1e293b; border-radius: 12px; padding: 12px 18px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; text-decoration: none; color: white; transition: all 0.2s; }
+        .file-item:hover { background: #2d3a4f; }
+        
+        .comments-section { background: #1a2635; border-radius: 24px; padding: 25px; margin-top: 30px; }
+        .comment { background: #1e293b; border-radius: 20px; padding: 18px; margin-bottom: 15px; }
+        .comment-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .comment-author { font-weight: 600; color: #60a5fa; }
+        .comment-date { font-size: 0.8rem; color: #6b8bb0; }
+        .comment-content { color: #cbd5e1; line-height: 1.5; }
+        
+        .comment-form { margin-top: 25px; display: flex; gap: 15px; align-items: flex-start; }
+        .comment-form textarea { flex: 1; background: #1e293b; border: 1px solid #2f405b; border-radius: 20px; padding: 12px 18px; color: white; resize: vertical; font-family: 'Inter', sans-serif; }
+        .comment-form button { background: #3b82f6; border: none; border-radius: 40px; padding: 12px 24px; color: white; cursor: pointer; font-weight: 600; }
+        
+        .container { max-width: 1000px; margin: 0 auto; padding: 0 24px; }
+        .flash-messages { position: fixed; top: 100px; right: 20px; z-index: 1000; }
+        .flash-message { padding: 16px 24px; border-radius: 40px; margin-bottom: 10px; animation: slideIn 0.3s; backdrop-filter: blur(10px); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0%); opacity: 1; } }
+        
+        .footer { border-top: 1px solid #1a2635; padding: 30px 0; text-align: center; color: #6b8bb0; margin-top: 40px; }
+        
+        @media (max-width: 700px) {
+            .project-title { flex-direction: column; align-items: flex-start; }
+            .comment-form { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}"><i class="fa-solid fa-circle-check"></i> {{ message }}</div>
+        {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<nav class="navbar">
+    <div class="container nav-wrapper">
+        <div class="logo"><i class="fa-brands fa-python logo-icon"></i><span class="logo-text">PyMaster</span></div>
+        <div class="nav-links">
+            <a href="{{ url_for('main') }}">Главная</a>
+            <a href="{{ url_for('courses') }}">Курсы</a>
+            <a href="{{ url_for('tasks') }}">Задачи</a>
+            <a href="{{ url_for('textbooks') }}">Учебники</a>
+            <a href="{{ url_for('ai_assistant') }}">GPT-4</a>
+            <a href="{{ url_for('dashboard') }}">Кабинет</a>
+            <a href="{{ url_for('projects') }}" class="active">Проекты</a>
+            <a href="{{ url_for('about') }}">О нас</a>
+            <div class="pyth-balance" onclick="window.location.href='{{ url_for('shop') }}'"><i class="fa-solid fa-coins"></i><span>{{ user.balance }} PYTH</span></div>
+            <a href="{{ url_for('logout') }}" class="logout-btn"><i class="fa-solid fa-arrow-right-from-bracket"></i></a>
+        </div>
+    </div>
+</nav>
+
+<div class="project-wrapper">
+    <div class="container" style="padding: 40px 24px;">
+        <div class="project-header">
+            <div class="project-title">
+                <h1 style="margin: 0;">{{ project.title }}</h1>
+                <div class="project-actions">
+                    <button class="action-btn like-btn" onclick="toggleLike('{{ project.id }}')">
+                        <i class="fa-solid fa-heart {% if user_liked %}liked{% endif %}"></i>
+                        <span id="likesCount">{{ project.likes_count }}</span>
+                    </button>
+                    {% if is_author %}
+                        <button class="action-btn" onclick="deleteProject('{{ project.id }}')">
+                            <i class="fa-solid fa-trash"></i> Удалить
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="project-meta">
+                <span><i class="fa-solid fa-user"></i> {{ project.author_name }}</span>
+                <span><i class="fa-solid fa-calendar"></i> {{ project.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+                <span><i class="fa-solid fa-eye"></i> {{ project.views }} просмотров</span>
+            </div>
+            
+            {% if project.tags %}
+                <div class="project-tags">
+                    {% for tag in project.tags %}
+                        <span class="tag">#{{ tag }}</span>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        
+        {% if project.description %}
+            <div class="project-description">
+                <h3><i class="fa-solid fa-align-left"></i> Описание</h3>
+                <p style="white-space: pre-wrap;">{{ project.description }}</p>
+            </div>
+        {% endif %}
+        
+        {% if project.code %}
+            <div class="code-section">
+                <div class="code-header">
+                    <i class="fa-brands fa-python"></i> <span>Код проекта</span>
+                </div>
+                <div class="code-content">
+                    <pre><code class="language-python">{{ project.code }}</code></pre>
+                </div>
+            </div>
+        {% endif %}
+        
+        {% if project.files %}
+            <div class="files-section">
+                <h3><i class="fa-solid fa-paperclip"></i> Вложения</h3>
+                {% for file in project.files %}
+                    <a href="{{ url_for('static', filename='uploads/' + file.saved_name) }}" class="file-item" download>
+                        <span><i class="fa-solid fa-file"></i> {{ file.filename }}</span>
+                        <span><i class="fa-solid fa-download"></i> {{ file.size }}</span>
+                    </a>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <div class="comments-section">
+            <h3><i class="fa-solid fa-comments"></i> Комментарии ({{ comments|length }})</h3>
+            
+            <div id="commentsList">
+                {% for comment in comments %}
+                    <div class="comment">
+                        <div class="comment-header">
+                            <span class="comment-author"><i class="fa-solid fa-user"></i> {{ comment.author_name }}</span>
+                            <span class="comment-date">{{ comment.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+                        </div>
+                        <div class="comment-content">{{ comment.content }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <div class="comment-form">
+                <textarea id="commentInput" rows="3" placeholder="Напишите комментарий..."></textarea>
+                <button onclick="addComment('{{ project.id }}')"><i class="fa-solid fa-paper-plane"></i> Отправить</button>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="footer"><div class="container"><p>© 2025 PyMaster · Обсуждайте проекты вместе</p></div></footer>
+</div>
+
+<script>
+    hljs.highlightAll();
+    
+    async function toggleLike(projectId) {
+        try {
+            const response = await fetch(`/api/project/${projectId}/like`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await response.json();
+            if (data.success) {
+                const likesSpan = document.getElementById('likesCount');
+                likesSpan.textContent = data.likes_count;
+                const likeBtn = document.querySelector('.like-btn i');
+                if (data.liked) {
+                    likeBtn.classList.add('liked');
+                } else {
+                    likeBtn.classList.remove('liked');
+                }
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+    
+    async function addComment(projectId) {
+        const input = document.getElementById('commentInput');
+        const comment = input.value.trim();
+        if (!comment) {
+            alert('Напишите комментарий');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/project/${projectId}/comment`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ comment: comment })
+            });
+            const data = await response.json();
+            if (data.success) {
+                const commentsList = document.getElementById('commentsList');
+                const newComment = document.createElement('div');
+                newComment.className = 'comment';
+                newComment.innerHTML = `
+                    <div class="comment-header">
+                        <span class="comment-author"><i class="fa-solid fa-user"></i> ${data.comment.author_name}</span>
+                        <span class="comment-date">${data.comment.created_at}</span>
+                    </div>
+                    <div class="comment-content">${data.comment.content}</div>
+                `;
+                commentsList.appendChild(newComment);
+                input.value = '';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Ошибка при отправке комментария');
+        }
+    }
+    
+    async function deleteProject(projectId) {
+        if (!confirm('Вы уверены, что хотите удалить этот проект? Это действие нельзя отменить.')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/project/${projectId}/delete`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await response.json();
+            if (data.success) {
+                window.location.href = "{{ url_for('projects') }}";
+            } else {
+                alert(data.error || 'Ошибка при удалении');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Ошибка при удалении');
+        }
+    }
+    
+    setTimeout(() => {
+        document.querySelectorAll('.flash-message').forEach(msg => {
+            msg.style.animation = 'slideOut 0.3s';
+            setTimeout(() => msg.remove(), 300);
+        });
+    }, 5000);
+</script>
+</body>
+</html>

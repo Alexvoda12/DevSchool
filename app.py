@@ -13,6 +13,9 @@ import ast
 import json
 import secrets
 from werkzeug.security import generate_password_hash, check_password_hash
+import os
+from werkzeug.utils import secure_filename
+import mimetypes
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))
@@ -20,6 +23,341 @@ app.permanent_session_lifetime = timedelta(days=30)
 
 # Инициализация G4F клиента
 client = Client()
+
+# Настройки для загрузки файлов
+UPLOAD_FOLDER = 'static/uploads'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'pdf', 'txt', 'py', 'zip', 'rar'}
+MAX_FILE_SIZE = 16 * 1024 * 1024  # 16 MB
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = MAX_FILE_SIZE
+
+# Создаем папку для загрузок если её нет
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# База данных проектов (в реальном проекте используйте настоящую БД)
+projects_db = {
+    'projects': [],
+    'comments': {},
+    'likes': {}
+}
+
+# Вспомогательная функция для проверки расширения файла
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# Функция для получения размера файла в удобном формате
+def get_file_size(size_bytes):
+    for unit in ['Б', 'КБ', 'МБ', 'ГБ']:
+        if size_bytes < 1024.0:
+            return f"{size_bytes:.1f} {unit}"
+        size_bytes /= 1024.0
+    return f"{size_bytes:.1f} ГБ"
+
+# === МАРШРУТЫ ДЛЯ ФОРУМА/ПРОЕКТОВ ===
+
+@app.route('/projects')
+def projects():
+    """Главная страница форума проектов"""
+    if 'user' not in session:
+        flash('Войдите, чтобы просматривать проекты', 'info')
+        return redirect(url_for('login'))
+    
+    email = session['user']['email']
+    user_data = users[email]
+    
+    # Получаем все проекты, сортируем по дате (новые сверху)
+    all_projects = projects_db.get('projects', [])
+    all_projects.sort(key=lambda x: x.get('created_at', datetime.min), reverse=True)
+    
+    # Добавляем информацию о лайках и комментариях
+    for project in all_projects:
+        project['likes_count'] = len(projects_db.get('likes', {}).get(project['id'], []))
+        project['comments_count'] = len(projects_db.get('comments', {}).get(project['id'], []))
+        project['user_liked'] = email in projects_db.get('likes', {}).get(project['id'], [])
+    
+    # Статистика
+    stats = {
+        'total_projects': len(all_projects),
+        'total_comments': sum(len(projects_db.get('comments', {}).get(p['id'], [])) for p in all_projects),
+        'total_likes': sum(len(projects_db.get('likes', {}).get(p['id'], [])) for p in all_projects)
+    }
+    
+    return render_template('projects.html', 
+                         user=user_data, 
+                         projects=all_projects,
+                         stats=stats)
+
+@app.route('/project/new', methods=['GET', 'POST'])
+def new_project():
+    """Создание нового проекта"""
+    if 'user' not in session:
+        flash('Войдите, чтобы создать проект', 'info')
+        return redirect(url_for('login'))
+    
+    email = session['user']['email']
+    user_data = users[email]
+    
+    if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        description = request.form.get('description', '').strip()
+        code = request.form.get('code', '').strip()
+        tags = request.form.get('tags', '').strip()
+        
+        if not title:
+            flash('Название проекта обязательно', 'error')
+            return redirect(url_for('new_project'))
+        
+        # Обработка загруженных файлов
+        uploaded_files = []
+        files = request.files.getlist('attachments')
+        
+        for file in files:
+            if file and file.filename and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                # Добавляем уникальный префикс
+                unique_filename = f"{uuid.uuid4().hex[:8]}_{filename}"
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                file.save(filepath)
+                
+                file_size = os.path.getsize(filepath)
+                uploaded_files.append({
+                    'filename': filename,
+                    'saved_name': unique_filename,
+                    'size': get_file_size(file_size),
+                    'type': mimetypes.guess_type(filename)[0] or 'application/octet-stream'
+                })
+        
+        # Создаем проект
+        project_id = str(uuid.uuid4())[:8]
+        
+        new_project = {
+            'id': project_id,
+            'title': title,
+            'description': description,
+            'code': code,
+            'tags': [t.strip() for t in tags.split(',') if t.strip()],
+            'author_email': email,
+            'author_name': user_data['name'],
+            'author_avatar': user_data.get('avatar', ''),
+            'created_at': datetime.now(),
+            'updated_at': datetime.now(),
+            'files': uploaded_files,
+            'views': 0
+        }
+        
+        projects_db.setdefault('projects', []).append(new_project)
+        projects_db.setdefault('comments', {})[project_id] = []
+        projects_db.setdefault('likes', {})[project_id] = []
+        
+        flash('Проект успешно опубликован!', 'success')
+        return redirect(url_for('project_detail', project_id=project_id))
+    
+    return render_template('new_project.html', user=user_data)
+
+@app.route('/project/<project_id>')
+def project_detail(project_id):
+    """Детальная страница проекта"""
+    if 'user' not in session:
+        flash('Войдите, чтобы просматривать проекты', 'info')
+        return redirect(url_for('login'))
+    
+    email = session['user']['email']
+    user_data = users[email]
+    
+    # Находим проект
+    project = None
+    for p in projects_db.get('projects', []):
+        if p['id'] == project_id:
+            project = p
+            break
+    
+    if not project:
+        flash('Проект не найден', 'error')
+        return redirect(url_for('projects'))
+    
+    # Увеличиваем счетчик просмотров
+    project['views'] = project.get('views', 0) + 1
+    
+    # Получаем комментарии
+    comments = projects_db.get('comments', {}).get(project_id, [])
+    
+    # Проверяем, лайкнул ли пользователь
+    user_liked = email in projects_db.get('likes', {}).get(project_id, [])
+    
+    # Проверяем, является ли пользователь автором
+    is_author = (project['author_email'] == email)
+    
+    return render_template('project_detail.html', 
+                         user=user_data,
+                         project=project,
+                         comments=comments,
+                         user_liked=user_liked,
+                         is_author=is_author)
+
+@app.route('/api/project/<project_id>/comment', methods=['POST'])
+def add_comment(project_id):
+    """Добавление комментария к проекту"""
+    if 'user' not in session:
+        return jsonify({'error': 'Не авторизован'}), 401
+    
+    data = request.json
+    comment_text = data.get('comment', '').strip()
+    
+    if not comment_text:
+        return jsonify({'error': 'Комментарий не может быть пустым'}), 400
+    
+    email = session['user']['email']
+    user_data = users[email]
+    
+    comment = {
+        'id': str(uuid.uuid4())[:8],
+        'author_email': email,
+        'author_name': user_data['name'],
+        'content': comment_text,
+        'created_at': datetime.now(),
+        'likes': 0
+    }
+    
+    projects_db.setdefault('comments', {}).setdefault(project_id, []).append(comment)
+    
+    return jsonify({
+        'success': True,
+        'comment': {
+            'id': comment['id'],
+            'author_name': comment['author_name'],
+            'content': comment['content'],
+            'created_at': comment['created_at'].strftime('%d.%m.%Y %H:%M'),
+            'likes': comment['likes']
+        }
+    })
+
+@app.route('/api/project/<project_id>/like', methods=['POST'])
+def like_project(project_id):
+    """Лайк проекта"""
+    if 'user' not in session:
+        return jsonify({'error': 'Не авторизован'}), 401
+    
+    email = session['user']['email']
+    
+    likes = projects_db.setdefault('likes', {}).setdefault(project_id, [])
+    
+    if email in likes:
+        likes.remove(email)
+        liked = False
+    else:
+        likes.append(email)
+        liked = True
+    
+    return jsonify({
+        'success': True,
+        'liked': liked,
+        'likes_count': len(likes)
+    })
+
+@app.route('/api/project/<project_id>/delete', methods=['POST'])
+def delete_project(project_id):
+    """Удаление проекта (только для автора)"""
+    if 'user' not in session:
+        return jsonify({'error': 'Не авторизован'}), 401
+    
+    email = session['user']['email']
+    
+    # Находим и удаляем проект
+    projects = projects_db.get('projects', [])
+    for i, p in enumerate(projects):
+        if p['id'] == project_id:
+            if p['author_email'] != email:
+                return jsonify({'error': 'Нет прав для удаления'}), 403
+            
+            # Удаляем файлы проекта
+            for file in p.get('files', []):
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], file['saved_name'])
+                if os.path.exists(filepath):
+                    os.remove(filepath)
+            
+            # Удаляем проект
+            projects.pop(i)
+            
+            # Удаляем комментарии и лайки
+            projects_db.get('comments', {}).pop(project_id, None)
+            projects_db.get('likes', {}).pop(project_id, None)
+            
+            return jsonify({'success': True})
+    
+    return jsonify({'error': 'Проект не найден'}), 404
+
+@app.route('/api/project/<project_id>/edit', methods=['POST'])
+def edit_project(project_id):
+    """Редактирование проекта"""
+    if 'user' not in session:
+        return jsonify({'error': 'Не авторизован'}), 401
+    
+    email = session['user']['email']
+    data = request.json
+    
+    # Находим проект
+    for p in projects_db.get('projects', []):
+        if p['id'] == project_id:
+            if p['author_email'] != email:
+                return jsonify({'error': 'Нет прав для редактирования'}), 403
+            
+            if 'title' in data:
+                p['title'] = data['title']
+            if 'description' in data:
+                p['description'] = data['description']
+            if 'code' in data:
+                p['code'] = data['code']
+            if 'tags' in data:
+                p['tags'] = [t.strip() for t in data['tags'].split(',') if t.strip()]
+            
+            p['updated_at'] = datetime.now()
+            
+            return jsonify({'success': True})
+    
+    return jsonify({'error': 'Проект не найден'}), 404
+
+@app.route('/api/upload-image', methods=['POST'])
+def upload_image():
+    """Загрузка изображения для комментария или поста"""
+    if 'user' not in session:
+        return jsonify({'error': 'Не авторизован'}), 401
+    
+    if 'image' not in request.files:
+        return jsonify({'error': 'Файл не найден'}), 400
+    
+    file = request.files['image']
+    
+    if file.filename == '':
+        return jsonify({'error': 'Файл не выбран'}), 400
+    
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        unique_filename = f"{uuid.uuid4().hex[:8]}_{filename}"
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+        file.save(filepath)
+        
+        return jsonify({
+            'success': True,
+            'url': url_for('static', filename=f'uploads/{unique_filename}')
+        })
+    
+    return jsonify({'error': 'Неподдерживаемый формат файла'}), 400
+
+@app.route('/my-projects')
+def my_projects():
+    """Мои проекты"""
+    if 'user' not in session:
+        flash('Войдите, чтобы просматривать проекты', 'info')
+        return redirect(url_for('login'))
+    
+    email = session['user']['email']
+    user_data = users[email]
+    
+    my_projects_list = [p for p in projects_db.get('projects', []) if p['author_email'] == email]
+    
+    return render_template('my_projects.html', user=user_data, projects=my_projects_list)
+
+
 
 # Функция для получения описания курса
 def get_course_description(course_id):
