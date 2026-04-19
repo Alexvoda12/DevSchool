@@ -1,0 +1,493 @@
+/* static/css/mobile.css */
+/* Адаптация под мобильные устройства (максимум 768px) */
+
+/* Базовые стили для мобильных */
+@media (max-width: 768px) {
+    
+    /* Контейнер */
+    .container {
+        padding: 0 16px !important;
+    }
+    
+    /* Навбар для мобильных */
+    .navbar {
+        position: fixed;
+        bottom: 0;
+        top: auto;
+        left: 0;
+        right: 0;
+        background: rgba(10, 12, 15, 0.95);
+        backdrop-filter: blur(10px);
+        border-top: 1px solid #2a3a55;
+        padding: 8px 0;
+        z-index: 1000;
+        box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .nav-wrapper {
+        display: flex;
+        justify-content: space-around;
+        padding: 0 !important;
+    }
+    
+    .logo {
+        display: none;
+    }
+    
+    .nav-links {
+        display: flex;
+        justify-content: space-around;
+        width: 100%;
+        gap: 5px;
+    }
+    
+    .nav-links a {
+        font-size: 0.7rem;
+        padding: 8px 12px;
+        text-align: center;
+        flex: 1;
+    }
+    
+    .nav-links a i {
+        font-size: 1.2rem;
+        display: block;
+        margin-bottom: 4px;
+    }
+    
+    .pyth-balance {
+        padding: 6px 10px;
+        font-size: 0.7rem;
+    }
+    
+    .pyth-balance i {
+        font-size: 0.8rem;
+    }
+    
+    .logout-btn {
+        padding: 8px 12px;
+    }
+    
+    /* Отступ для контента из-за фиксированного навбара снизу */
+    body {
+        padding-bottom: 70px;
+    }
+    
+    .dashboard-wrapper,
+    .courses-wrapper,
+    .tasks-wrapper,
+    .textbooks-wrapper,
+    .shop-wrapper,
+    .profile-wrapper,
+    .about-wrapper,
+    .login-wrapper,
+    .register-wrapper,
+    .new-project-wrapper,
+    .my-projects-wrapper,
+    .project-wrapper {
+        height: auto !important;
+        min-height: calc(100vh - 70px);
+        overflow-y: visible;
+    }
+    
+    /* Заголовки */
+    h1 {
+        font-size: 1.8rem !important;
+    }
+    
+    h2 {
+        font-size: 1.5rem !important;
+    }
+    
+    /* Карточки курсов */
+    .courses-grid {
+        grid-template-columns: 1fr !important;
+        gap: 20px;
+    }
+    
+    .course-card {
+        padding: 20px !important;
+    }
+    
+    /* Дашборд */
+    .dashboard-grid {
+        grid-template-columns: 1fr !important;
+        gap: 20px;
+    }
+    
+    .welcome-section .welcome-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .quick-stats {
+        justify-content: center;
+    }
+    
+    .time-counter {
+        flex-direction: column;
+        gap: 15px !important;
+        text-align: center;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr !important;
+        gap: 20px;
+    }
+    
+    .quick-actions {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 15px;
+    }
+    
+    .action-card {
+        padding: 20px 15px !important;
+    }
+    
+    .action-icon {
+        font-size: 2rem !important;
+    }
+    
+    .action-title {
+        font-size: 0.9rem !important;
+    }
+    
+    .action-desc {
+        font-size: 0.7rem !important;
+    }
+    
+    /* Список курсов */
+    .course-item {
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+    
+    .course-progress {
+        width: 100% !important;
+    }
+    
+    /* Страница курса */
+    .course-header {
+        flex-direction: column;
+        text-align: center;
+        padding: 30px 20px !important;
+    }
+    
+    .course-header-icon {
+        width: 80px;
+        height: 80px;
+        font-size: 2.5rem;
+    }
+    
+    .lesson-card {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 15px;
+    }
+    
+    .lesson-number {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+    
+    .lesson-status {
+        width: auto;
+    }
+    
+    .theory-content,
+    .test-block {
+        padding: 20px !important;
+    }
+    
+    .code-block {
+        font-size: 0.8rem;
+        padding: 15px;
+        overflow-x: auto;
+    }
+    
+    .test-option {
+        padding: 12px 15px !important;
+    }
+    
+    /* Страница задач */
+    .task-content {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .task-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .code-editor textarea {
+        height: 200px !important;
+    }
+    
+    .test-result-detail {
+        grid-template-columns: 1fr !important;
+    }
+    
+    /* Страница ИИ-помощника */
+    .gpt-page {
+        height: auto !important;
+        min-height: calc(100vh - 70px);
+    }
+    
+    .gpt-header {
+        flex-direction: column;
+        text-align: center;
+        padding: 15px !important;
+    }
+    
+    .gpt-user-info {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .gpt-status {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .gpt-stats-compact {
+        flex-direction: row;
+        justify-content: center;
+        gap: 20px;
+    }
+    
+    .gpt-messages {
+        padding: 20px 10px;
+    }
+    
+    .gpt-message {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .gpt-message-avatar {
+        margin-bottom: 10px;
+    }
+    
+    /* Страница профиля */
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .profile-name {
+        justify-content: center;
+    }
+    
+    .profile-meta {
+        justify-content: center;
+    }
+    
+    .achievements-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 15px;
+    }
+    
+    /* Магазин */
+    .packages-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .current-balance {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .balance-actions {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .payment-icons {
+        gap: 20px;
+    }
+    
+    .payment-icon {
+        font-size: 2rem;
+    }
+    
+    /* Учебники */
+    .textbooks-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .textbook-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .textbook-actions {
+        flex-direction: column;
+    }
+    
+    /* Проекты */
+    .stats-row {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .project-title {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .project-meta {
+        flex-wrap: wrap;
+    }
+    
+    .comment-form {
+        flex-direction: column;
+    }
+    
+    /* О нас */
+    .team-grid {
+        grid-template-columns: 1fr !important;
+        gap: 30px;
+    }
+    
+    .member-card {
+        padding: 30px 20px !important;
+    }
+    
+    .member-name {
+        font-size: 1.5rem;
+    }
+    
+    .member-contacts {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .contact-link {
+        width: 80%;
+        justify-content: center;
+    }
+    
+    .mission-section {
+        padding: 30px 20px !important;
+    }
+    
+    /* Аутентификация */
+    .auth-card {
+        padding: 30px 20px !important;
+        margin: 20px;
+    }
+    
+    .social-login {
+        gap: 10px;
+    }
+    
+    .social-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 1.3rem;
+    }
+    
+    /* Flash сообщения */
+    .flash-messages {
+        top: auto;
+        bottom: 80px;
+        right: 10px;
+        left: 10px;
+    }
+    
+    .flash-message {
+        font-size: 0.85rem;
+        padding: 12px 20px;
+    }
+    
+    /* Модальные окна */
+    .modal-content {
+        margin: 20px;
+        padding: 30px 20px !important;
+        width: auto;
+    }
+    
+    .modal-buttons {
+        flex-direction: column;
+    }
+    
+    /* Кнопки */
+    .btn,
+    .btn-primary,
+    .btn-secondary,
+    .btn-outline {
+        padding: 12px 20px;
+        font-size: 0.9rem;
+    }
+    
+    /* Футер */
+    .footer {
+        margin-top: 40px;
+        padding: 20px 0;
+        font-size: 0.8rem;
+    }
+}
+
+/* Для очень маленьких экранов (до 480px) */
+@media (max-width: 480px) {
+    .nav-links a {
+        font-size: 0.6rem;
+        padding: 6px 8px;
+    }
+    
+    .nav-links a i {
+        font-size: 1rem;
+    }
+    
+    h1 {
+        font-size: 1.5rem !important;
+    }
+    
+    .quick-actions {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .achievements-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .gpt-stats-compact {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .filters {
+        gap: 8px;
+    }
+    
+    .filter-btn {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+}
+
+/* Для планшетов (768px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .courses-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    .packages-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    .textbooks-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    .team-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}

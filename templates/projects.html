@@ -74,23 +74,7 @@
     {% endif %}
 {% endwith %}
 
-<nav class="navbar">
-    <div class="container nav-wrapper">
-        <div class="logo"><i class="fa-brands fa-python logo-icon"></i><span class="logo-text">PyMaster</span></div>
-        <div class="nav-links">
-            <a href="{{ url_for('main') }}">Главная</a>
-            <a href="{{ url_for('courses') }}">Курсы</a>
-            <a href="{{ url_for('tasks') }}">Задачи</a>
-            <a href="{{ url_for('textbooks') }}">Учебники</a>
-            <a href="{{ url_for('ai_assistant') }}">GPT-4</a>
-            <a href="{{ url_for('dashboard') }}">Кабинет</a>
-            <a href="{{ url_for('projects') }}" class="active">Проекты</a>
-            <a href="{{ url_for('about') }}">О нас</a>
-            <div class="pyth-balance" onclick="window.location.href='{{ url_for('shop') }}'"><i class="fa-solid fa-coins"></i><span>{{ user.balance }} PYTH</span></div>
-            <a href="{{ url_for('logout') }}" class="logout-btn"><i class="fa-solid fa-arrow-right-from-bracket"></i></a>
-        </div>
-    </div>
-</nav>
+{% include 'nav.html' %}
 
 <div class="projects-wrapper">
     <div class="container" style="padding: 40px 24px;">
@@ -99,14 +83,8 @@
             <p style="color: #9ab3d0;">Делитесь своими проектами, получайте обратную связь и вдохновляйтесь работами других!</p>
         </div>
         
-        <div class="stats-row">
-            <div class="stat-box"><div class="stat-number">{{ stats.total_projects }}</div><div class="stat-label">Всего проектов</div></div>
-            <div class="stat-box"><div class="stat-number">{{ stats.total_comments }}</div><div class="stat-label">Комментариев</div></div>
-            <div class="stat-box"><div class="stat-number">{{ stats.total_likes }}</div><div class="stat-label">Лайков</div></div>
-        </div>
-        
         <div style="text-align: right; margin-bottom: 30px;">
-            <a href="{{ url_for('new_project') }}" class="create-btn"><i class="fa-solid fa-plus"></i> Опубликовать проект</a>
+            <a href="{{ url_for('new_project') }}" class="create-btn"><i class="fa-solid fa-plus"></i> Опубликовать пост</a>
         </div>
         
         {% if projects %}
@@ -147,7 +125,6 @@
                 <i class="fa-solid fa-folder-open"></i>
                 <h3>Пока нет проектов</h3>
                 <p style="color: #9ab3d0;">Будьте первым, кто поделится своим проектом!</p>
-                <a href="{{ url_for('new_project') }}" class="create-btn" style="margin-top: 20px;"><i class="fa-solid fa-plus"></i> Создать проект</a>
             </div>
         {% endif %}
     </div>

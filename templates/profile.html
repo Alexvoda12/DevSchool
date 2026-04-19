@@ -547,32 +547,7 @@
     {% endif %}
 {% endwith %}
 
-<nav class="navbar">
-    <div class="container nav-wrapper">
-        <div class="logo">
-            <i class="fa-brands fa-python logo-icon"></i>
-            <span class="logo-text">PyMaster</span>
-        </div>
-        <div class="nav-links">
-            <a href="{{ url_for('main') }}">Главная</a>
-            <a href="{{ url_for('courses') }}">Курсы</a>
-            <a href="{{ url_for('tasks') }}">Задачи</a>
-            <a href="{{ url_for('textbooks') }}" class="{% if request.endpoint == 'textbooks' %}active{% endif %}">Учебники</a>
-            <a href="{{ url_for('ai_assistant') }}">GPT-4</a>
-            <a href="{{ url_for('dashboard') }}" class="active">Кабинет</a>
-            <a href="{{ url_for('about') }}">О нас</a>
-            
-            <div class="pyth-balance" onclick="window.location.href='{{ url_for('shop') }}'">
-                <i class="fa-solid fa-coins"></i>
-                <span>{{ user.balance }} PYTH</span>
-            </div>
-            
-            <a href="{{ url_for('logout') }}" class="logout-btn">
-                <i class="fa-solid fa-arrow-right-from-bracket"></i>
-            </a>
-        </div>
-    </div>
-</nav>
+{% include 'nav.html' %}
 
 <div class="profile-wrapper">
     <section class="profile-section">
@@ -761,7 +736,7 @@
                     
                     {% if purchased_courses|length > 0 %}
                     <div class="view-all-link">
-                        <a href="{{ url_for('my_courses') }}">Все мои курсы →</a>
+                        <a href="{{ url_for('courses') }}">Все курсы →</a>
                     </div>
                     {% endif %}
                 {% else %}
@@ -856,12 +831,6 @@
             <p>© 2025 PyMaster · Твой путь в Python с искусственным интеллектом</p>
         </div>
     </footer>
-</div>
-
-<div class="demo-button">
-    <a href="{{ url_for('add_progress') }}" class="demo-btn">
-        <i class="fa-solid fa-plus"></i> +1 час обучения (демо)
-    </a>
 </div>
 
 <script>

@@ -567,7 +567,7 @@ def get_achievements(user_data):
     if user_data['total_hours'] >= 1:
         achievements_list.append({
             'name': 'Первый шаг',
-            'icon': 'fa-footsteps',
+            'icon': 'fa-solid fa-shoe-prints',
             'unlocked': True,
             'date': user_data['registered']
         })
@@ -603,6 +603,15 @@ def get_achievements(user_data):
             'unlocked': True,
             'date': user_data['registered'] + timedelta(days=30)
         })
+    
+    if user_data['total_hours'] >= 500:
+        achievements_list.append({
+            'name': 'Пятьсот часов',
+            'icon': 'fa-clock',
+            'unlocked': True,
+            'date': user_data['registered'] + timedelta(days=60)
+        })
+    
     
     return achievements_list
 

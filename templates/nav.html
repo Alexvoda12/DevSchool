@@ -1,31 +1,473 @@
 <!-- templates/nav.html -->
 <nav class="navbar">
-    <div class="container nav-wrapper">
-        <div class="logo">
-            <i class="fa-brands fa-python logo-icon"></i>
-            <span class="logo-text">PyMaster</span>
+    <div class="nav-container">
+        <!-- Левая часть: логотип + надпись + кнопка меню -->
+        <div class="nav-left">
+            <div class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="fa-solid fa-bars"></i>
+            </div>
+            <div class="logo" onclick="window.location.href='{{ url_for('main') }}'">
+                <i class="fa-brands fa-python logo-icon"></i>
+                <span class="logo-text">PyMaster</span>
+            </div>
         </div>
-        <div class="nav-links">
-            <a href="{{ url_for('main') }}" class="{% if request.endpoint == 'main' %}active{% endif %}">Главная</a>
-            <a href="{{ url_for('courses') }}" class="{% if request.endpoint == 'courses' %}active{% endif %}">Курсы</a>
-            <a href="{{ url_for('tasks') }}" class="{% if request.endpoint == 'tasks' %}active{% endif %}">Задачи</a>
-            <a href="{{ url_for('textbooks') }}" class="{% if request.endpoint == 'textbooks' %}active{% endif %}">Учебники</a>
-            <a href="{{ url_for('ai_assistant') }}" class="{% if request.endpoint == 'ai_assistant' %}active{% endif %}">GPT-4</a>
-            <a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">Кабинет</a>
-            <a href="{{ url_for('about') }}" class="{% if request.endpoint == 'about' %}active{% endif %}">О нас</a>
-            
+        
+        <!-- Навигационные ссылки (десктоп) -->
+        <div class="nav-links" id="navLinks">
+            <a href="{{ url_for('main') }}" class="{% if request.endpoint == 'main' %}active{% endif %}">
+                <i class="fa-solid fa-house"></i>
+                <span>Главная</span>
+            </a>
+            <a href="{{ url_for('courses') }}" class="{% if request.endpoint == 'courses' %}active{% endif %}">
+                <i class="fa-solid fa-graduation-cap"></i>
+                <span>Курсы</span>
+            </a>
+            <a href="{{ url_for('tasks') }}" class="{% if request.endpoint == 'tasks' %}active{% endif %}">
+                <i class="fa-solid fa-code"></i>
+                <span>Задачи</span>
+            </a>
+            <a href="{{ url_for('textbooks') }}" class="{% if request.endpoint == 'textbooks' %}active{% endif %}">
+                <i class="fa-solid fa-book"></i>
+                <span>Учебники</span>
+            </a>
+            <a href="{{ url_for('ai_assistant') }}" class="{% if request.endpoint == 'ai_assistant' %}active{% endif %}">
+                <i class="fa-solid fa-robot"></i>
+                <span>GPT-4</span>
+            </a>
+            <a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">
+                <i class="fa-solid fa-user"></i>
+                <span>Кабинет</span>
+            </a>
+            <a href="{{ url_for('projects') }}" class="{% if request.endpoint == 'projects' %}active{% endif %}">
+                <i class="fa-solid fa-users"></i>
+                <span>Проекты</span>
+            </a>
+            <a href="{{ url_for('about') }}" class="{% if request.endpoint == 'about' %}active{% endif %}">
+                <i class="fa-solid fa-info-circle"></i>
+                <span>О нас</span>
+            </a>
+        </div>
+        
+        <!-- Правая часть: баланс и выход -->
+        <div class="nav-right">
             <div class="pyth-balance" onclick="window.location.href='{{ url_for('shop') }}'">
                 <i class="fa-solid fa-coins"></i>
-                <span>{{ session.user.balance if session.user else 0 }} PYTH</span>
+                <span class="balance-value">{{ session.user.balance if session.user else 0 }}</span>
+                <span class="balance-label">PYTH</span>
             </div>
             
             {% if session.user %}
                 <a href="{{ url_for('logout') }}" class="logout-btn">
                     <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    <span>Выход</span>
                 </a>
             {% else %}
-                <a href="{{ url_for('login') }}" class="login-btn">Войти</a>
+                <a href="{{ url_for('login') }}" class="login-btn">
+                    <i class="fa-solid fa-sign-in-alt"></i>
+                    <span>Войти</span>
+                </a>
             {% endif %}
         </div>
     </div>
 </nav>
+
+<style>
+    /* Стили для навбара */
+    .navbar {
+        background: rgba(10, 12, 15, 0.95);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid #2a3a55;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        width: 100%;
+        left: 0;
+        right: 0;
+    }
+    
+    .nav-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* Левая часть */
+    .nav-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-shrink: 0;
+    }
+    
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1.3rem;
+        font-weight: 700;
+        cursor: pointer;
+    }
+    
+    .logo-icon {
+        font-size: 1.8rem;
+        color: #3b82f6;
+    }
+    
+    .logo-text {
+        background: linear-gradient(145deg, #ffffff, #a5c9ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    /* Навигационные ссылки */
+    .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        flex-wrap: nowrap;
+        justify-content: center;
+        flex: 1;
+    }
+    
+    .nav-links a {
+        color: #94a3b8;
+        text-decoration: none;
+        padding: 8px 12px;
+        border-radius: 40px;
+        transition: all 0.2s;
+        font-weight: 500;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .nav-links a i {
+        font-size: 0.9rem;
+    }
+    
+    .nav-links a:hover {
+        color: white;
+        background: rgba(59, 130, 246, 0.1);
+    }
+    
+    .nav-links a.active {
+        color: #3b82f6;
+        background: rgba(59, 130, 246, 0.15);
+    }
+    
+    /* Правая часть */
+    .nav-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-shrink: 0;
+    }
+    
+    .pyth-balance {
+        background: linear-gradient(145deg, #987315, #fbbf24);
+        border: none;
+        border-radius: 40px;
+        padding: 8px 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-weight: 600;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        color: white;
+    }
+    
+    .pyth-balance i {
+        color: #fbbf24;
+        font-size: 1rem;
+    }
+    
+    .pyth-balance:hover {
+        transform: scale(1.02);
+        background: linear-gradient(145deg, #fbbf24, #d4a017);
+    }
+    
+    .logout-btn,
+    .login-btn {
+        background: linear-gradient(145deg, #334155, #1e293b);
+        border: none;
+        border-radius: 40px;
+        padding: 8px 16px;
+        color: white;
+        text-decoration: none;
+        transition: all 0.2s;
+        font-weight: 500;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .logout-btn:hover {
+        background: linear-gradient(145deg, #952c2c, #541919);
+    }
+    
+    .login-btn:hover {
+        background: #3b82f6;
+    }
+    
+    /* Кнопка мобильного меню */
+    .mobile-menu-btn {
+        display: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: white;
+        padding: 8px 12px;
+        background: #1e293b;
+        border-radius: 40px;
+        flex-shrink: 0;
+        transition: all 0.2s;
+    }
+    
+    .mobile-menu-btn:hover {
+        background: #3b82f6;
+    }
+    
+    /* Десктопная версия */
+    @media (min-width: 1200px) {
+        .nav-links a {
+            padding: 8px 14px;
+            font-size: 0.95rem;
+        }
+    }
+    
+    /* Планшеты и маленькие десктопы */
+    @media (max-width: 1199px) and (min-width: 769px) {
+        .nav-links a span {
+            display: none;
+        }
+        
+        .nav-links a i {
+            font-size: 1.2rem;
+        }
+        
+        .nav-links a {
+            padding: 8px 10px;
+        }
+        
+        .pyth-balance .balance-label {
+            display: none;
+        }
+        
+        .pyth-balance {
+            padding: 8px 12px;
+        }
+        
+        .logout-btn span,
+        .login-btn span {
+            display: none;
+        }
+        
+        .logout-btn,
+        .login-btn {
+            padding: 8px 12px;
+        }
+    }
+    
+    /* Мобильная версия (навбар сверху) */
+    @media (max-width: 768px) {
+        .navbar {
+            position: sticky;
+            top: 0;
+            bottom: auto;
+            border-bottom: 1px solid #2a3a55;
+            border-top: none;
+        }
+        
+        .nav-container {
+            padding: 8px 16px;
+            justify-content: space-between;
+        }
+        
+        /* Показываем кнопку меню */
+        .mobile-menu-btn {
+            display: block;
+        }
+        
+        /* Логотип на мобильных (полный, с надписью) */
+        .logo {
+            display: flex;
+        }
+        
+        .logo-text {
+            display: inline-block;
+            font-size: 1rem;
+        }
+        
+        .logo-icon {
+            font-size: 1.3rem;
+        }
+        
+        /* Скрываем десктопные навигационные ссылки */
+        .nav-links {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(10, 12, 15, 0.98);
+            backdrop-filter: blur(10px);
+            flex-direction: column;
+            padding: 20px;
+            gap: 10px;
+            border-bottom: 1px solid #2a3a55;
+            z-index: 999;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .nav-links.show {
+            display: flex;
+        }
+        
+        .nav-links a {
+            width: 100%;
+            justify-content: center;
+            padding: 12px;
+            font-size: 1rem;
+        }
+        
+        .nav-links a span {
+            display: inline;
+        }
+        
+        .nav-links a i {
+            font-size: 1.1rem;
+        }
+        
+        /* Правая часть на мобильных - показываем полный баланс */
+        .nav-right {
+            gap: 8px;
+        }
+        
+        /* Баланс на мобильных - показываем иконку + цифры + PYTH */
+        .pyth-balance {
+            padding: 6px 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .pyth-balance i {
+            font-size: 0.9rem;
+        }
+        
+        .pyth-balance .balance-value {
+            display: inline;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .pyth-balance .balance-label {
+            display: inline;
+            font-size: 0.7rem;
+            opacity: 0.9;
+        }
+        
+        /* Кнопки выхода/входа - только иконки */
+        .logout-btn span,
+        .login-btn span {
+            display: none;
+        }
+        
+        .logout-btn,
+        .login-btn {
+            padding: 6px 10px;
+        }
+        
+        body {
+            padding-bottom: 0;
+        }
+    }
+    
+    /* Очень маленькие экраны */
+    @media (max-width: 480px) {
+        .nav-container {
+            padding: 6px 12px;
+        }
+        
+        .logo-icon {
+            font-size: 1.1rem;
+        }
+        
+        .logo-text {
+            font-size: 0.85rem;
+        }
+        
+        .mobile-menu-btn {
+            padding: 5px 8px;
+            font-size: 1.1rem;
+        }
+        
+        .pyth-balance {
+            padding: 5px 8px;
+        }
+        
+        .pyth-balance i {
+            font-size: 0.8rem;
+        }
+        
+        .pyth-balance .balance-value {
+            font-size: 0.75rem;
+        }
+        
+        .pyth-balance .balance-label {
+            font-size: 0.6rem;
+        }
+        
+        .logout-btn,
+        .login-btn {
+            padding: 5px 8px;
+        }
+        
+        .logout-btn i,
+        .login-btn i {
+            font-size: 0.8rem;
+        }
+    }
+</style>
+
+<script>
+    // Мобильное меню
+    document.addEventListener('DOMContentLoaded', function() {
+        const menuBtn = document.getElementById('mobileMenuBtn');
+        const navLinks = document.getElementById('navLinks');
+        
+        if (menuBtn) {
+            menuBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                navLinks.classList.toggle('show');
+            });
+            
+            // Закрываем меню при клике на ссылку
+            const links = navLinks.querySelectorAll('a');
+            links.forEach(link => {
+                link.addEventListener('click', function() {
+                    navLinks.classList.remove('show');
+                });
+            });
+            
+            // Закрываем меню при клике вне его
+            document.addEventListener('click', function(event) {
+                if (navLinks && menuBtn && !navLinks.contains(event.target) && !menuBtn.contains(event.target)) {
+                    navLinks.classList.remove('show');
+                }
+            });
+        }
+    });
+</script>

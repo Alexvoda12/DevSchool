@@ -22,19 +22,7 @@
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="container nav-wrapper">
-            <div class="logo">
-                <i class="fa-brands fa-python logo-icon"></i>
-                <span class="logo-text">PyMaster</span>
-            </div>
-            <div class="nav-links">
-                <a href="{{ url_for('main') }}">Главная</a>
-                <a href="{{ url_for('dashboard') }}">Кабинет</a>
-                <a href="{{ url_for('logout') }}" class="btn">Выйти</a>
-            </div>
-        </div>
-    </nav>
+    {% include 'nav.html' %}
 
     <section style="padding: 60px 0; text-align: center;">
         <div class="container">

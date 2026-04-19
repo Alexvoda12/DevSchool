@@ -532,32 +532,7 @@
 {% endwith %}
 
 <!-- Навбар -->
-<nav class="navbar">
-    <div class="container nav-wrapper">
-        <div class="logo">
-            <i class="fa-brands fa-python logo-icon"></i>
-            <span class="logo-text">PyMaster</span>
-        </div>
-        <div class="nav-links">
-            <a href="{{ url_for('main') }}">Главная</a>
-            <a href="{{ url_for('courses') }}">Курсы</a>
-            <a href="{{ url_for('tasks') }}" class="{% if request.endpoint == 'task_page' %}active{% endif %}">Задачи</a>
-            <a href="{{ url_for('textbooks') }}" class="{% if request.endpoint == 'textbooks' %}active{% endif %}">Учебники</a>
-            <a href="{{ url_for('ai_assistant') }}">GPT-4</a>
-            <a href="{{ url_for('dashboard') }}">Кабинет</a>
-            <a href="{{ url_for('about') }}" class="{% if request.endpoint == 'about' %}active{% endif %}">О нас</a>
-            
-            <div class="pyth-balance" onclick="window.location.href='{{ url_for('shop') }}'">
-                <i class="fa-solid fa-coins"></i>
-                <span>{{ user.balance }} PYTH</span>
-            </div>
-            
-            <a href="{{ url_for('logout') }}" class="logout-btn">
-                <i class="fa-solid fa-arrow-right-from-bracket"></i>
-            </a>
-        </div>
-    </div>
-</nav>
+{% include 'nav.html' %}
 
 <!-- Основной контент -->
 <div class="task-wrapper">
