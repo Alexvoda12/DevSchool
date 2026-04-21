@@ -2293,59 +2293,51 @@ def textbooks():
     textbooks_list = [
         {
             'id': 1,
-            'title': 'Алгоритмы и структуры данных на Python',
-            'description': 'Изучите основные алгоритмы сортировки, поиска, структуры данных: стек, очередь, деревья, графы. Более 50 примеров кода и упражнений.',
-            'file': '1.pdf',
-            'pages': 245,
-            'level': 'beginner',
-            'level_name': 'Начинающий',
+            'title': 'УЧЕБНИК ПО УСТАНОВКЕ PYTHON',
+            'description': 'Пошаговое руководство по установке Python на Windows, macOS и Linux',
+            'file': 'Python_Installation_Guide.pdf',
+            'pages': 9,
             'icon': 'fa-solid fa-diagram-project',
             'color': '#10b981',
             'author': 'PyMaster Team',
-            'published': '2025',
-            'topics': ['Сортировка пузырьком', 'Бинарный поиск', 'Стек и очередь', 'Связные списки', 'Деревья и графы']
+            'published': '2026',
+            'topics': []
         },
         {
             'id': 2,
-            'title': 'Регулярные выражения в Python',
-            'description': 'Полное руководство по регулярным выражениям: от простых паттернов до сложных группировок и lookaround assertions.',
-            'file': '2.pdf',
-            'pages': 178,
-            'level': 'intermediate',
-            'level_name': 'Средний',
+            'title': 'УЧЕБНИК ПО ВИРТУАЛЬНЫМ ОКРУЖЕНИЯМ PYTHON',
+            'description': 'Пошаговое руководство по созданию и управлению виртуальными окружениями Python',
+            'file': 'Python_Virtual_Environment_Guide.pdf',
+            'pages': 9,
             'icon': 'fa-solid fa-magnifying-glass',
             'color': '#f59e0b',
             'author': 'PyMaster Team',
-            'published': '2025',
-            'topics': ['Синтаксис regex', 'Метасимволы', 'Группировка', 'Lookahead/Lookbehind', 're.findall/re.sub']
+            'published': '2026',
+            'topics': []
         },
         {
             'id': 3,
-            'title': 'Работа с датой и временем',
-            'description': 'datetime, timezone, timedelta, парсинг и форматирование дат. Практические примеры для реальных проектов.',
-            'file': '3.pdf',
-            'pages': 156,
-            'level': 'beginner',
-            'level_name': 'Начинающий',
+            'title': 'УЧЕБНИК ПО УСТАНОВКЕ PIP',
+            'description': 'Пошаговое руководство по установке pip если он отсутствует в системе',
+            'file': 'Python_Pip_Installation_Guide.pdf',
+            'pages': 9,
             'icon': 'fa-solid fa-calendar',
             'color': '#3b82f6',
             'author': 'PyMaster Team',
-            'published': '2025',
-            'topics': ['datetime.now()', 'strftime/strptime', 'timedelta', 'Работа с часовыми поясами', 'pytz и zoneinfo']
+            'published': '2026',
+            'topics': []
         },
         {
             'id': 4,
-            'title': 'Генераторы и итераторы в Python',
-            'description': 'Ленивые вычисления, yield, itertools, бесконечные последовательности. Оптимизация памяти и производительности.',
-            'file': '4.pdf',
-            'pages': 198,
-            'level': 'intermediate',
-            'level_name': 'Средний',
+            'title': 'УЧЕБНИК ПО КОМПИЛЯЦИИ PYTHON В EXE',
+            'description': 'Пошаговое руководство по созданию исполняемых файлов и пониманию их структуры',
+            'file': 'Python_EXE_Compilation_Guide.pdf',
+            'pages': 9,
             'icon': 'fa-solid fa-arrow-trend-down',
             'color': '#8b5cf6',
             'author': 'PyMaster Team',
-            'published': '2025',
-            'topics': ['Итераторы и iter()', 'Генераторы и yield', 'itertools модуль', 'Бесконечные генераторы', 'Пайплайны данных']
+            'published': '2026',
+            'topics': []
         }
     ]
     
@@ -2364,24 +2356,24 @@ def textbook_detail(textbook_id):
     
     textbooks_map = {
         1: {
-            'title': 'Алгоритмы и структуры данных на Python',
-            'file': '1.pdf',
-            'description': 'Изучите основные алгоритмы сортировки, поиска, структуры данных...'
+            'title': 'УЧЕБНИК ПО УСТАНОВКЕ PYTHON',
+            'file': 'Python_Installation_Guide.pdf',
+            'description': 'Пошаговое руководство по установке Python на Windows, macOS и Linux'
         },
         2: {
-            'title': 'Регулярные выражения в Python',
-            'file': '2.pdf',
-            'description': 'Полное руководство по регулярным выражениям...'
+            'title': 'УЧЕБНИК ПО ВИРТУАЛЬНЫМ ОКРУЖЕНИЯМ PYTHON',
+            'file': 'Python_Virtual_Environment_Guide.pdf',
+            'description': 'Пошаговое руководство по созданию и управлению виртуальными окружениями Python'
         },
         3: {
-            'title': 'Работа с датой и временем',
-            'file': '3.pdf',
-            'description': 'datetime, timezone, timedelta, парсинг и форматирование дат...'
+            'title': 'УЧЕБНИК ПО УСТАНОВКЕ PIP',
+            'file': 'Python_Pip_Installation_Guide.pdf',
+            'description': 'Пошаговое руководство по установке pip если он отсутствует в системе'
         },
         4: {
-            'title': 'Генераторы и итераторы в Python',
-            'file': '4.pdf',
-            'description': 'Ленивые вычисления, yield, itertools, бесконечные последовательности...'
+            'title': 'УЧЕБНИК ПО КОМПИЛЯЦИИ PYTHON В EXE',
+            'file': 'Python_EXE_Compilation_Guide.pdf',
+            'description': 'Пошаговое руководство по созданию исполняемых файлов и пониманию их структуры'
         }
     }
     
@@ -2399,11 +2391,12 @@ def download_textbook(textbook_id):
     if 'user' not in session:
         return redirect(url_for('login'))
     
+    # Словарь соответствия ID учебника и имени файла
     textbooks_files = {
-        1: '1.pdf',
-        2: '2.pdf',
-        3: '3.pdf',
-        4: '4.pdf'
+        1: 'Python_Installation_Guide.pdf',
+        2: 'Python_Virtual_Environment_Guide.pdf',
+        3: 'Python_Pip_Installation_Guide.pdf',
+        4: 'Python_EXE_Compilation_Guide.pdf'
     }
     
     filename = textbooks_files.get(textbook_id)
@@ -2415,15 +2408,16 @@ def download_textbook(textbook_id):
     file_path = os.path.join(app.root_path, 'static', 'pdf', filename)
     
     if not os.path.exists(file_path):
-        flash('Файл временно недоступен', 'error')
+        flash(f'Файл временно недоступен. Путь: {file_path}', 'error')
         return redirect(url_for('textbooks'))
     
     return send_file(
         file_path,
         as_attachment=True,
-        download_name=filename,
+        download_name=filename,  # Сохраняем нормальное имя файла
         mimetype='application/pdf'
     )
+    
     
 @app.route('/profile')
 def profile():
